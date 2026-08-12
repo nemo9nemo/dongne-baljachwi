@@ -126,10 +126,47 @@ Enter로 태그를 추가/삭제하는 단순한 입력 방식. 기록 카드에
   → **확정**: Vite+React+TS(SPA), Supabase(Postgres+Auth+Storage), 배포는 Vercel,
   보조 지도는 카카오맵. `CLAUDE.md` 참고.
 - ~~지하철역 좌표 데이터를 어디서 가져올지 결정 필요~~
-  → **확정**: 공공데이터포털/TAGO API. 메인 노선도는 API 좌표를 가공한 SVG 렌더링.
+  → **확정 (2026-08-12 개정)**: 전국도시철도역사정보표준데이터(공공데이터포털 파일데이터).
+  TAGO API는 실 호출 검증 실패(엔드포인트 무효 추정)로 폐기. 메인 노선도는 이 좌표를
+  가공한 SVG 렌더링. `docs/decisions/001-tech-stack.md`, `docs/specs/02-station-master.md`
+  §9 참고.
 - ~~계정/커플 연결 방식(초대 코드, 소셜 로그인 등) 설계 필요~~
   → **확정**: 초대 코드 방식.
 - ~~사진 저장소(스토리지) 선정 필요~~
   → **확정**: Supabase Storage.
 - 안 가본 역 추천의 실제 계산 근거(전국 역 마스터 데이터) 확보 방안 결정 필요
   → **미결정으로 유지**. MVP는 수도권 주요 노선 범위로 축소해서 시작.
+
+## 9. 관련 문서 색인
+
+> ⚠️ 이 섹션은 **노션 원문이 아니라 로컬에서 추가한 색인**이다. 위의 §1~§8만이 노션 전사이며,
+> 기능 요구사항의 변경은 노션에서 이뤄지고 여기로 다시 전사된다.
+
+### 기능 스펙 (`docs/specs/`)
+
+| 스펙 | 다루는 PRD 항목 | 우선순위 |
+|---|---|---|
+| [00-data-model.md](specs/00-data-model.md) | 전 기능 공통 스키마·RLS 계약 (화면 없음) | 선행 조건 |
+| [01-auth-couple-link.md](specs/01-auth-couple-link.md) | §3 계정/로그인, §8 초대 코드 | P0 |
+| [02-station-master.md](specs/02-station-master.md) | §8 역 좌표 데이터, §5.5 역 마스터 (화면 없음) | 선행 조건 |
+| [03-line-map.md](specs/03-line-map.md) | §4 노선도, §5.1 | P0 |
+| [04-station-detail.md](specs/04-station-detail.md) | §4 역 상세, §3 역별 기록 보기 | P0 |
+| [05-record-editor.md](specs/05-record-editor.md) | §4 기록 작성/수정, §5.2 감정·날씨, §5.3 태그, §3 실 데이터 저장 | P0 |
+| [06-record-detail.md](specs/06-record-detail.md) | §4 기록 상세 | P0 |
+| [07-map-view.md](specs/07-map-view.md) | §4 지도 보기, §3 지도 보기 전환 | P1 |
+| [08-timeline.md](specs/08-timeline.md) | §4 타임라인, §5.3 태그 필터 | P1 |
+| [09-couple-profile.md](specs/09-couple-profile.md) | §4 프로필, §3 커플 프로필, §5.5 안 가본 역 추천 | P0 / P1 |
+| [10-record-card-image.md](specs/10-record-card-image.md) | §5.4 기록 카드 이미지 저장 | P1 |
+
+**이번 스펙 범위에서 제외한 항목** — §3에서 P2로 명시된 것들이다.
+- 기념일 알림 (P2): `started_on` 데이터는 준비되어 있으나 알림·강조 기능은 만들지 않는다.
+- 외부 공유 (P2): PRD가 "이미지 저장 기능으로 일부 대체"로 정의했고,
+  그 대체재는 `10-record-card-image.md`가 담당한다.
+
+### 결정 기록 (`docs/decisions/`)
+
+| ADR | 내용 |
+|---|---|
+| [001-tech-stack.md](decisions/001-tech-stack.md) | 프레임워크·백엔드·지도·커플 연결 방식 확정 |
+| [002-rls-only-authorization.md](decisions/002-rls-only-authorization.md) | RLS를 유일한 인가 계층으로 삼고 `couple_id`를 비정규화 |
+| [003-line-map-geometry-as-static-asset.md](decisions/003-line-map-geometry-as-static-asset.md) | 노선도 도식 좌표를 DB가 아닌 정적 자산으로 관리 |
