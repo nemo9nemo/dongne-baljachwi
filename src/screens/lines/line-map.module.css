@@ -1,0 +1,282 @@
+/*
+ * 노선도 화면 (docs/specs/03-line-map.md).
+ * 값은 전부 tokens.css 변수를 참조한다. 노선 색은 --line-<n> (lines.color_token 이 가리키는 이름).
+ */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  /* AppShell 의 .main(flex 컨테이너) 안에서 남은 높이를 전부 쓴다.
+     min-height:0 이 있어야 캔버스가 콘텐츠 높이 아래로도 줄어들어 탭바를 밀지 않는다. */
+  flex: 1;
+  min-height: 0;
+  background-image: var(--app-screen-wash);
+  background-repeat: no-repeat;
+  background-size: 100% var(--app-screen-wash-height);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-4) var(--space-3);
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+.headerControls {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.select {
+  min-height: var(--touch-target);
+  padding: 0 var(--space-3);
+  background: var(--color-field);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.toggleLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  text-decoration: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.toggleLink:hover {
+  color: var(--color-text);
+  background: var(--color-surface-muted);
+}
+
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  background: var(--color-notice-bg);
+  border-block: 1px solid var(--color-notice-border);
+}
+
+.bannerButton {
+  min-height: var(--touch-target);
+  padding: 0 var(--space-3);
+  cursor: pointer;
+  background: none;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.notice {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.canvasWrap {
+  position: relative;
+  flex: 1;
+  min-height: 220px;
+}
+
+/* 절대 배치인 이유: `height: 100%`는 부모(.canvasWrap)가 flex 아이템이라 퍼센트 기준이
+   확정되지 않아 콘텐츠 높이로 접힌다. inset:0 이면 그 문제가 없다. */
+.canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* 브라우저 기본 팬/줌 제스처를 끄지 않으면 드래그가 페이지 스크롤로 새어 나간다. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.skeleton {
+  position: absolute;
+  inset: 0;
+  background: var(--color-surface-muted);
+}
+
+/* 역 그룹. 포인터 이벤트는 SVG 루트에서 "가장 가까운 역" 방식으로 처리하므로(F-24)
+   개별 요소는 히트 테스트에 참여하지 않는다. 키보드 포커스는 그대로 받는다. */
+.station {
+  pointer-events: none;
+  outline-offset: 2px;
+}
+
+.station:focus-visible {
+  outline: 2px solid var(--color-focus);
+}
+
+/* F-12: 선택되지 않은 호선은 숨기지 않고 흐리게. F-13대로 탭은 계속 받는다. */
+.stationDimmed,
+.lineDimmed {
+  opacity: 0.22;
+}
+
+/*
+ * ── 역 심볼 채움 (F-03) ────────────────────────────────────────────────
+ * 채움 농도로 방문 빈도를 인코딩한다. 기준점은 **10회 = 노선 원색**이고,
+ * 5회 단위로 한 단계씩: 10회 미만은 서피스 쪽으로 흐리게, 10회 이상은
+ * 텍스트 색 쪽으로 짙게 간다.
+ *
+ * 혼합 대상이 흰색/검정이 아니라 --color-surface / --color-text 인 이유:
+ * 이 두 토큰이 테마에 따라 뒤집히므로(라이트 #fff↔#1f181d, 다크 #1f181d↔#f5eef2)
+ * "적을수록 배경에 가깝고, 많을수록 배경에서 멀다"는 한 가지 규칙이 라이트·다크
+ * 양쪽에서 그대로 성립한다. 다크에서 검정 쪽으로 짙게 하면 배경에 파묻힌다.
+ *
+ * 혼합 비율이 연한 쪽(35/20)과 짙은 쪽(15/30/45)에서 비대칭인 이유:
+ * 라이트에서 --line-2(#009944)는 흰색 대비가 3.72:1 뿐이라 흰색 쪽 여유가 좁다.
+ * 같은 폭으로 섞으면 연한 두 단계가 서로 구분되지 않아, 연한 쪽만 보폭을 넓혔다.
+ * 결과적으로 라이트 기준 인접 단계 간 명도 대비가 1.23~1.30 배로 고르게 나온다
+ * (흰 서피스 대비: 2.33 → 2.86 → 3.72 → 4.70 → 6.02 → 7.77).
+ *
+ * 테두리(stroke)는 어느 단계에서도 노선 원색 그대로다. 채움이 아무리 연해져도
+ * 심볼 경계는 배경 대비 3:1 이상(라이트 3.72:1 / 다크 7.66:1)을 유지한다
+ * — WCAG 1.4.11 을 채움이 아니라 테두리가 보장한다는 뜻이다.
+ * 덤으로 기준(10~14회)에서만 채움과 테두리가 같은 색이라 링이 사라지고,
+ * 위아래 단계에서는 링이 다시 보인다 — 농도 외의 부수적 단서가 된다.
+ */
+.symbol {
+  /* 10~14회 = 기준색. color-mix 미지원 브라우저(iOS Safari 16.0~16.1)에서
+     모든 방문 단계가 떨어지는 폴백이기도 하다 — 변경 전 동작과 같아진다. */
+  fill: var(--station-color);
+}
+
+/* 0회. 채움 없음(서피스와 같은 색) — 방문/미방문은 색이 아니라 "채움 여부"로 구분한다 (§6). */
+.symbolEmpty {
+  fill: var(--color-surface);
+}
+
+@supports (fill: color-mix(in srgb, red 50%, blue)) {
+  /* 1~4회 */
+  .symbolPale2 {
+    fill: color-mix(in srgb, var(--station-color) 65%, var(--color-surface));
+  }
+
+  /* 5~9회 */
+  .symbolPale1 {
+    fill: color-mix(in srgb, var(--station-color) 80%, var(--color-surface));
+  }
+
+  /* 15~19회 */
+  .symbolDeep1 {
+    fill: color-mix(in srgb, var(--station-color) 85%, var(--color-text));
+  }
+
+  /* 20~24회 */
+  .symbolDeep2 {
+    fill: color-mix(in srgb, var(--station-color) 70%, var(--color-text));
+  }
+
+  /* 25회 이상. 상한 — 여기서 더 짙어지지 않는다. */
+  .symbolDeep3 {
+    fill: color-mix(in srgb, var(--station-color) 55%, var(--color-text));
+  }
+
+  /* 다크에서는 짙은 쪽 보폭을 키운다. --line-2 다크값(#2dc46f)이 이미 밝아서
+     밝은 쪽(--color-text) 여유가 좁고, 라이트와 같은 15/30/45 로는 인접 단계
+     대비가 1.09배까지 눌려 사실상 구분이 안 된다. 25/45/65 로 1.15배까지 벌렸다.
+     연한 쪽(35/20)은 다크에서 오히려 여유가 커서(서피스↔원색 7.66:1) 그대로 둔다. */
+  @media (prefers-color-scheme: dark) {
+    .symbolDeep1 {
+      fill: color-mix(in srgb, var(--station-color) 75%, var(--color-text));
+    }
+
+    .symbolDeep2 {
+      fill: color-mix(in srgb, var(--station-color) 55%, var(--color-text));
+    }
+
+    .symbolDeep3 {
+      fill: color-mix(in srgb, var(--station-color) 35%, var(--color-text));
+    }
+  }
+}
+
+.label {
+  font-size: 13px;
+  fill: var(--color-text);
+  /* 선 위에 글자가 올라앉으면 읽히지 않는다. 배경색 테두리를 글자 뒤로 깔아 후광을 만든다. */
+  stroke: var(--color-surface);
+  stroke-width: 3px;
+  paint-order: stroke fill;
+}
+
+.badgeText {
+  font-size: 12px;
+  font-weight: var(--font-weight-bold);
+  fill: var(--color-text-inverse);
+  stroke: none;
+}
+
+.zoomControls {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.zoomButton {
+  width: var(--touch-target);
+  height: var(--touch-target);
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  cursor: pointer;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.zoomButton:hover {
+  background: var(--color-surface-muted);
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  font-size: var(--font-size-sm);
+}
+
+.emptyHint {
+  padding: var(--space-3) var(--space-4);
+  text-align: center;
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-md);
+}
+
+.missing > summary {
+  min-height: var(--touch-target);
+  padding: var(--space-3) 0;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.missingList {
+  max-height: 240px;
+  padding-left: var(--space-5);
+  margin: 0;
+  overflow-y: auto;
+}

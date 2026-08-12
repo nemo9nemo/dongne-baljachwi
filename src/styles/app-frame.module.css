@@ -1,0 +1,73 @@
+/*
+ * 앱 프레임 — 라우팅 트리 전체(로그인 화면 + AppShell)를 감싸는 최상위 프레젠테이션 레이어.
+ *
+ * 모바일(<768px): 아무것도 하지 않는다. 완전 풀블리드. 모바일 우선 원칙(CLAUDE.md).
+ * 태블릿/데스크톱(≥768px): 앱을 480px 카드 안에 넣고 브랜드 톤 백드롭 위에 띄운다.
+ *   넓은 창에서 "가운데 좁은 글자 + 사방이 흰 여백"으로 보이던 문제를 해결한다.
+ *
+ * 브레이크포인트 768px는 하드코딩이다 — 미디어 쿼리는 CSS 변수를 못 받는다.
+ * 값을 바꿀 때는 docs/design/app-frame.md 를 함께 고친다.
+ */
+
+.backdrop {
+  display: flex;
+  flex-direction: column;
+  /* 100%가 아니라 dvh인 이유: 부모(#root)의 height 확정 여부에 의존하지 않게 하고,
+     모바일 브라우저 주소창 접힘까지 따라가게 하려고. */
+  min-height: 100dvh;
+}
+
+.frame {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  background: var(--color-bg);
+}
+
+/* 라우팅된 화면(.shell / .screen / .centerBox)이 프레임 높이를 채우게 한다.
+   AppShell의 sticky 탭바가 짧은 화면에서도 바닥에 붙으려면 이게 필요하다.
+   :last-child인 이유: 프레임의 첫 자식은 Supabase 미설정 경고 배너일 수 있고,
+   그건 늘어나면 안 되기 때문. */
+.frame > :last-child {
+  flex: 1 0 auto;
+}
+
+@media (min-width: 768px) {
+  .backdrop {
+    align-items: center;
+    justify-content: center;
+    /* 프레임이 뷰포트에 딱 붙지 않도록. 백드롭이 보여야 프레임이 프레임으로 읽힌다. */
+    padding: var(--space-8);
+    background: var(--app-backdrop);
+  }
+
+  .frame {
+    /* 데스크톱에서는 프레임 자체가 스크롤 컨테이너다.
+       그래야 안쪽 탭바(sticky)가 뷰포트가 아니라 프레임 바닥에 붙는다. */
+    flex: 0 1 auto;
+    width: var(--app-frame-width);
+    max-width: 100%;
+    height: 100%;
+    max-height: var(--app-frame-max-height);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--app-frame-border);
+    border-radius: var(--app-frame-radius);
+    box-shadow: var(--shadow-frame);
+  }
+
+  /* 프레임을 세로로 꽉 채우려면 백드롭이 확정 높이를 가져야 한다
+     (자식의 height: 100%가 풀리도록). */
+  .backdrop {
+    height: 100dvh;
+  }
+}
+
+/* 데스크톱 프레임은 스크롤을 자주 만든다. 스크롤바가 프레임 안쪽 둥근 모서리를
+   깎지 않도록 얇고 조용하게. (Firefox/Chromium 양쪽) */
+@supports (scrollbar-width: thin) {
+  .frame {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-strong) transparent;
+  }
+}

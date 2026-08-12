@@ -1,0 +1,88 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  /* 높이는 앱 프레임(styles/app-frame.module.css)이 flex로 늘려준다.
+     min-height: 100%를 쓰지 않는 이유: 프레임이 스크롤 컨테이너가 되는 데스크톱에서
+     퍼센트 기준이 흔들리기 때문. */
+  flex: 1 0 auto;
+}
+
+/* 자식(각 화면)이 남은 높이를 실제로 받으려면 여기가 flex 컨테이너여야 한다.
+   화면 쪽에서 `height: 100%`를 쓰는 방법은 안 통한다 — 조상(.backdrop)이 min-height만
+   갖고 있어 퍼센트의 기준 높이가 확정되지 않기 때문이다.
+   min-height는 auto 그대로 둔다. 0으로 내리면 폼처럼 긴 화면이 잘린다. */
+.main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  background: var(--color-notice-bg);
+  border-bottom: 1px solid var(--color-notice-border);
+}
+
+.configWarning {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-inverse);
+  background: var(--color-danger);
+}
+
+/* fixed가 아니라 sticky인 이유: 데스크톱에서 앱이 프레임 카드 안에 들어가는데,
+   fixed는 뷰포트 기준이라 탭바만 화면 전체 폭으로 삐져나간다. sticky는 스크롤
+   컨테이너(모바일=뷰포트, 데스크톱=프레임) 바닥에 붙으므로 양쪽 다 맞는다.
+   흐름 안에 있으므로 .main에 별도 하단 패딩을 줄 필요도 없다. */
+.tabbar {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  /* 탭 하나가 최소 44px 터치 타깃을 넘도록 높이를 확보한다. */
+  min-height: calc(var(--tabbar-height) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* 지도/노선도 위에 얹히므로 반투명 금지. 불투명 서피스로 대비를 보장한다. */
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.tab {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch-target);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.tab:hover {
+  color: var(--color-text);
+  background: var(--color-surface-muted);
+}
+
+/* 색만으로 현재 탭을 알리지 않는다 — 굵기 + 상단 인디케이터 바를 함께 준다. */
+.tabActive {
+  position: relative;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+.tabActive::before {
+  position: absolute;
+  top: -1px;
+  right: var(--space-4);
+  left: var(--space-4);
+  height: 2px;
+  content: '';
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+}

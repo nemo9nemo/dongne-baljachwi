@@ -1,122 +1,142 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { SessionProvider } from './auth/SessionProvider'
+import {
+  RedirectIfSignedIn,
+  RequireAuth,
+  RequireCouple,
+  RequireNoCouple,
+} from './auth/guards'
+import { AppShell } from './components/AppShell'
+import { isSupabaseConfigured } from './lib/supabase'
+import { Placeholder } from './screens/Placeholder'
+import { LineMapScreen } from './screens/lines/LineMapScreen'
+import { AuthCallbackScreen } from './screens/auth/AuthCallbackScreen'
+import { ForgotPasswordScreen } from './screens/auth/ForgotPasswordScreen'
+import { LoginScreen } from './screens/auth/LoginScreen'
+import { ResetPasswordScreen } from './screens/auth/ResetPasswordScreen'
+import { SignUpScreen } from './screens/auth/SignUpScreen'
+import { VerifyEmailScreen } from './screens/auth/VerifyEmailScreen'
+import { CoupleLinkedScreen } from './screens/invite/CoupleLinkedScreen'
+import { InviteScreen } from './screens/invite/InviteScreen'
+import { OnboardingScreen } from './screens/onboarding/OnboardingScreen'
+import { ProfileScreen } from './screens/profile/ProfileScreen'
+import shell from './components/AppShell.module.css'
+import frame from './styles/app-frame.module.css'
+import ui from './styles/ui.module.css'
 
-function App() {
-  const [count, setCount] = useState(0)
-
+/**
+ * 라우팅 구조.
+ *
+ * PRD §4의 7개 화면 경로를 지금 확정해 둔다. 이번 라운드에 실제로 구현한 것은
+ * `01-auth-couple-link.md`(인증·커플 연결)뿐이고, 나머지 화면은 자리표시자다.
+ * 경로 명명은 개발자 재량이다 (04 F-09).
+ *
+ * 가드 계층:
+ *   RequireAuth → RequireCouple → AppShell(탭 레이아웃) → 각 화면
+ * 온보딩만 `RequireAuth → RequireNoCouple`로 반대 조건을 건다 (01 §2.4).
+ *
+ * backdrop/frame div는 순수 프레젠테이션이다. 로그인 화면과 AppShell은 라우팅상
+ * 형제라 공통 조상이 여기뿐이어서, 데스크톱 앱 프레임을 이 위치에서 씌운다.
+ * (styles/app-frame.module.css — 모바일에서는 아무 효과 없음)
+ */
+export default function App() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <SessionProvider>
+      <BrowserRouter>
+        <div className={frame.backdrop}>
+          <div className={frame.frame}>
+            {/* Supabase 프로젝트가 아직 없으면 모든 네트워크 호출이 실패한다.
+                화면이 조용히 비어 보이는 것보다 이유를 알려주는 게 낫다. */}
+            {!isSupabaseConfigured && (
+              <p className={shell.configWarning} role="alert">
+                .env.local의 VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY가 비어 있어 서버
+                호출이 모두 실패합니다.
+              </p>
+            )}
 
-      <div className="ticks"></div>
+            <Routes>
+              {/* 미인증 전용 */}
+              <Route element={<RedirectIfSignedIn />}>
+                <Route path="/login" element={<LoginScreen />} />
+                <Route path="/signup" element={<SignUpScreen />} />
+              </Route>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+              {/* 세션 유무와 무관하게 열려야 하는 메일 링크 착지점 */}
+              <Route path="/verify-email" element={<VerifyEmailScreen />} />
+              <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
+              <Route path="/auth/callback" element={<AuthCallbackScreen />} />
+              <Route path="/auth/reset-password" element={<ResetPasswordScreen />} />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+              <Route element={<RequireAuth />}>
+                {/* 커플 미연결 상태에서만 보이는 온보딩 */}
+                <Route element={<RequireNoCouple />}>
+                  <Route path="/onboarding" element={<OnboardingScreen />} />
+                </Route>
+
+                {/* 온보딩의 연장선. 탭 레이아웃 없이 전체 화면으로 보여준다.
+                    RequireCouple을 씌우지 않는 이유: 커플을 만든 직후 세션 갱신이 끝나기
+                    전에 여기로 이동하기 때문이다. 커플 없이 직접 들어온 경우는 각 화면이
+                    스스로 온보딩으로 돌려보낸다. */}
+                <Route path="/invite" element={<InviteScreen />} />
+                <Route path="/couple/linked" element={<CoupleLinkedScreen />} />
+
+                <Route element={<RequireCouple />}>
+                  <Route element={<AppShell />}>
+                    <Route path="/" element={<Navigate to="/lines" replace />} />
+                    <Route path="/lines" element={<LineMapScreen />} />
+                    <Route
+                      path="/map"
+                      element={
+                        <Placeholder title="지도 보기" spec="docs/specs/07-map-view.md" />
+                      }
+                    />
+                    <Route
+                      path="/stations/:stationId"
+                      element={
+                        <Placeholder title="역 상세" spec="docs/specs/04-station-detail.md" />
+                      }
+                    />
+                    <Route
+                      path="/records/new"
+                      element={
+                        <Placeholder title="기록 작성" spec="docs/specs/05-record-editor.md" />
+                      }
+                    />
+                    <Route
+                      path="/records/:recordId"
+                      element={
+                        <Placeholder title="기록 상세" spec="docs/specs/06-record-detail.md" />
+                      }
+                    />
+                    <Route
+                      path="/records/:recordId/edit"
+                      element={
+                        <Placeholder title="기록 수정" spec="docs/specs/05-record-editor.md" />
+                      }
+                    />
+                    <Route
+                      path="/timeline"
+                      element={
+                        <Placeholder title="타임라인" spec="docs/specs/08-timeline.md" />
+                      }
+                    />
+                    <Route path="/profile" element={<ProfileScreen />} />
+                  </Route>
+                </Route>
+              </Route>
+
+              <Route
+                path="*"
+                element={
+                  <div className={ui.centerBox}>
+                    <p>없는 페이지예요.</p>
+                  </div>
+                }
+              />
+            </Routes>
+          </div>
+        </div>
+      </BrowserRouter>
+    </SessionProvider>
   )
 }
-
-export default App
