@@ -60,6 +60,39 @@ export type DissolveCoupleResult = {
   purge_after: string
 }
 
+/**
+ * `records.mood` 허용값 (00 §4.5 CHECK, 05 F-11).
+ * 저장 값은 이모지가 아니라 이 영문 슬러그다 (05 F-14) — 이모지는 플랫폼마다 렌더가 다르고,
+ * 표현을 DB에 넣으면 나중에 바꿀 수 없다.
+ */
+export type Mood = 'happy' | 'love' | 'excited' | 'calm' | 'sad'
+
+/** `records.weather` 허용값 (00 §4.5 CHECK, 05 F-12) */
+export type Weather = 'sunny' | 'cloudy' | 'rainy' | 'snowy' | 'windy'
+
+/** `record_photos.content_type` 허용값 (00 §4.6 CHECK) */
+export type PhotoContentType = 'image/jpeg' | 'image/png' | 'image/webp'
+
+/** `upsert_record` 인자 (05 §4.2). 신규는 `p_record_id = null` */
+export type UpsertRecordArgs = {
+  p_record_id: string | null
+  p_station_id: string
+  /** `YYYY-MM-DD`. 미래 불가 — 상한은 클라이언트 로컬 날짜가 정한다 (00 D-13) */
+  p_visited_on: string
+  p_mood: Mood | null
+  p_weather: Weather | null
+  p_note: string | null
+  /** 정규화 전 원문. 최대 10개. 서버가 다시 정규화한다 (00 §4.7) */
+  p_tags: string[]
+}
+
+/** `upsert_record` **성공** 반환 (05 §4.2). 실패는 예외 봉투로 온다 */
+export type UpsertRecordResult = {
+  record_id: string
+  created: boolean
+  updated_at: string
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -126,16 +159,75 @@ export type Database = {
           couple_id: string
           station_id: string
           visited_on: string
-          mood: string | null
-          weather: string | null
+          mood: Mood | null
+          weather: Weather | null
           note: string | null
           author_id: string
           last_edited_by: string | null
           created_at: string
           updated_at: string
         }
-        // 기록 작성은 05-record-editor 라운드에서 채운다. 이 라운드는 해제 모달의
-        // 총 기록 수 집계(01 §2.3)를 위해 SELECT만 쓴다.
+        // 본문 쓰기는 반드시 upsert_record RPC를 거친다 (05 F-34: 본문+태그가 한 트랜잭션).
+        // 직접 INSERT/UPDATE 경로를 타입 단계에서 막아 "태그만 빠진 절반짜리 기록"을 원천 차단한다.
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      record_photos: {
+        Row: {
+          id: string
+          record_id: string
+          couple_id: string
+          storage_path: string
+          sort_order: number
+          width: number
+          height: number
+          byte_size: number
+          content_type: PhotoContentType
+          created_at: string
+        }
+        // 사진만 RPC 밖이다 (05 §4.3): 업로드는 오래 걸려 트랜잭션에 넣을 수 없다.
+        // `couple_id`는 트리거가 부모 records에서 복사하므로 클라이언트가 보내지 않는다.
+        // `id`는 Storage 경로에 먼저 필요해서 클라이언트가 만든다 (05 §4.3 1단계).
+        Insert: {
+          id: string
+          record_id: string
+          storage_path: string
+          sort_order: number
+          width: number
+          height: number
+          byte_size: number
+          content_type: PhotoContentType
+        }
+        // 순서 변경은 UPDATE가 아니라 삭제 후 재삽입이다 —
+        // UNIQUE(record_id, sort_order) 때문에 제자리 교체가 유니크 충돌을 낸다.
+        Update: Record<string, never>
+        Relationships: []
+      }
+      record_tags: {
+        Row: {
+          record_id: string
+          tag_norm: string
+          couple_id: string
+          tag: string
+          created_at: string
+        }
+        // 태그 쓰기는 upsert_record 안에서만 일어난다 (05 F-34).
+        Insert: Record<string, never>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      station_lines: {
+        // 05 F-09(검색 결과 호선 배지)에만 쓴다. 노선도는 이 테이블 없이 도식 좌표로 그린다.
+        Row: {
+          station_id: string
+          line_id: string
+          station_no: string | null
+          seq: number
+          lat: number
+          lng: number
+        }
+        // 쓰기는 service_role 배치만 (02 §4.7).
         Insert: Record<string, never>
         Update: Record<string, never>
         Relationships: []
@@ -193,6 +285,17 @@ export type Database = {
         }
         Relationships: []
       }
+      /** 커플별 태그 사용 집계 (00 §4.9). 05 F-28 태그 자동완성 소스 */
+      couple_tag_usage: {
+        Row: {
+          couple_id: string
+          tag_norm: string
+          usage_count: number
+          /** 가장 최근에 쓴 표기. 같은 tag_norm에 "Cafe"/"cafe"가 섞여도 칩 표기가 흔들리지 않게 */
+          tag: string
+        }
+        Relationships: []
+      }
     }
     Functions: {
       // 아래 셋은 실패 시 예외를 던지므로 Returns는 성공 모양뿐이다.
@@ -212,6 +315,17 @@ export type Database = {
       dissolve_couple: {
         Args: { p_confirm: string }
         Returns: DissolveCoupleResult
+      }
+      /**
+       * 05 §4.2. 본문+태그를 한 트랜잭션으로 저장한다. 실패는 예외 봉투(경로 A).
+       *
+       * ⚠️ 인자 이름은 스펙 §4.2의 `record_id/station_id/...`에 `p_` 접두사를 붙인 형태로
+       * 가정했다. 기존 SQL 함수 넷이 모두 `p_` 접두사를 쓰므로 같은 규칙을 따랐다.
+       * **백엔드 구현과 이름이 다르면 호출 자체가 404로 실패하므로 먼저 맞춰야 한다.**
+       */
+      upsert_record: {
+        Args: UpsertRecordArgs
+        Returns: UpsertRecordResult
       }
     }
   }

@@ -1,11 +1,10 @@
-import type { PostgrestError } from '@supabase/supabase-js'
-import { isNetworkFailure, supabase } from './supabase'
+import { supabase } from './supabase'
+import { envelopeToFailure, narrowRpcError } from './rpc-error'
 import type {
   CreateCoupleResult,
   DissolveCoupleResult,
   IssueInviteResult,
   RedeemInviteResult,
-  RpcErrorEnvelope,
 } from './database.types'
 
 /**
@@ -75,7 +74,7 @@ export type RpcResult<T> =
  */
 export const DISSOLVE_CONFIRM_PHRASE = '연결 해제'
 
-const KNOWN_CODES: ReadonlySet<string> = new Set<CoupleErrorCode>([
+const KNOWN_CODES: ReadonlySet<CoupleErrorCode> = new Set<CoupleErrorCode>([
   'UNAUTHENTICATED',
   'ALREADY_IN_COUPLE',
   'INVALID_START_DATE',
@@ -92,60 +91,6 @@ const KNOWN_CODES: ReadonlySet<string> = new Set<CoupleErrorCode>([
   'COUPLE_DISSOLVED',
   'CONFIRM_MISMATCH',
 ])
-
-/**
- * 실패 봉투를 화면이 쓸 형태로 옮긴다.
- *
- * `error_code`가 타입상 `string`인 것은 DB가 주는 값이라 컴파일 타임에 보장되지 않기 때문이다.
- * 아는 코드가 아니면 UNKNOWN으로 떨어뜨린다 — 모르는 코드로 분기하다가 조용히 아무 문구도
- * 안 나오는 상황을 만들지 않기 위해서다.
- */
-function envelopeToFailure(envelope: RpcErrorEnvelope): RpcFailure {
-  const retry = envelope.retry_after
-  return {
-    code: KNOWN_CODES.has(envelope.error_code)
-      ? (envelope.error_code as CoupleErrorCode)
-      : 'UNKNOWN',
-    retryAfterSec: typeof retry === 'number' && Number.isFinite(retry) ? retry : null,
-  }
-}
-
-/**
- * 경로 (A): 예외로 던져진 실패를 좁힌다.
- *
- * `app_raise()`가 봉투 JSON을 예외 메시지 본문에 그대로 싣고, PostgREST는 그것을 응답의
- * `message`로 내보낸다. detail/hint는 백엔드가 **의도적으로 비워 둔다** — 파싱 지점이
- * 둘이면 여기서 또 관용 파싱을 해야 하기 때문이다. 그래서 `message`만 본다.
- */
-function narrowError(error: PostgrestError): RpcFailure {
-  // fetch 자체가 실패하면 postgrest-js가 TypeError 메시지를 그대로 담아 준다.
-  // 이 경우 SQL 함수는 실행조차 되지 않았으므로 재시도 가능한 네트워크 오류로 본다.
-  if (isNetworkFailure(error)) {
-    return { code: 'NETWORK', retryAfterSec: null }
-  }
-
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(error.message)
-  } catch {
-    // 봉투가 아닌 원시 DB 에러(제약 위반 등). 화면에 보여줄 수 있는 문구가 없다.
-    return { code: 'UNKNOWN', retryAfterSec: null }
-  }
-  if (typeof parsed !== 'object' || parsed === null) {
-    return { code: 'UNKNOWN', retryAfterSec: null }
-  }
-
-  const bag = parsed as Record<string, unknown>
-  if (typeof bag.error_code !== 'string') {
-    return { code: 'UNKNOWN', retryAfterSec: null }
-  }
-
-  return envelopeToFailure({
-    error_code: bag.error_code,
-    message: typeof bag.message === 'string' ? bag.message : '',
-    retry_after: typeof bag.retry_after === 'number' ? bag.retry_after : null,
-  })
-}
 
 /**
  * 실패 코드에 대응하는 화면 문구.
@@ -207,7 +152,7 @@ export async function createCouple(
     p_started_on: startedOn,
     p_display_name: displayName,
   })
-  if (error) return { ok: false, failure: narrowError(error) }
+  if (error) return { ok: false, failure: narrowRpcError(error, KNOWN_CODES) }
   if (data == null) return { ok: false, failure: { code: 'UNKNOWN', retryAfterSec: null } }
   return { ok: true, data }
 }
@@ -215,7 +160,7 @@ export async function createCouple(
 /** F-08 / AC-04: 새 코드 발급. 기존 유효 코드는 서버에서 즉시 무효화된다. */
 export async function issueInvite(): Promise<RpcResult<IssueInviteResult>> {
   const { data, error } = await supabase.rpc('issue_invite', {})
-  if (error) return { ok: false, failure: narrowError(error) }
+  if (error) return { ok: false, failure: narrowRpcError(error, KNOWN_CODES) }
   if (data == null) return { ok: false, failure: { code: 'UNKNOWN', retryAfterSec: null } }
   return { ok: true, data }
 }
@@ -239,9 +184,9 @@ export async function redeemInvite(
     p_display_name: displayName,
   })
   // 여기 걸리는 건 봉투가 아니라 네트워크 실패·권한 오류 등 "함수 바깥"의 문제다.
-  if (error) return { ok: false, failure: narrowError(error) }
+  if (error) return { ok: false, failure: narrowRpcError(error, KNOWN_CODES) }
   if (data == null) return { ok: false, failure: { code: 'UNKNOWN', retryAfterSec: null } }
-  if ('error_code' in data) return { ok: false, failure: envelopeToFailure(data) }
+  if ('error_code' in data) return { ok: false, failure: envelopeToFailure(data, KNOWN_CODES) }
   return { ok: true, data }
 }
 
@@ -253,7 +198,7 @@ export async function dissolveCouple(
   confirm: string,
 ): Promise<RpcResult<DissolveCoupleResult>> {
   const { data, error } = await supabase.rpc('dissolve_couple', { p_confirm: confirm })
-  if (error) return { ok: false, failure: narrowError(error) }
+  if (error) return { ok: false, failure: narrowRpcError(error, KNOWN_CODES) }
   if (data == null) return { ok: false, failure: { code: 'UNKNOWN', retryAfterSec: null } }
   return { ok: true, data }
 }

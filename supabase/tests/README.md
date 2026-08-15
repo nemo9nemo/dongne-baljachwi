@@ -21,6 +21,7 @@ Postgres 에 처음부터 적용되는가"까지 같이 검증한다.
 | `30-records.test.sql` | records / photos / tags / 집계 뷰 / Storage 격리 |
 | `40-local-date.test.sql` | KST(로컬) 날짜 vs UTC(서버) 날짜 회귀 테스트 |
 | `50-station-master.test.sql` | `apply_station_master` 멱등성 · 폐역 처리 · `master_version` · 배치 권한 |
+| `60-upsert-record.test.sql` | `upsert_record` 신규/수정 · 서버 검증 7종 · 태그 정규화·중복·전체 교체 |
 
 ## 테스트 작성 규칙
 

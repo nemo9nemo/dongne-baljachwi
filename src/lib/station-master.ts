@@ -15,6 +15,8 @@ import { STORAGE_PREFIX } from './app-storage'
 
 /** `lines` 한 행. `color_token`은 색상값이 아니라 tokens.css 변수 이름이다 (02 §4.1) */
 export type LineRow = {
+  /** `station_lines.line_id` 와 잇는 키. 05 F-09(역 검색 결과 호선 배지)에서 쓴다 */
+  id: string
   code: string
   name: string
   sort_order: number
@@ -47,7 +49,7 @@ export type StationMaster = {
 
 const CACHE_KEY = `${STORAGE_PREFIX}station-master`
 /** 캐시 레이아웃이 바뀌면 올린다. 옛 캐시를 파싱하다 죽지 않게 하는 용도. */
-const CACHE_SCHEMA = 1
+const CACHE_SCHEMA = 2
 
 type CachedMaster = { schema: number; version: number; lines: LineRow[]; stations: StationRow[] }
 
@@ -103,7 +105,7 @@ export async function loadStationMaster(): Promise<StationMaster> {
 
   const linesRes = await supabase
     .from('lines')
-    .select('code, name, sort_order, color_token, in_mvp_scope, is_active')
+    .select('id, code, name, sort_order, color_token, in_mvp_scope, is_active')
     .order('sort_order')
     .order('code')
   if (linesRes.error !== null) throw linesRes.error
@@ -128,4 +130,60 @@ export async function loadStationMaster(): Promise<StationMaster> {
   }
 
   return { version, lines: linesRes.data, stations, stale: false }
+}
+
+/** `station_lines` 중 소속 관계만. 좌표·역번호는 클라이언트가 쓸 일이 없어 받지 않는다 */
+export type StationLineRow = { station_id: string; line_id: string }
+
+const LINES_CACHE_KEY = `${STORAGE_PREFIX}station-lines`
+
+type CachedStationLines = { schema: number; version: number; rows: StationLineRow[] }
+
+/**
+ * 역 ↔ 호선 소속 관계 (05 F-09 검색 결과 호선 배지).
+ *
+ * 마스터 본체와 **분리해서 지연 로드**한다. 이 관계는 기록 작성 화면의 역 검색에서만
+ * 필요한데, `loadStationMaster`에 합치면 앱의 기본 화면인 노선도가 진입할 때마다
+ * 안 쓰는 1,000행대 페이로드를 함께 받게 된다 (02 §6의 전송량 예산).
+ *
+ * 캐시 무효화 키는 마스터와 같은 `master_version`이다 — 배치가 역을 재적재하면
+ * 소속 관계도 함께 바뀌기 때문이다.
+ *
+ * @param version {@link loadStationMaster}가 돌려준 마스터 버전
+ */
+export async function loadStationLines(version: number): Promise<StationLineRow[]> {
+  const raw = window.localStorage.getItem(LINES_CACHE_KEY)
+  if (raw !== null) {
+    try {
+      const parsed: unknown = JSON.parse(raw)
+      if (typeof parsed === 'object' && parsed !== null) {
+        const c = parsed as Partial<CachedStationLines>
+        if (c.schema === CACHE_SCHEMA && c.version === version && Array.isArray(c.rows)) {
+          return c.rows
+        }
+      }
+    } catch {
+      // 깨진 캐시는 무시하고 새로 받는다.
+    }
+  }
+
+  const rows: StationLineRow[] = []
+  for (let from = 0; ; from += PAGE) {
+    const page = await supabase
+      .from('station_lines')
+      .select('station_id, line_id')
+      .order('station_id')
+      .range(from, from + PAGE - 1)
+    if (page.error !== null) throw page.error
+    rows.push(...page.data)
+    if (page.data.length < PAGE) break
+  }
+
+  try {
+    const next: CachedStationLines = { schema: CACHE_SCHEMA, version, rows }
+    window.localStorage.setItem(LINES_CACHE_KEY, JSON.stringify(next))
+  } catch {
+    // 캐시 실패는 기능에 영향이 없다.
+  }
+  return rows
 }

@@ -1,0 +1,407 @@
+/*
+ * 기록 작성/수정 화면 (docs/specs/05-record-editor.md).
+ * 값은 전부 tokens.css 변수를 참조한다 — 리터럴 색/간격을 새로 만들지 않는다.
+ *
+ * 폼 프리미티브(.field/.input/.button/.chip 없음)는 styles/ui.module.css를 그대로 쓰고,
+ * 여기에는 이 화면에만 있는 것(토글, 사진 그리드, 칩, 저장 바)만 둔다.
+ */
+
+.screen {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-6) var(--space-4);
+  background-image: var(--app-screen-wash);
+  background-repeat: no-repeat;
+  background-size: 100% var(--app-screen-wash-height);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 필수 표시는 색만으로 알리지 않는다 — 별표 문자 자체가 신호다. */
+.required {
+  color: var(--color-primary);
+}
+
+.skeleton {
+  flex: 1;
+  min-height: 320px;
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-lg);
+}
+
+/* ── 역 선택 ─────────────────────────────────────────────────────────── */
+
+.selectedStation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.selectedStationName {
+  margin-right: var(--space-2);
+  font-weight: var(--font-weight-bold);
+}
+
+/* 텍스트 링크처럼 보이되 폼 안이라 button이어야 하는 자리. */
+.linkButton {
+  min-height: var(--touch-target);
+  padding: 0 var(--space-2);
+  color: var(--color-primary);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.linkButton:disabled {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.searchResults {
+  display: flex;
+  flex-direction: column;
+  /* 결과가 20개까지라 목록이 화면을 밀어낸다. 자체 스크롤로 가둔다. */
+  max-height: 260px;
+  margin: 0;
+  overflow-y: auto;
+  list-style: none;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding-inline-start: 0;
+}
+
+.searchResults:not(:empty) {
+  border: 1px solid var(--color-border);
+}
+
+.searchResult {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: var(--space-2) var(--space-4);
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.searchResults li:last-child .searchResult {
+  border-bottom: 0;
+}
+
+.searchResult:hover {
+  background: var(--color-surface-muted);
+}
+
+.searchResultName {
+  font-weight: var(--font-weight-medium);
+}
+
+.badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.badge {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  padding: 0 var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-pill);
+}
+
+/* 노선 색은 점으로만 쓴다 — 배지 바탕에 쓰면 대비를 보장할 수 없다(StationPicker 주석). */
+.badgeDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+}
+
+/* ── 감정 · 날씨 토글 ────────────────────────────────────────────────── */
+
+.toggleGroup {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-2);
+}
+
+.toggle {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-items: center;
+  justify-content: center;
+  min-height: calc(var(--touch-target) + var(--space-4));
+  padding: var(--space-2) 0;
+  cursor: pointer;
+  background: var(--color-field);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.toggle:hover:not(:disabled) {
+  background: var(--color-surface);
+}
+
+/* 선택 상태를 색 하나로만 알리지 않는다 — 테두리 두께와 글자 굵기가 함께 바뀐다. */
+.toggleOn {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+
+.toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.toggleEmoji {
+  font-size: var(--font-size-lg);
+  line-height: 1;
+}
+
+.toggleLabel {
+  font-size: var(--font-size-xs);
+}
+
+/* ── 사진 ────────────────────────────────────────────────────────────── */
+
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  list-style: none;
+  padding-inline-start: 0;
+}
+
+.photoItem {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  /* 정사각 썸네일. 사진 비율이 제각각이라 그리드가 들쭉날쭉해지는 걸 막는다. */
+  aspect-ratio: 1;
+}
+
+.photoDragging {
+  opacity: 0.5;
+}
+
+.photoThumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.photoBadge {
+  position: absolute;
+  top: var(--space-1);
+  left: var(--space-1);
+  padding: 0 var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-inverse);
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+}
+
+.photoBadgeFailed {
+  top: auto;
+  bottom: calc(var(--touch-target) + var(--space-1));
+  background: var(--color-danger);
+}
+
+/* 썸네일 위에 겹치는 조작 버튼. 사진이 밝을 수 있으므로 불투명 바탕을 깐다. */
+.photoControls {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.photoButton {
+  flex: 1;
+  min-height: var(--touch-target);
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.photoButton:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+}
+
+.photoButton:disabled {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+/* ── 태그 ────────────────────────────────────────────────────────────── */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  list-style: none;
+  padding-inline-start: 0;
+}
+
+.chip {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+}
+
+/* F-27: 중복 입력은 에러가 아니라 "이미 있다"는 신호다. 잠깐 강조만 한다. */
+.chipFlash {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+}
+
+.chipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 칩 안이라 44px 타깃을 쓸 수 없다. 칩 자체가 목록 항목이고 삭제는 보조 경로라
+     28px로 두되, 키보드 사용자는 Backspace로도 지울 수 있다 (F-25). */
+  width: 28px;
+  height: 28px;
+  font-size: var(--font-size-md);
+  line-height: 1;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-pill);
+}
+
+.chipRemove:hover:not(:disabled) {
+  background: var(--color-surface);
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.suggestion {
+  min-height: var(--touch-target);
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  background: var(--color-field);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-pill);
+}
+
+.suggestion:hover:not(:disabled) {
+  background: var(--color-surface);
+}
+
+/* ── 일기 · 저장 ─────────────────────────────────────────────────────── */
+
+.textarea {
+  min-height: 140px;
+  line-height: var(--line-height-normal);
+  resize: vertical;
+}
+
+/*
+ * 저장 바. 스크롤 컨테이너(모바일=뷰포트, 데스크톱=앱 프레임) 바닥에 붙되
+ * AppShell의 탭바(sticky) 높이만큼 띄운다. fixed를 쓰면 데스크톱 프레임 밖으로 삐져나온다.
+ */
+.saveBar {
+  position: sticky;
+  bottom: calc(var(--tabbar-height) + env(safe-area-inset-bottom, 0px));
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+  /* 아래 내용이 비쳐 보이면 버튼 대비가 무너진다. 불투명 배경 필수. */
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+}
+
+/*
+ * §6 모바일: 키보드가 올라와도 현재 입력 필드가 저장 바에 가려지지 않게 한다.
+ * 브라우저가 포커스 요소를 스크롤해 보여줄 때 이만큼 여유를 남긴다.
+ */
+.screen :is(input, textarea) {
+  scroll-margin-bottom: calc(var(--tabbar-height) + var(--control-height) + var(--space-8));
+}
+
+/* ── 모달 ────────────────────────────────────────────────────────────── */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-dialog);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: var(--color-overlay);
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: var(--content-max-width);
+  max-height: 90vh;
+  padding: var(--space-6);
+  overflow-y: auto;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-dialog);
+}
