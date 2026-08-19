@@ -48,8 +48,9 @@ export type StationMaster = {
 }
 
 const CACHE_KEY = `${STORAGE_PREFIX}station-master`
-/** 캐시 레이아웃이 바뀌면 올린다. 옛 캐시를 파싱하다 죽지 않게 하는 용도. */
-const CACHE_SCHEMA = 2
+/** 캐시 레이아웃이 바뀌면 올린다. 옛 캐시를 파싱하다 죽지 않게 하는 용도.
+ * 3 = station_lines에 `seq` 추가 (09 안 가본 역 추천). */
+const CACHE_SCHEMA = 3
 
 type CachedMaster = { schema: number; version: number; lines: LineRow[]; stations: StationRow[] }
 
@@ -132,8 +133,11 @@ export async function loadStationMaster(): Promise<StationMaster> {
   return { version, lines: linesRes.data, stations, stale: false }
 }
 
-/** `station_lines` 중 소속 관계만. 좌표·역번호는 클라이언트가 쓸 일이 없어 받지 않는다 */
-export type StationLineRow = { station_id: string; line_id: string }
+/**
+ * `station_lines` 중 소속 관계 + `seq`. 좌표·역번호는 클라이언트가 쓸 일이 없어 받지 않는다.
+ * `seq`는 09(프로필)의 안 가본 역 추천이 노선 내 거리를 재는 데 쓴다 (§4.3).
+ */
+export type StationLineRow = { station_id: string; line_id: string; seq: number }
 
 const LINES_CACHE_KEY = `${STORAGE_PREFIX}station-lines`
 
@@ -171,7 +175,7 @@ export async function loadStationLines(version: number): Promise<StationLineRow[
   for (let from = 0; ; from += PAGE) {
     const page = await supabase
       .from('station_lines')
-      .select('station_id, line_id')
+      .select('station_id, line_id, seq')
       .order('station_id')
       .range(from, from + PAGE - 1)
     if (page.error !== null) throw page.error

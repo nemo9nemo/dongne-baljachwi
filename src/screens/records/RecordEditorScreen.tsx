@@ -9,6 +9,7 @@ import { loadStationLines, loadStationMaster } from '../../lib/station-master'
 import type { StationMaster, StationRow } from '../../lib/station-master'
 import type { Database, Mood, Weather } from '../../lib/database.types'
 import { MOODS, WEATHERS } from '../../lib/mood-weather'
+import { todayLocal } from '../../lib/format-date'
 import { ConfirmDialog } from './ConfirmDialog'
 import { PhotoField } from './PhotoField'
 import type { EditorPhoto } from './PhotoField'
@@ -57,19 +58,6 @@ type FormValue = {
   note: string
   /** 정규화된 표기. 서버가 다시 정규화한다 (00 §4.7) */
   tags: string[]
-}
-
-/**
- * 오늘 날짜(로컬).
- *
- * `toISOString()`은 UTC라 KST 00:00~08:59에는 어제가 나온다. 방문일은 "그날"이라는
- * 사용자 의미라 타임존 변환 대상이 아니다 (00 D-08/D-13).
- */
-function todayLocal(): string {
-  const now = new Date()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  return `${now.getFullYear()}-${month}-${day}`
 }
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/

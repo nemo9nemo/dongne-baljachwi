@@ -1,0 +1,116 @@
+/*
+ * 프로필 화면 (docs/specs/09-couple-profile.md).
+ * 카드/필드/버튼 프리미티브는 styles/ui.module.css를 그대로 쓴다. 여기는 이 화면에만
+ * 있는 것(인라인 편집 행, 통계 목록, 추천 칩)만 둔다.
+ */
+
+.editableRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.editRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.linkButton {
+  min-height: var(--touch-target);
+  padding: 0 var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.linkButton:disabled {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+/* ── 통계 (F-12: 목록 구조) ──────────────────────────────────────────── */
+
+.statSkeleton {
+  height: 84px;
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-md);
+}
+
+.statList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  list-style: none;
+  padding-inline-start: 0;
+}
+
+.statList > li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.statList > li:last-child {
+  border-bottom: 0;
+}
+
+.statLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.statValue {
+  font-weight: var(--font-weight-bold);
+}
+
+/* ── 안 가본 역 추천 (F-13~F-21) ─────────────────────────────────────── */
+
+.chipSkeleton {
+  height: 44px;
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-pill);
+}
+
+.chipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  list-style: none;
+  padding-inline-start: 0;
+}
+
+.chip {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: var(--touch-target);
+  padding: 0 var(--space-4);
+  color: var(--color-text);
+  text-decoration: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+}
+
+.chip:hover {
+  background: var(--color-surface-muted);
+}
+
+.chipName {
+  font-weight: var(--font-weight-medium);
+}
+
+.chipLine {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}

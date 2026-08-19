@@ -5,6 +5,7 @@ import { useSession } from '../../auth/session-context'
 import { createCouple, failureMessage, redeemInvite } from '../../lib/couple-rpc'
 import type { RpcFailure } from '../../lib/couple-rpc'
 import { INVITE_CODE_LENGTH, normalizeInviteCode } from '../../lib/invite-code'
+import { todayLocal } from '../../lib/format-date'
 import ui from '../../styles/ui.module.css'
 
 /** F-06: `display_name` 길이 제한 (00 §4.1) */
@@ -36,9 +37,8 @@ export function OnboardingScreen() {
   const [failure, setFailure] = useState<RpcFailure | null>(null)
   const [retryAfterSec, setRetryAfterSec] = useState(0)
 
-  // 로컬(KST) 기준 오늘. `toISOString()`은 UTC라 자정 전후로 하루가 어긋난다.
-  // 'sv-SE' 로케일의 날짜 표기가 ISO(YYYY-MM-DD)와 같아 변환 없이 그대로 쓸 수 있다. (00 D-13)
-  const [today] = useState(() => new Date().toLocaleDateString('sv-SE'))
+  // 로컬(KST) 기준 오늘 (00 D-13).
+  const [today] = useState(todayLocal)
 
   // F-12: rate limit 남은 시간 카운트다운. 0이 되면 다시 시도할 수 있다.
   const counting = retryAfterSec > 0

@@ -121,7 +121,9 @@ export type Database = {
         }
         // 생성/해제는 SECURITY DEFINER 함수로만 한다 (01 §4.3).
         Insert: Record<string, never>
-        Update: Record<string, never>
+        // 컬럼 단위 grant로 `started_on`만 열려 있다 (20260811120000_core_identity.sql
+        // `grant update (started_on)`). 09 F-23 — 사귄 날은 둘 다 고칠 수 있는 공동 정보.
+        Update: { started_on?: string }
         Relationships: []
       }
       couple_members: {
