@@ -10,6 +10,8 @@ import type { Mood, Weather } from '../../lib/database.types'
 import { ConfirmDialog } from './ConfirmDialog'
 import { PhotoViewer } from './PhotoViewer'
 import type { ViewerPhoto } from './PhotoViewer'
+import { RecordImageDialog } from './RecordImageDialog'
+import type { CardInput } from './record-image-render'
 import { removePhotoObjects, signPhotoUrls } from './photo-pipeline'
 import styles from './record-detail.module.css'
 import ui from '../../styles/ui.module.css'
@@ -21,7 +23,6 @@ import ui from '../../styles/ui.module.css'
  * 모든 파괴적 동작(수정·삭제)의 유일한 관문이다 (§1).
  *
  * 이번 라운드에 없는 것:
- * - "이미지로 저장"은 `10-record-card-image.md` 몫이라 메뉴 항목만 두고 동작은 비워 둔다.
  * - 목록에서 진입할 때 카드 값으로 먼저 그리는 최적화(§6 첫 픽셀) — 04(역 상세)/08(타임라인)이
  *   아직 자리표시자라 그 카드 자체가 없다.
  * - 삭제 후 "이전 화면"이 아직 없어 `/timeline`으로 고정 이동한다(F-17 잠정 대응).
@@ -57,7 +58,7 @@ export function RecordDetailScreen() {
 
   const [viewerIndex, setViewerIndex] = useState<number | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [imageSaveNotice, setImageSaveNotice] = useState(false)
+  const [imageDialogOpen, setImageDialogOpen] = useState(false)
   const [deleteState, setDeleteState] = useState<'idle' | 'confirming' | 'deleting'>('idle')
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
@@ -182,6 +183,23 @@ export function RecordDetailScreen() {
     }
     return result
   }, [master, lineLinks, data])
+
+  /**
+   * 10 §4.1 카드 렌더 입력. `RecordImageDialog`는 이 객체의 참조가 바뀌면 사진을 다시 내려받고
+   * 카드를 다시 그린다 — 습관적 메모가 아니라 참조 안정성이 실제로 필요한 자리다.
+   */
+  const cardInput = useMemo<CardInput | null>(() => {
+    if (data === null) return null
+    return {
+      stationName: station?.name ?? '역 정보 없음',
+      visitedOn: data.visitedOn,
+      mood: data.mood,
+      weather: data.weather,
+      note: data.note,
+      tags: data.tags,
+      photos: data.photos.map((photo) => ({ id: photo.id, url: photo.url })),
+    }
+  }, [data, station])
 
   async function resignPhoto(photoId: string, storagePath: string) {
     const signed = await signPhotoUrls([storagePath])
@@ -336,7 +354,10 @@ export function RecordDetailScreen() {
                 className={styles.menuItem}
                 onClick={() => {
                   setMenuOpen(false)
-                  setImageSaveNotice(true)
+                  // 시트가 포커스를 복원할 지점을 미리 만들어 둔다 (AC-14). 지금 눌린 메뉴
+                  // 항목은 곧 언마운트되므로, 그대로 두면 시트가 body를 "이전 포커스"로 잡는다.
+                  menuButtonRef.current?.focus()
+                  setImageDialogOpen(true)
                 }}
               >
                 이미지로 저장
@@ -356,12 +377,6 @@ export function RecordDetailScreen() {
           )}
         </div>
       </header>
-
-      {imageSaveNotice && (
-        <p className={ui.hint} role="status">
-          이미지로 저장은 아직 준비 중이에요.
-        </p>
-      )}
 
       {!online && <p className={ui.hint}>오프라인 — 사진과 수정·삭제는 연결 후 이용할 수 있어요.</p>}
 
@@ -444,6 +459,10 @@ export function RecordDetailScreen() {
 
       {viewerIndex !== null && (
         <PhotoViewer photos={viewerPhotos} startIndex={viewerIndex} onClose={() => setViewerIndex(null)} />
+      )}
+
+      {imageDialogOpen && cardInput !== null && (
+        <RecordImageDialog input={cardInput} onClose={() => setImageDialogOpen(false)} />
       )}
 
       {deleteState !== 'idle' && (
