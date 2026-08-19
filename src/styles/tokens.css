@@ -1,154 +1,98 @@
 /*
  * 디자인 토큰 — 동네 발자취
  *
- * 구조: ① 원시 팔레트(--rose-*, --sand-*, --ink-*) → ② 시맨틱 토큰(--color-*, --app-*)
+ * 구조: ① 원시 팔레트(--gray-*, --black, --white) → ② 시맨틱 토큰(--color-*, --app-*)
  * 컴포넌트는 ②만 참조한다. ①을 직접 쓰면 라이트/다크 전환이 깨진다.
  *
- * ── 확정된 범위 (실제 디자인 값) ─────────────────────────────────────────
- *   · 색상 팔레트 전체(rose/sand/ink) 및 그로부터 파생된 --color-* 시맨틱 토큰
- *   · 라이트/다크 양쪽 정의 (prefers-color-scheme)
- *   · 앱 프레임 레이아웃 토큰(--app-*), 그림자, 반경
- *   대비는 계산으로 검증했다. 본문 4.5:1, UI 요소 3:1 기준.
- *     --color-text        on --color-bg       15.8:1 (light) / 16.2:1 (dark)
- *     --color-text-muted  on --color-bg        5.4:1 (light) /  7.9:1 (dark)
- *     --color-primary     on --color-bg        4.7:1 (light) /  8.0:1 (dark)  ← 링크색
- *     --color-text-inverse on --color-primary   4.9:1 (light) /  8.0:1 (dark)  ← 기본 버튼
- *     --color-danger      on --color-bg        5.2:1 (light) /  8.0:1 (dark)
- *     --color-focus       on --color-bg        4.5:1 (light) /  8.9:1 (dark)
- *     --color-text        on --color-field    15.7:1 (light) / 14.4:1 (dark)  ← 입력 글자
- *     --color-border-strong on --color-surface 3.6:1 (light) /  3.9:1 (dark)  ← 컨트롤 경계
- *     --color-border-strong on --color-field   3.3:1 (light) /  3.7:1 (dark)
+ * ── 2026-08-19 흑백·심플모던 개편 ─────────────────────────────────────────
+ * 노선도(`--line-*`)를 제외한 전 화면을 **흰색·검은색·그 사이 그레이스케일**로만 구성한다.
+ * 이전 로즈/샌드 팔레트를 걷어내고 원시 팔레트를 그레이 램프 하나로 교체했다. 시맨틱 토큰
+ * **이름은 그대로 두고 값만 바꿨으므로 컴포넌트 CSS는 한 줄도 고치지 않았다** — 이게 이
+ * 파일이 "① 원시 / ② 시맨틱"으로 레이어를 나눠 둔 이유였다.
  *
- *   ⚠️ --app-screen-wash 위에서는 --color-primary 글자가 4.2:1로 떨어진다.
- *      워시 구간(화면 상단 200px)에는 링크·primary 색 텍스트를 두지 않는다.
- *      워드마크가 --color-text를 쓰는 이유가 이것이다.
+ * primary/danger가 색상이 아니라 둘 다 검정이 된 것은 의도다. 두 버튼은 색이 아니라
+ * **채움(필드) vs 윤곽(아웃라인)**이라는 형태 차이로 이미 구분되어 있었다(`ui.module.css`
+ * `.buttonPrimary`/`.buttonDanger`). 흑백 전환이 그 구분을 해치지 않는다.
  *
- * ── ⚠️ 아직 PLACEHOLDER인 것 ─────────────────────────────────────────────
- *   · 타이포 스케일(--font-size-*, --font-weight-*, --line-height-*):
- *     현재 시스템 폰트 기준 임시값. 서비스 폰트(국문 감성 서체) 미선정 상태라
- *     서체가 정해지면 스케일과 line-height를 다시 잡아야 한다.
- *   · 간격 스케일(--space-*): 4px 배수라는 규칙만 맞춰둔 임시 단계. --space-5(20px),
- *     --space-10(40px)은 실제 사용처를 보고 정리(삭제 후보)할 예정.
- *   · 감정/날씨 아이콘 색 — 아직 정의 없음.
- *   · 노선 색은 --line-2 만 정의돼 있다. 도식 좌표가 있는 노선만 그려지므로(03 파일럿),
- *     좌표가 추가되는 노선마다 --line-<n> 을 함께 추가한다.
- *   · 다크 모드는 "프레임·배경·기본 서피스·텍스트·상태색"까지만 검증했다.
- *     노선도 SVG·지도 오버레이 등 아직 없는 화면은 미검증.
+ * 대비는 그레이스케일 상대휘도로 재계산했다(라이트/다크 대칭 설계라 값도 대칭에 가깝다).
+ *   --color-text        on --color-bg        ~20:1  (라이트/다크 공통, 거의 순검정 on 순백)
+ *   --color-text-muted   on --color-bg        ~7.5:1 (라이트) / ~8.3:1 (다크)
+ *   --color-primary      on --color-bg        ~20:1  (링크·기본 버튼 배경 — 이제 검정 자체다)
+ *   --color-text-inverse on --color-primary   ~21:1  (기본 버튼 글자)
+ *   --color-border-strong on --color-surface   ~4.7:1 (라이트) / ~3.8:1 (다크) — 컨트롤 경계
+ *
+ * 폰트는 Noto Sans KR로 고정한다(자체 호스팅, `@fontsource/noto-sans-kr`).
+ *
+ * ── ⚠ 아직 PLACEHOLDER인 것 ───────────────────────────────────────────────
+ *   · 타이포 스케일(--font-size-*, --line-height-*): 흑백 개편과 무관하게 여전히 임시값.
+ *   · 간격 스케일(--space-*): 이전과 동일하게 임시 단계.
+ *   · 노선 색은 --line-2 만 정의돼 있다(이 개편의 유일한 예외 영역, 03 파일럿).
  */
 
 :root {
-  /* ── ① 원시 팔레트 ───────────────────────────────────────────────────
-     rose: 브랜드(연인/따뜻함). sand: 로즈 기가 도는 웜 뉴트럴. ink: 텍스트용 딥 플럼. */
-  --rose-50: #fdf2f6;
-  --rose-100: #fbe4ec;
-  --rose-200: #f6c9da;
-  --rose-300: #efa5c0;
-  --rose-400: #e07aa0;
-  --rose-500: #d3567f;
-  --rose-600: #bd4570;
-  --rose-700: #a3395f;
-  --rose-800: #6f2340;
-  --rose-900: #3a1f2b;
+  /* ── ① 원시 팔레트 — 그레이스케일 하나뿐이다 ─────────────────────────── */
+  --black: #000000;
+  --white: #ffffff;
 
-  --peach-100: #fbeadc;
-  --peach-200: #f6d7bd;
-
-  --sand-50: #fbf9fa;
-  --sand-100: #f4f1f2;
-  --sand-150: #f6f2f3;
-  --sand-200: #e7e1e4;
-  --sand-300: #d3cbcf;
-  --sand-400: #b3a8ad;
-  /* 컨트롤 경계 전용. WCAG 1.4.11(UI 요소 3:1)을 흰 서피스에서도 넘기는 가장 밝은 웜 그레이.
-     sand-300(1.6:1)·sand-400(2.3:1)은 기준 미달이라 테두리로 쓰면 안 된다. */
-  --sand-500: #8e8489;
-
-  --ink-900: #171215;
-  --ink-800: #1f181d;
-  --ink-750: #241d22;
-  --ink-700: #271f25;
-  --ink-600: #33292f;
-  --ink-500: #4b3d45;
-  /* 다크의 컨트롤 경계. ink-500(1.7:1)은 미달 — 라이트의 sand-500과 같은 역할이다. */
-  --ink-400: #83737a;
-  --ink-300: #b6a5ae;
-  --ink-100: #f5eef2;
-
-  --coral-300: #f19087;
-  --coral-600: #c0392b;
-  --coral-700: #a33124;
-
-  --amber-100: #fff6e5;
-  --amber-300: #f0d199;
-  --amber-800: #6b5320;
-  --amber-900: #3a2c15;
-
-  --blue-400: #8ab4ff;
-  --blue-600: #3b6fd4;
+  --gray-50: #fafafa;
+  --gray-100: #f5f5f5;
+  --gray-150: #ededed;
+  --gray-200: #e5e5e5;
+  --gray-300: #d4d4d4;
+  --gray-400: #a3a3a3;
+  --gray-500: #737373;
+  --gray-600: #525252;
+  --gray-700: #404040;
+  --gray-800: #262626;
+  --gray-900: #171717;
 
   /* ── ② 시맨틱 — 라이트 ───────────────────────────────────────────── */
-  --color-bg: var(--sand-50);
-  --color-surface: #ffffff;
-  --color-surface-muted: var(--sand-100);
-  /* 입력 필드 바닥. 서피스보다 살짝 어두워 "파인 자리"로 읽힌다 — 흰 배경 위 흰 입력창이
-     기본 브라우저 폼처럼 밋밋해 보이던 문제를 여기서 해결한다. */
-  --color-field: var(--sand-150);
-  --color-border: var(--sand-200);
-  --color-border-strong: var(--sand-500);
+  --color-bg: var(--gray-50);
+  --color-surface: var(--white);
+  --color-surface-muted: var(--gray-100);
+  /* 입력 필드 바닥. 서피스보다 살짝 어두워 "파인 자리"로 읽힌다. */
+  --color-field: var(--gray-150);
+  --color-border: var(--gray-200);
+  --color-border-strong: var(--gray-500);
 
-  --color-text: var(--ink-800);
-  --color-text-muted: #6d6469;
-  --color-text-inverse: #ffffff;
+  --color-text: var(--black);
+  --color-text-muted: var(--gray-600);
+  --color-text-inverse: var(--white);
 
-  --color-primary: var(--rose-600);
-  --color-primary-hover: var(--rose-700);
-  --color-primary-soft: var(--rose-50);
+  --color-primary: var(--black);
+  --color-primary-hover: var(--gray-800);
+  --color-primary-soft: var(--gray-100);
 
-  --color-danger: var(--coral-600);
-  --color-danger-hover: var(--coral-700);
-  --color-danger-soft: #fbeae8;
+  /* primary와 같은 검정이다 — 구분은 색이 아니라 채움/윤곽 형태가 한다(파일 상단 주석). */
+  --color-danger: var(--black);
+  --color-danger-hover: var(--gray-800);
+  --color-danger-soft: var(--gray-100);
 
-  --color-notice-bg: var(--amber-100);
-  --color-notice-border: var(--amber-300);
+  --color-notice-bg: var(--gray-100);
+  --color-notice-border: var(--gray-300);
 
-  --color-focus: var(--blue-600);
+  --color-focus: var(--black);
 
   /* ── 노선 색 ───────────────────────────────────────────────────────
-     `lines.color_token` 이 값이 아니라 이 **이름**을 가리킨다 (02 §4.1).
-     렌더러는 `var(--<color_token>)` 으로 참조하므로, 토큰이 없는 노선은 --line-default 로 떨어진다.
-     지금 정의된 것은 도식 좌표가 있는 2호선뿐이다 — 나머지는 그려지지 않아 색이 필요 없다.
-     서울교통공사 공식 2호선은 #00A84D 지만 흰 서피스 위에서 3.03:1 로 WCAG 1.4.11(3:1)에
-     간신히 걸친다. 톤을 유지한 채 한 단계 어둡게 잡아 3.60:1 을 확보했다. */
+     `lines.color_token` 이 값이 아니라 이 **이름**을 가리킨다 (02 §4.1). 흑백 개편의 유일한
+     예외 영역 — 노선도는 실제 노선 색을 그대로 쓴다. 색 토큰이 없는 노선만 그레이로 떨어진다. */
   --line-2: #009944;
-  --line-default: var(--sand-500);
+  --line-default: var(--gray-500);
 
-  /* 모달 뒤 딤. 다이얼로그 텍스트 대비는 --color-surface가 책임지므로
-     여기는 "뒤 화면을 확실히 죽이는" 농도만 본다. */
-  --color-overlay: rgb(58 31 43 / 52%);
+  /* 모달 뒤 딤. */
+  --color-overlay: rgb(0 0 0 / 55%);
 
   /* ── 앱 프레임 (≥768px에서만 시각적으로 드러난다) ────────────────── */
-  /* 데스크톱에서 앱을 담는 카드의 바깥 배경. 흰 여백 대신 브랜드 톤. */
-  --app-backdrop: linear-gradient(
-    155deg,
-    var(--rose-100) 0%,
-    var(--peach-100) 48%,
-    var(--rose-50) 100%
-  );
+  --app-backdrop: linear-gradient(155deg, var(--gray-100) 0%, var(--gray-50) 55%, var(--white) 100%);
   --app-frame-width: 480px;
   --app-frame-max-height: 900px;
   --app-frame-radius: 28px;
-  --app-frame-border: rgb(255 255 255 / 70%);
-  --shadow-frame:
-    0 32px 64px -24px rgb(88 30 52 / 32%), 0 8px 24px -12px rgb(88 30 52 / 18%);
+  --app-frame-border: rgb(0 0 0 / 8%);
+  --shadow-frame: 0 32px 64px -24px rgb(0 0 0 / 25%), 0 8px 24px -12px rgb(0 0 0 / 15%);
 
-  /* 화면 상단 브랜드 워시. 모바일(<768px)에서는 프레임 백드롭이 아예 안 보이므로,
-     브랜드 톤을 담당하는 건 이 밴드뿐이다. 헤더 블록만 덮고 사라지는 높이로 잡는다.
-     투명도 상한 10%는 계산으로 정했다 — 그 위 본문 텍스트가 4.5:1을 유지하는 선. */
-  --app-screen-wash: linear-gradient(
-    180deg,
-    rgb(211 86 127 / 10%) 0%,
-    rgb(211 86 127 / 0%) 100%
-  );
+  /* 화면 상단 워시. 브랜드 색이 없어졌으니 이제 "브랜드 톤"이 아니라 순수한 명암 텍스처만
+     아주 옅게 얹는다 — 완전 평면보다 심플모던 톤에 미세한 입체감을 준다. */
+  --app-screen-wash: linear-gradient(180deg, rgb(0 0 0 / 4%) 0%, rgb(0 0 0 / 0%) 100%);
   --app-screen-wash-height: 200px;
 
   /* ── 간격 — 4px 배수 (⚠️ 임시 단계) ──────────────────────────────── */
@@ -164,13 +108,14 @@
 
   /* ── 반경 ─────────────────────────────────────────────────────────── */
   --radius-sm: 6px;
-  /* 컨트롤 높이가 48px이라 10px는 각져 보인다. 12px가 프레임 28px과도 계열이 맞는다. */
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-pill: 999px;
 
-  /* ── 타이포 (⚠️ 서체 미선정, 임시) ──────────────────────────────── */
-  --font-sans: system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic',
+  /* ── 타이포 ──────────────────────────────────────────────────────── */
+  /* Noto Sans KR 확정(2026-08-19, 자체 호스팅 @fontsource/noto-sans-kr). 로드 실패/미확정
+     환경을 위한 순서대로의 대체 스택은 유지한다. */
+  --font-sans: 'Noto Sans KR', system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic',
     sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
 
@@ -179,7 +124,6 @@
   --font-size-md: 16px;
   --font-size-lg: 20px;
   --font-size-xl: 26px;
-  /* 초대 코드를 전화로 불러주는 사용을 가정한 큰 글자 (01 §6) */
   --font-size-code: 40px;
 
   --font-weight-regular: 400;
@@ -190,91 +134,69 @@
   --line-height-normal: 1.6;
 
   /* ── 레이어/그림자 ────────────────────────────────────────────────── */
-  --shadow-card: 0 1px 2px rgb(58 31 43 / 8%);
-  --shadow-dialog: 0 12px 32px rgb(34 29 32 / 22%);
-  /* primary 버튼 전용. 미니멀 방향이라 색을 더 쓰는 대신 높이(elevation)로 존재감을 만든다.
-     그림자는 브랜드 톤(딥 로즈)이다 — 중성 검정 그림자는 이 팔레트에서 탁해 보인다. */
-  --shadow-button: 0 1px 2px rgb(122 24 60 / 20%), 0 8px 16px -8px rgb(122 24 60 / 40%);
-  --shadow-button-hover:
-    0 2px 4px rgb(122 24 60 / 22%), 0 14px 24px -10px rgb(122 24 60 / 46%);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 8%);
+  --shadow-dialog: 0 12px 32px rgb(0 0 0 / 20%);
+  /* primary 버튼 전용. 검정이 primary이므로 그림자도 중성 검정이다. */
+  --shadow-button: 0 1px 2px rgb(0 0 0 / 20%), 0 8px 16px -8px rgb(0 0 0 / 30%);
+  --shadow-button-hover: 0 2px 4px rgb(0 0 0 / 22%), 0 14px 24px -10px rgb(0 0 0 / 34%);
   --z-dialog: 100;
 
   /* ── 레이아웃 ─────────────────────────────────────────────────────── */
   --tabbar-height: 56px;
-  /* 입력·버튼이 공유하는 최소 높이. 폼 안에서 높이가 어긋나면 정돈돼 보이지 않는다. */
   --control-height: 48px;
-  /* 터치 타깃 하한(WCAG 2.5.8). 이 값 아래로 내리는 예외는 없다. */
   --touch-target: 44px;
-  /* 프레임 안에서는 프레임 폭이 실질 제한이다. 이 값은 프레임 밖에서
-     쓰이는 요소(모달 등)의 최대 폭 역할만 한다. */
   --content-max-width: 560px;
 }
 
 /*
  * 다크 — 시스템 설정만 따른다. 앱 내 테마 토글은 아직 없다.
- * 시맨틱 토큰 값만 갈아끼우므로 컴포넌트 CSS는 그대로다.
- * primary/danger가 밝아지므로 --color-text-inverse도 어두운 쪽으로 뒤집는다
- * (그래야 .buttonPrimary / .configWarning 같은 "역상" 조합이 계속 읽힌다).
+ * 라이트를 그대로 반전한 그레이스케일이다 — bg/surface/text가 뒤집히고, primary/danger도
+ * 검정 대신 흰색이 된다(다크에서는 "밝은 게 강조"이므로).
  */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg: var(--ink-900);
-    --color-surface: var(--ink-800);
-    --color-surface-muted: var(--ink-700);
-    /* 라이트와 반대로 서피스보다 **밝다**. 다크에서는 밝은 쪽이 "위/입력 가능"으로 읽힌다. */
-    --color-field: var(--ink-750);
-    --color-border: var(--ink-600);
-    --color-border-strong: var(--ink-400);
+    --color-bg: var(--black);
+    --color-surface: var(--gray-900);
+    --color-surface-muted: var(--gray-800);
+    /* 라이트와 반대로 서피스보다 **밝다** — 다크에서는 밝은 쪽이 "위/입력 가능"으로 읽힌다. */
+    --color-field: var(--gray-800);
+    --color-border: var(--gray-800);
+    --color-border-strong: var(--gray-500);
 
-    --color-text: var(--ink-100);
-    --color-text-muted: var(--ink-300);
-    --color-text-inverse: #1c1013;
+    --color-text: var(--white);
+    --color-text-muted: var(--gray-400);
+    --color-text-inverse: var(--black);
 
-    --color-primary: #f08bb0;
-    --color-primary-hover: var(--rose-200);
-    --color-primary-soft: var(--rose-900);
+    --color-primary: var(--white);
+    --color-primary-hover: var(--gray-200);
+    --color-primary-soft: var(--gray-800);
 
-    --color-danger: var(--coral-300);
-    --color-danger-hover: #f7b2ab;
-    --color-danger-soft: #3a1c1a;
+    --color-danger: var(--white);
+    --color-danger-hover: var(--gray-200);
+    --color-danger-soft: var(--gray-800);
 
-    --color-notice-bg: var(--amber-900);
-    --color-notice-border: var(--amber-800);
+    --color-notice-bg: var(--gray-800);
+    --color-notice-border: var(--gray-600);
 
-    --color-focus: var(--blue-400);
+    --color-focus: var(--white);
 
-    /* 다크 배경에서 #009944 는 4.5:1 로 선은 보이지만 탁하다. 명도를 올려 7.9:1. */
+    /* 다크에서도 --line-2는 그대로. 배경 대비만 살짝 올린다(원래 값 유지, 흑백 개편과 무관). */
     --line-2: #2dc46f;
-    --line-default: var(--ink-400);
+    --line-default: var(--gray-400);
 
-    --color-overlay: rgb(10 6 8 / 66%);
+    --color-overlay: rgb(0 0 0 / 70%);
 
-    /* 다크에서는 백드롭을 프레임(--color-bg)보다 더 어둡게 깐다.
-       그래야 프레임이 "떠 있는 카드"로 읽힌다 — 라이트와 명암 관계가 반대다. */
-    --app-backdrop: linear-gradient(
-      155deg,
-      #120b0f 0%,
-      #0b0809 52%,
-      #100a0d 100%
-    );
+    --app-backdrop: linear-gradient(155deg, #0a0a0a 0%, #000000 55%, #0a0a0a 100%);
     --app-frame-border: rgb(255 255 255 / 10%);
-    --shadow-frame:
-      0 32px 64px -24px rgb(0 0 0 / 70%), 0 8px 24px -12px rgb(0 0 0 / 50%);
+    --shadow-frame: 0 32px 64px -24px rgb(0 0 0 / 70%), 0 8px 24px -12px rgb(0 0 0 / 50%);
 
-    /* 다크에서 워시는 "빛" 쪽으로 쓴다 — 밝은 로즈를 아주 얇게 얹어 상단을 띄운다. */
-    --app-screen-wash: linear-gradient(
-      180deg,
-      rgb(240 139 176 / 8%) 0%,
-      rgb(240 139 176 / 0%) 100%
-    );
+    /* 다크에서 워시는 "빛" 쪽으로 — 흰 텍스처를 아주 얇게 얹어 상단을 띄운다. */
+    --app-screen-wash: linear-gradient(180deg, rgb(255 255 255 / 6%) 0%, rgb(255 255 255 / 0%) 100%);
 
     --shadow-card: 0 1px 2px rgb(0 0 0 / 40%);
     --shadow-dialog: 0 12px 32px rgb(0 0 0 / 60%);
-    /* 어두운 바탕에서는 검정 그림자가 안 보인다. 브랜드색 글로우로 높이를 대신 표현한다.
-       농도는 렌더 확인 후 낮춘 값이다 — 55%는 네온사인처럼 번져 미니멀 방향과 어긋났다. */
-    --shadow-button:
-      0 1px 2px rgb(0 0 0 / 50%), 0 10px 20px -12px rgb(240 139 176 / 30%);
-    --shadow-button-hover:
-      0 2px 4px rgb(0 0 0 / 55%), 0 14px 26px -14px rgb(240 139 176 / 38%);
+    /* primary가 흰색이므로 강조 그림자도 흰색 글로우로 뒤집는다. */
+    --shadow-button: 0 1px 2px rgb(0 0 0 / 40%), 0 10px 20px -12px rgb(255 255 255 / 15%);
+    --shadow-button-hover: 0 2px 4px rgb(0 0 0 / 45%), 0 14px 26px -14px rgb(255 255 255 / 20%);
   }
 }
