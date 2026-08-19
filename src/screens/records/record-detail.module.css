@@ -1,0 +1,316 @@
+/*
+ * 기록 상세 화면 (docs/specs/06-record-detail.md).
+ * 값은 전부 tokens.css 변수를 참조한다 — 리터럴 색/간격을 새로 만들지 않는다.
+ */
+
+.screen {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-6) var(--space-10);
+}
+
+.skeleton {
+  flex: 1;
+  min-height: 320px;
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-lg);
+}
+
+/* ── 헤더 ────────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.stationName {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-muted);
+}
+
+.stationLink {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+}
+
+.stationLink:hover {
+  color: var(--color-primary);
+}
+
+.date {
+  margin-top: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-left: var(--space-2);
+}
+
+.badge {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  padding: 0 var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-pill);
+}
+
+.badgeDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+}
+
+/* ── 메뉴(⋯) ─────────────────────────────────────────────────────────── */
+
+.menuWrap {
+  position: relative;
+  flex: none;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  z-index: var(--z-dialog);
+  display: flex;
+  flex-direction: column;
+  width: 160px;
+  padding: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-dialog);
+}
+
+.menuItem {
+  min-height: var(--touch-target);
+  padding: 0 var(--space-3);
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+}
+
+.menuItem:hover {
+  background: var(--color-surface-muted);
+}
+
+/* 파괴적 동작은 색뿐 아니라 danger 팔레트 전체(글자색)로 구분한다 (§6). */
+.menuItemDanger {
+  color: var(--color-danger);
+}
+
+/* ── 감정 · 날씨 ─────────────────────────────────────────────────────── */
+
+.metaRow {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.metaChip {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-pill);
+}
+
+/* ── 사진 ────────────────────────────────────────────────────────────── */
+
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  list-style: none;
+  padding-inline-start: 0;
+}
+
+.photoItem {
+  overflow: hidden;
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-md);
+  /* width/height 비율로 자리를 미리 잡아 레이아웃 시프트를 0으로 만든다 (§5). */
+}
+
+.photoButton {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.photoThumb {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 96px;
+  padding: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+/* ── 일기 · 태그 · 작성자 ────────────────────────────────────────────── */
+
+.note {
+  /* F-06: 사용자가 입력한 줄바꿈만 보존한다. 링크·마크다운은 해석하지 않는다. */
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  line-height: var(--line-height-normal);
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  list-style: none;
+  padding-inline-start: 0;
+}
+
+.tagChip {
+  min-height: var(--touch-target);
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+}
+
+.tagChip:hover {
+  background: var(--color-surface);
+}
+
+.byline {
+  padding-top: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border);
+}
+
+/* ── 전체화면 사진 뷰어 ──────────────────────────────────────────────── */
+
+.viewerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-dialog);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-overlay);
+}
+
+.viewerDialog {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.viewerImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.viewerFallback {
+  color: var(--color-text-inverse);
+}
+
+.viewerClose {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  font-size: var(--font-size-lg);
+  color: var(--color-text-inverse);
+  cursor: pointer;
+  background: rgb(0 0 0 / 40%);
+  border: 0;
+  border-radius: var(--radius-pill);
+}
+
+.viewerNav {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  color: var(--color-text-inverse);
+  cursor: pointer;
+  background: rgb(0 0 0 / 40%);
+  border: 0;
+  border-radius: var(--radius-pill);
+  transform: translateY(-50%);
+}
+
+.viewerNav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.viewerNavPrev {
+  left: var(--space-4);
+}
+
+.viewerNavNext {
+  right: var(--space-4);
+}
+
+.viewerCount {
+  position: absolute;
+  bottom: var(--space-4);
+  left: 50%;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-inverse);
+  background: rgb(0 0 0 / 40%);
+  border-radius: var(--radius-pill);
+  transform: translateX(-50%);
+}

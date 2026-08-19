@@ -1,4 +1,3 @@
-import { supabase } from '../../lib/supabase'
 import type { PhotoContentType } from '../../lib/database.types'
 
 /**
@@ -9,8 +8,8 @@ import type { PhotoContentType } from '../../lib/database.types'
  * 그대로 남는다.
  */
 
-/** F-15 / 00 §4.6. DB의 `sort_order between 0 and 4`와 같은 값이어야 한다 */
-export const MAX_PHOTOS = 5
+/** F-15 / 00 §4.6. DB의 `sort_order between 0 and 9`와 같은 값이어야 한다 (2026-08-15 결정) */
+export const MAX_PHOTOS = 10
 
 /** F-20. Storage 버킷의 file_size_limit(10MB)과 같은 값 */
 export const MAX_SOURCE_BYTES = 10 * 1024 * 1024
@@ -154,45 +153,11 @@ export async function preparePhoto(file: File): Promise<PreparedPhoto> {
   }
 }
 
-/** F-21 / 00 §4.6: 첫 세그먼트가 Storage RLS의 격리 축이다 */
-export function photoStoragePath(
-  coupleId: string,
-  recordId: string,
-  photoId: string,
-): string {
-  return `${coupleId}/${recordId}/${photoId}.jpg`
-}
-
-const BUCKET = 'record-photos'
-
-/**
- * Storage 업로드 1건. 성공 여부만 돌려준다 — 실패 사유별로 다르게 안내할 화면이 없고,
- * 대응은 "재시도" 하나뿐이다 (F-17).
- *
- * `upsert: true`인 이유: 같은 photo_id로 재시도할 때 이전 시도의 잔해가 남아 있으면
- * 409로 영원히 실패한다. 경로에 uuid가 들어가 있어 남의 파일을 덮을 위험은 없다.
- */
-export async function uploadPhoto(path: string, photo: PreparedPhoto): Promise<boolean> {
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, photo.blob, { contentType: photo.contentType, upsert: true })
-  return error === null
-}
-
-/** 수정 시 삭제된 사진의 Storage 객체 정리 (05 §4.3). 실패해도 배치가 고아 객체를 치운다 */
-export async function removePhotoObjects(paths: string[]): Promise<void> {
-  if (paths.length === 0) return
-  await supabase.storage.from(BUCKET).remove(paths)
-}
-
-/** 기존 사진 썸네일용 서명 URL (00 §4.6: 공개 URL을 쓰지 않는다) */
-export async function signPhotoUrls(paths: string[]): Promise<Map<string, string>> {
-  const signed = new Map<string, string>()
-  if (paths.length === 0) return signed
-  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrls(paths, 3600)
-  if (error !== null || data === null) return signed
-  for (const item of data) {
-    if (item.signedUrl !== null && item.path !== null) signed.set(item.path, item.signedUrl)
-  }
-  return signed
-}
+// Storage 업로드/삭제/서명 URL은 `lib/photo-storage.ts`로 옮겼다 (08 타임라인 카드 썸네일이
+// 두 번째 사용처가 되어 추출). 기존 호출부가 그대로 동작하도록 여기서 재노출한다.
+export {
+  photoStoragePath,
+  removePhotoObjects,
+  signPhotoUrls,
+  uploadPhoto,
+} from '../../lib/photo-storage'

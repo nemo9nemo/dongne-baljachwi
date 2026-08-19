@@ -36,6 +36,24 @@
   background: var(--color-danger);
 }
 
+/* 저장/삭제 등 화면 전환 뒤 한 번 보여주는 알림. 탭바 위에 떠서 콘텐츠를 밀어내지 않는다. */
+.toast {
+  position: sticky;
+  bottom: calc(var(--tabbar-height) + var(--space-3) + env(safe-area-inset-bottom, 0px));
+  z-index: 1;
+  width: fit-content;
+  max-width: calc(100% - var(--space-8));
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--font-size-sm);
+  /* 본문 서피스를 뒤집은 조합 — 라이트/다크 어느 쪽이든 배경과 분명히 대비된다. */
+  color: var(--color-bg);
+  text-align: center;
+  background: var(--color-text);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-dialog);
+}
+
 /* fixed가 아니라 sticky인 이유: 데스크톱에서 앱이 프레임 카드 안에 들어가는데,
    fixed는 뷰포트 기준이라 탭바만 화면 전체 폭으로 삐져나간다. sticky는 스크롤
    컨테이너(모바일=뷰포트, 데스크톱=프레임) 바닥에 붙으므로 양쪽 다 맞는다.

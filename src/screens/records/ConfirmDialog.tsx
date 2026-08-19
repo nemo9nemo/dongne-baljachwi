@@ -11,6 +11,8 @@ type Props = {
   cancelLabel: string
   /** 되돌릴 수 없는 쪽(나가기·삭제)이면 확인 버튼을 danger로 그린다 */
   danger?: boolean
+  /** 진행 중(예: 삭제 요청 대기)이면 두 버튼을 막고 Esc·배경 클릭으로도 닫히지 않는다 */
+  busy?: boolean
   onConfirm: () => void
   onCancel: () => void
 }
@@ -27,6 +29,7 @@ export function ConfirmDialog({
   confirmLabel,
   cancelLabel,
   danger = false,
+  busy = false,
   onConfirm,
   onCancel,
 }: Props) {
@@ -54,7 +57,7 @@ export function ConfirmDialog({
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key === 'Escape') {
-      onCancel()
+      if (!busy) onCancel()
       return
     }
     if (event.key !== 'Tab') return
@@ -77,7 +80,7 @@ export function ConfirmDialog({
   }
 
   return createPortal(
-    <div className={styles.overlay} onClick={onCancel}>
+    <div className={styles.overlay} onClick={busy ? undefined : onCancel}>
       <div
         ref={dialogRef}
         className={styles.dialog}
@@ -93,12 +96,19 @@ export function ConfirmDialog({
         </h2>
         {children}
         <div className={ui.buttonRow}>
-          <button ref={cancelRef} type="button" className={ui.button} onClick={onCancel}>
+          <button
+            ref={cancelRef}
+            type="button"
+            className={ui.button}
+            disabled={busy}
+            onClick={onCancel}
+          >
             {cancelLabel}
           </button>
           <button
             type="button"
             className={danger ? `${ui.button} ${ui.buttonDanger}` : `${ui.button} ${ui.buttonPrimary}`}
+            disabled={busy}
             onClick={onConfirm}
           >
             {confirmLabel}

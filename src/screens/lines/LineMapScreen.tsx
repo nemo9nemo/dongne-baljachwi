@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { lineMap, stationGeometryByCode, lineCodeByStationCode } from '../../data/line-map'
-import { supabase } from '../../lib/supabase'
-import { loadStationMaster } from '../../lib/station-master'
-import type { LineRow, StationMaster } from '../../lib/station-master'
+import type { LineRow } from '../../lib/station-master'
+import { useLineMapData } from './line-map-data'
 import { LineMapCanvas } from './LineMapCanvas'
 import type { LineMapCanvasHandle, MapLine, MapStation } from './LineMapCanvas'
 import styles from './line-map.module.css'
@@ -18,17 +17,6 @@ import ui from '../../styles/ui.module.css'
  *
  * 미구현(다음 라운드): AC-08 뷰포트 상태 보존, AC-11 1,100역 성능 프로파일.
  */
-
-/** F-05 뱃지 기준 등 렌더 규칙은 캔버스가 갖는다. 여기는 데이터와 필터 판단만 한다. */
-type VisitState =
-  | { kind: 'loading' }
-  | { kind: 'ready'; byStationId: Map<string, number> }
-  | { kind: 'failed' }
-
-type MasterState =
-  | { kind: 'loading' }
-  | { kind: 'ready'; master: StationMaster }
-  | { kind: 'failed' }
 
 /**
  * 셀렉트박스 한 항목.
@@ -71,40 +59,17 @@ function splitLabel(name: string): string[] {
 export function LineMapScreen() {
   const navigate = useNavigate()
   const canvasRef = useRef<LineMapCanvasHandle>(null)
-  const [master, setMaster] = useState<MasterState>({ kind: 'loading' })
-  const [visits, setVisits] = useState<VisitState>({ kind: 'loading' })
+  // 07(지도 보기)과 마스터·방문 집계를 공유한다 — 토글 전환 시 네트워크 요청 0회가 목표다.
+  const { master, visits, reloadMaster: loadMaster, reloadVisits: loadVisits } = useLineMapData()
   const [searchParams, setSearchParams] = useSearchParams()
   const [showMissing, setShowMissing] = useState(false)
   const selectedId = searchParams.get('line') ?? ''
 
-  const loadMaster = useCallback(() => {
-    setMaster({ kind: 'loading' })
-    loadStationMaster().then(
-      (m) => setMaster({ kind: 'ready', master: m }),
-      () => setMaster({ kind: 'failed' }),
-    )
-  }, [])
-
-  const loadVisits = useCallback(() => {
-    setVisits({ kind: 'loading' })
-    // RLS(security_invoker 뷰)가 내 커플 행만 돌려준다 — 클라이언트가 couple_id 를 걸지 않는다 (§4.4).
-    // 행 수 상한은 역 수(944)라 PostgREST 기본 상한 1,000 안쪽이다. 전국 확장 시 재확인 필요.
-    supabase
-      .from('couple_station_visits')
-      .select('station_id, visit_count')
-      .then(({ data, error }) => {
-        if (error !== null || data === null) {
-          setVisits({ kind: 'failed' })
-          return
-        }
-        setVisits({ kind: 'ready', byStationId: new Map(data.map((r) => [r.station_id, r.visit_count])) })
-      })
-  }, [])
-
-  useEffect(loadMaster, [loadMaster])
-  useEffect(loadVisits, [loadVisits])
-
   const masterData = master.kind === 'ready' ? master.master : null
+  const visitCountByStationId = useMemo(
+    () => (visits.kind === 'ready' ? new Map(visits.rows.map((r) => [r.station_id, r.visit_count])) : null),
+    [visits],
+  )
   const options = useMemo(
     () => (masterData === null ? [] : buildLineOptions(masterData.lines)),
     [masterData],
@@ -127,7 +92,7 @@ export function LineMapScreen() {
     if (masterData === null) return null
     const stationByCode = new Map(masterData.stations.map((s) => [s.code, s]))
     const colorByLineCode = new Map(masterData.lines.map((l) => [l.code, `var(--${l.color_token})`]))
-    const visitCounts = visits.kind === 'ready' ? visits.byStationId : null
+    const visitCounts = visitCountByStationId
 
     const lines: MapLine[] = lineMap.lines.map((line) => ({
       code: line.lineCode,
@@ -163,7 +128,7 @@ export function LineMapScreen() {
       })
     }
     return { lines, stations }
-  }, [masterData, visits, selectedDrawableCodes])
+  }, [masterData, visitCountByStationId, selectedDrawableCodes])
 
   /** 좌표가 없어 노선도에 못 그리는 역 (§2.2 / §5). 2호선 파일럿 동안은 대부분이 여기 들어온다. */
   const missing = useMemo(() => {
@@ -204,7 +169,7 @@ export function LineMapScreen() {
     [navigate],
   )
 
-  const totalVisited = visits.kind === 'ready' ? visits.byStationId.size : 0
+  const totalVisited = visitCountByStationId?.size ?? 0
 
   return (
     <div className={styles.screen}>

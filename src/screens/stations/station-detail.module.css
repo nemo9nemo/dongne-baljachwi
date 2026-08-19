@@ -1,0 +1,98 @@
+/*
+ * 역 상세 화면 (docs/specs/04-station-detail.md).
+ * 값은 전부 tokens.css 변수를 참조한다.
+ */
+
+.screen {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-6) calc(var(--space-4) + var(--touch-target) + var(--space-6));
+}
+
+.headerSkeleton {
+  height: 72px;
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-md);
+}
+
+.cardSkeleton {
+  height: 88px;
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-md);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.stationName {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.badge {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  padding: 0 var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-pill);
+}
+
+.badgeDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+}
+
+.visitSummary {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  list-style: none;
+  padding-inline-start: 0;
+}
+
+.retryLink {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+/* F-07: 하단 고정 "이 역에 기록 추가" */
+.addBar {
+  position: sticky;
+  bottom: calc(var(--tabbar-height) + env(safe-area-inset-bottom, 0px));
+  z-index: 1;
+  padding: var(--space-3) 0;
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+}
+
+.addBar > * {
+  width: 100%;
+}

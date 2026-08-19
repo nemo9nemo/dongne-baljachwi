@@ -147,7 +147,7 @@
 | `visited_on` | date | NN | 미래 날짜 금지, `couples.started_on` 이전도 허용(연애 전 만남 기록 가능) |
 | `mood` | text | | CHECK in (`happy`,`love`,`excited`,`calm`,`sad`) |
 | `weather` | text | | CHECK in (`sunny`,`cloudy`,`rainy`,`snowy`,`windy`) |
-| `note` | text | | 최대 2,000자 (CHECK) |
+| `note` | text | | 최대 1,000자 (CHECK) |
 | `author_id` | uuid | NN | FK → `profiles(id)`. **최초 작성자, 변경 불가** |
 | `last_edited_by` | uuid | | FK → `profiles(id)`. 마지막 수정자 |
 | `created_at` / `updated_at` | timestamptz | NN | |
@@ -182,7 +182,7 @@ UPDATE 시 `author_id`는 변경 불가 (트리거로 이전 값 유지).
 | `content_type` | text | NN | CHECK in (`image/jpeg`,`image/png`,`image/webp`) |
 | `created_at` | timestamptz | NN | |
 
-- **기록당 최대 5장.** 클라이언트 검증 + DB 트리거 이중 방어.
+- **기록당 최대 10장.** 클라이언트 검증 + DB 트리거 이중 방어.
 - `couple_id`는 트리거로 `records`에서 복사해 채운다 (클라이언트 값 신뢰 금지).
 
 **Storage 계약**
@@ -324,8 +324,8 @@ soft delete 인프라. 요구사항이 없고, 지금 넣으면 RLS 정책이 �
   Then 커플 A의 행만 반환된다 (`security_invoker` 검증).
 - **AC-09** Given 사용자가 태그 `" #Cafe "`를 입력했을 때,
   When 저장되면, Then `tag = "Cafe"`, `tag_norm = "cafe"`로 저장된다.
-- **AC-10** Given 기록에 사진이 5장 있을 때,
-  When 6번째 사진 행을 추가하면, Then 거부된다.
+- **AC-10** Given 기록에 사진이 10장 있을 때,
+  When 11번째 사진 행을 추가하면, Then 거부된다.
 
 ## 9. 미결정 항목
 
@@ -341,11 +341,14 @@ soft delete 인프라. 요구사항이 없고, 지금 넣으면 RLS 정책이 �
 > 그 사람이 쓴 `records.author_id`가 어떻게 되어야 하는지(NULL 허용 / 탈퇴 표시 유지)
 > 결정되지 않았다. 현재 스키마는 `author_id`가 NOT NULL이라 탈퇴 시 FK 충돌이 난다.
 
-> ❓ **기록 최대 사진 5장**: PRD 시나리오는 2장이다. 5는 임의로 정한 상한이다.
+> ✅ **결정 완료 (2026-08-15)**: 기록 최대 사진 **10장**으로 확정 (`20260815100000_relax_record_limits.sql`).
+> 이전 상한(5장)에서 상향했다.
 
-> ❓ **`note` 2,000자 상한**: 임의값. 긴 일기를 쓰는 사용자를 막는지 확인 필요.
+> ✅ **결정 완료 (2026-08-15)**: `note` 상한 **1,000자**로 확정 (이전 2,000자에서 하향,
+> `20260815100000_relax_record_limits.sql`).
 
 ---
 
 ### 변경 이력
 - 2026-08-11 최초 작성. PRD §3·§4를 근거로 전 스펙 공통 계약 확정.
+- 2026-08-15 사진 상한 5장→10장, `note` 상한 2,000자→1,000자로 확정(§9).

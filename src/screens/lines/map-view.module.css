@@ -1,0 +1,77 @@
+/*
+ * 지도 보기 (docs/specs/07-map-view.md). 헤더/스켈레톤/배너는 line-map.module.css를 그대로
+ * 쓴다 — 노선도와 같은 틀이어야 토글이 "다른 화면"이 아니라 "같은 화면의 다른 표현"으로
+ * 읽힌다(§1). 여기는 카카오맵 전용 요소만 둔다.
+ */
+
+.mapDiv {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.emptyOverlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-5);
+  text-align: center;
+  pointer-events: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transform: translate(-50%, -50%);
+}
+
+.emptyOverlay > * {
+  pointer-events: auto;
+}
+
+/* ── 핀 정보창 (카카오 CustomOverlay — 순수 DOM, 명령형으로 그린다) ────────── */
+
+.overlay {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 160px;
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-dialog);
+}
+
+.overlayTitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.overlayMeta {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.overlayButton {
+  min-height: var(--touch-target);
+  margin-top: var(--space-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-inverse);
+  cursor: pointer;
+  background: var(--color-primary);
+  border: 0;
+  border-radius: var(--radius-sm);
+}
+
+.overlayButton:hover {
+  background: var(--color-primary-hover);
+}

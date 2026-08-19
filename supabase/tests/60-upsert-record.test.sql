@@ -152,10 +152,11 @@ select test.raises('F-14: 허용 목록에 없는 weather',
        null, (select id from public.stations where code = 'S-0001'), current_date, null, 'foggy')$q$,
   'P0001', '%INVALID_ENUM%');
 
-select test.raises('F-24: 일기 2,001자',
+-- 2026-08-15 결정: 일기 상한 2,000자 → 1,000자
+select test.raises('F-24: 일기 1,001자',
   $q$select public.upsert_record(
        null, (select id from public.stations where code = 'S-0001'), current_date,
-       null, null, repeat('가', 2001))$q$,
+       null, null, repeat('가', 1001))$q$,
   'P0001', '%NOTE_TOO_LONG%');
 
 select test.raises('AC-07: 태그 11개',

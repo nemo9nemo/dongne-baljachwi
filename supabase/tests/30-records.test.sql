@@ -71,8 +71,9 @@ select test.raises('D-09: mood 는 CHECK 로 제한된다',
       where id = '00000000-0000-0000-0000-000000000011'$q$,
   '23514');
 
-select test.raises('note 는 2,000자를 넘을 수 없다',
-  $q$update public.records set note = repeat('가', 2001)
+-- 2026-08-15 결정: 일기 상한 2,000자 → 1,000자 (20260815100000_relax_record_limits.sql)
+select test.raises('note 는 1,000자를 넘을 수 없다',
+  $q$update public.records set note = repeat('가', 1001)
       where id = '00000000-0000-0000-0000-000000000011'$q$,
   '23514');
 
@@ -127,7 +128,7 @@ select test.raises('record_tags: UPDATE 권한 없음 (수정은 삭제 후 재�
 
 do $$
 begin
-  for _i in 0..4 loop
+  for _i in 0..9 loop
     insert into public.record_photos
       (record_id, couple_id, storage_path, sort_order, width, height, byte_size, content_type)
     values ('00000000-0000-0000-0000-000000000011',
@@ -139,13 +140,14 @@ begin
 end;
 $$;
 
-select test.eq('사진 5장까지 정상 등록', (select count(*)::text from public.record_photos), '5');
+-- 2026-08-15 결정: 사진 상한 5장 → 10장 (20260815100000_relax_record_limits.sql)
+select test.eq('사진 10장까지 정상 등록', (select count(*)::text from public.record_photos), '10');
 
-select test.raises('AC-10: 6번째 사진은 sort_order 범위(0..4)에 걸려 거부된다',
+select test.raises('11번째 사진은 sort_order 범위(0..9)에 걸려 거부된다',
   $q$insert into public.record_photos
        (record_id, couple_id, storage_path, sort_order, width, height, byte_size, content_type)
      values ('00000000-0000-0000-0000-000000000011',
-             '00000000-0000-0000-0000-0000000000aa', 'aa/11/p5.jpg', 5,
+             '00000000-0000-0000-0000-0000000000aa', 'aa/11/p10.jpg', 10,
              1200, 800, 100000, 'image/jpeg')$q$,
   '23514');
 

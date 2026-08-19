@@ -8,6 +8,7 @@ import { recordFailureMessage, upsertRecord } from '../../lib/record-rpc'
 import { loadStationLines, loadStationMaster } from '../../lib/station-master'
 import type { StationMaster, StationRow } from '../../lib/station-master'
 import type { Database, Mood, Weather } from '../../lib/database.types'
+import { MOODS, WEATHERS } from '../../lib/mood-weather'
 import { ConfirmDialog } from './ConfirmDialog'
 import { PhotoField } from './PhotoField'
 import type { EditorPhoto } from './PhotoField'
@@ -39,26 +40,8 @@ import ui from '../../styles/ui.module.css'
  * - 수정 중 상대가 먼저 저장한 경우의 안내(§2.3): RPC가 충돌 신호를 주지 않아 감지 불가.
  */
 
-/** F-11. PRD §5.2의 이모지 순서를 그대로 매핑한다. 저장 값은 슬러그다 (F-14) */
-const MOODS: readonly { slug: Mood; emoji: string; label: string }[] = [
-  { slug: 'happy', emoji: '😊', label: '기쁨' },
-  { slug: 'love', emoji: '😍', label: '사랑' },
-  { slug: 'excited', emoji: '😆', label: '설렘' },
-  { slug: 'calm', emoji: '😌', label: '편안' },
-  { slug: 'sad', emoji: '😢', label: '슬픔' },
-]
-
-/** F-12 */
-const WEATHERS: readonly { slug: Weather; emoji: string; label: string }[] = [
-  { slug: 'sunny', emoji: '☀️', label: '맑음' },
-  { slug: 'cloudy', emoji: '☁️', label: '흐림' },
-  { slug: 'rainy', emoji: '🌧️', label: '비' },
-  { slug: 'snowy', emoji: '❄️', label: '눈' },
-  { slug: 'windy', emoji: '🌬️', label: '바람' },
-]
-
-/** F-24 / 00 §4.5 CHECK */
-const MAX_NOTE = 2000
+/** F-24 / 00 §4.5 CHECK (2026-08-15 결정) */
+const MAX_NOTE = 1000
 /** F-24: 항상 카운터를 띄우면 "짧게 써야 한다"는 압박을 준다. 80%부터만 보여준다 */
 const NOTE_COUNTER_FROM = Math.floor(MAX_NOTE * 0.8)
 

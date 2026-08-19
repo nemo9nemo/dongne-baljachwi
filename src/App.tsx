@@ -15,9 +15,12 @@ import {
 } from './auth/guards'
 import { AppShell } from './components/AppShell'
 import { isSupabaseConfigured } from './lib/supabase'
-import { Placeholder } from './screens/Placeholder'
 import { LineMapScreen } from './screens/lines/LineMapScreen'
+import { MapViewScreen } from './screens/lines/MapViewScreen'
+import { RecordDetailScreen } from './screens/records/RecordDetailScreen'
 import { RecordEditorScreen } from './screens/records/RecordEditorScreen'
+import { StationDetailScreen } from './screens/stations/StationDetailScreen'
+import { TimelineScreen } from './screens/timeline/TimelineScreen'
 import { AuthCallbackScreen } from './screens/auth/AuthCallbackScreen'
 import { ForgotPasswordScreen } from './screens/auth/ForgotPasswordScreen'
 import { LoginScreen } from './screens/auth/LoginScreen'
@@ -59,7 +62,8 @@ function RootFrame() {
  * 라우팅 구조.
  *
  * PRD §4의 7개 화면 경로를 확정해 두고, 구현이 끝난 화면부터 자리표시자를 걷어낸다.
- * 지금 실제 화면이 있는 것: 01(인증·커플 연결), 03(노선도), 05(기록 작성/수정).
+ * 지금 실제 화면이 있는 것: 01(인증·커플 연결), 03(노선도), 04(역 상세), 05(기록 작성/수정),
+ * 06(기록 상세), 07(지도 보기), 08(타임라인). 09(프로필)는 설정 영역만.
  * 경로 명명은 개발자 재량이다 (04 F-09).
  *
  * 가드 계층:
@@ -103,25 +107,13 @@ const router = createBrowserRouter(
           <Route element={<AppShell />}>
             <Route path="/" element={<Navigate to="/lines" replace />} />
             <Route path="/lines" element={<LineMapScreen />} />
-            <Route
-              path="/map"
-              element={<Placeholder title="지도 보기" spec="docs/specs/07-map-view.md" />}
-            />
-            <Route
-              path="/stations/:stationId"
-              element={<Placeholder title="역 상세" spec="docs/specs/04-station-detail.md" />}
-            />
+            <Route path="/map" element={<MapViewScreen />} />
+            <Route path="/stations/:stationId" element={<StationDetailScreen />} />
             {/* 작성/수정은 같은 화면이다 (05 F-02). 차이는 초기값과 저장 동작뿐. */}
             <Route path="/records/new" element={<RecordEditorScreen />} />
-            <Route
-              path="/records/:recordId"
-              element={<Placeholder title="기록 상세" spec="docs/specs/06-record-detail.md" />}
-            />
+            <Route path="/records/:recordId" element={<RecordDetailScreen />} />
             <Route path="/records/:recordId/edit" element={<RecordEditorScreen />} />
-            <Route
-              path="/timeline"
-              element={<Placeholder title="타임라인" spec="docs/specs/08-timeline.md" />}
-            />
+            <Route path="/timeline" element={<TimelineScreen />} />
             <Route path="/profile" element={<ProfileScreen />} />
           </Route>
         </Route>
