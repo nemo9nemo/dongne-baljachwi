@@ -17,13 +17,21 @@ import ui from '../../styles/ui.module.css'
  * (앱 기본 화면이 노선도이므로 항상 그렇다) 여기서는 캐시를 그대로 쓴다.
  *
  * 이번 라운드에 없는 것:
- * - **뷰포트 상태 보존(F-12)**: 노선도 쪽부터가 아직 미구현이다(`LineMapScreen.tsx` 상단
- *   주석 "미구현: AC-08"). 지도 쪽만 먼저 만들면 반쪽짜리 복원이 되므로 함께 다음 라운드로 미룬다.
  * - **좌표 없는 기록 안내(§5 "지도에 표시할 수 없는 기록 N건")**: `station_master_public`의
  *   `lat`/`lng`는 스키마상 NOT NULL이라 실무에서 거의 발생하지 않는 경로다. 방어적으로
  *   필터만 하고 별도 안내 UI는 만들지 않았다.
  * - **클러스터링 임계 레벨(§9 미결정)**: 카카오맵 예제 기본값(6)을 임시로 둔다.
  */
+
+/**
+ * F-12 / AC-06: 지도 뷰포트 보존소.
+ *
+ * 노선도와 **독립적으로** 기억한다 — 좌표계가 다르므로 서로 변환하지 않는다(F-12).
+ * 노선도 쪽(`LineMapScreen.tsx`의 `savedViewport`)과 같은 이유로 모듈 스코프다:
+ * 토글로 노선도에 갔다 오면 이 컴포넌트는 언마운트되고 state·ref 는 모두 사라진다.
+ * 새로고침까지 살릴 필요는 없어 sessionStorage 로 올리지 않는다.
+ */
+let savedMapViewport: { lat: number; lng: number; level: number } | null = null
 
 /** §2.2/AC-08: 기록 0건일 때의 폴백 뷰 */
 const SEOUL_CITY_HALL = { lat: 37.5665, lng: 126.978 }
@@ -46,6 +54,10 @@ export function MapViewScreen() {
   const clustererRef = useRef<KakaoMarkerClusterer | null>(null)
   const overlayRef = useRef<KakaoCustomOverlay | null>(null)
   const [sdkState, setSdkState] = useState<SdkState>('loading')
+  // F-12: 이 마운트가 "복원된" 마운트인지. 첫 렌더 시점의 보존값 유무로 한 번만 정한다.
+  // 아래 마커 effect 의 자동 bounds 맞춤을 막는 데 쓴다 — 복원해 놓고 곧바로 전체 핀에
+  // 맞춰버리면 복원한 의미가 없다.
+  const restoredRef = useRef(savedMapViewport !== null)
 
   const masterData = master.kind === 'ready' ? master.master : null
 
@@ -81,13 +93,24 @@ export function MapViewScreen() {
     void loadKakaoMapsSdk().then(
       (kakao) => {
         if (cancelled) return
+        // F-12: 보존된 뷰포트가 있으면 핀 기준 초기화보다 그쪽이 우선이다. 생성 후
+        // setCenter/setLevel 로 옮기지 않고 생성 옵션으로 주는 이유는, 옮기는 방식이면
+        // 기본 위치가 한 프레임 보였다가 튀기 때문이다.
+        const saved = savedMapViewport
         const center =
-          pins.length === 0
-            ? new kakao.LatLng(SEOUL_CITY_HALL.lat, SEOUL_CITY_HALL.lng)
-            : new kakao.LatLng(pins[0]!.lat, pins[0]!.lng)
+          saved !== null
+            ? new kakao.LatLng(saved.lat, saved.lng)
+            : pins.length === 0
+              ? new kakao.LatLng(SEOUL_CITY_HALL.lat, SEOUL_CITY_HALL.lng)
+              : new kakao.LatLng(pins[0]!.lat, pins[0]!.lng)
         const map = new kakao.Map(container, {
           center,
-          level: pins.length === 0 ? EMPTY_VIEW_LEVEL : SINGLE_PIN_LEVEL,
+          level:
+            saved !== null
+              ? saved.level
+              : pins.length === 0
+                ? EMPTY_VIEW_LEVEL
+                : SINGLE_PIN_LEVEL,
         })
         mapRef.current = map
         clustererRef.current = new kakao.MarkerClusterer({
@@ -114,6 +137,23 @@ export function MapViewScreen() {
     // pins는 최초 센터링에만 쓴다(마운트 1회, 의존성에서 의도적으로 뺀다). 방문이 갱신될
     // 때마다 지도 인스턴스를 다시 만들지 않는다 — 아래 별도 effect가 마커만 갱신한다.
   }, [masterData, navigate])
+
+  /**
+   * F-12/AC-06: 화면을 떠날 때 지도 뷰포트를 1회 읽어 보존한다.
+   *
+   * 카카오맵의 center/level 은 SDK 인스턴스 내부 상태라 React 렌더와 무관하다 —
+   * 'center_changed' 를 구독해 매번 저장할 이유가 없고, 팬 중에 저장하면 그만큼
+   * 이벤트 핸들러만 늘어난다. 언마운트 시 1회로 충분하다.
+   */
+  useEffect(
+    () => () => {
+      const map = mapRef.current
+      if (map === null) return
+      const center = map.getCenter()
+      savedMapViewport = { lat: center.getLat(), lng: center.getLng(), level: map.getLevel() }
+    },
+    [],
+  )
 
   // ── 마커/클러스터 갱신 (F-06/F-08) ────────────────────────────────────
   useEffect(() => {
@@ -143,7 +183,9 @@ export function MapViewScreen() {
     clusterer.addMarkers(markers)
 
     // F-06: 핀 1개면 이미 SINGLE_PIN_LEVEL로 센터링돼 있으니 bounds로 다시 맞추지 않는다.
-    if (pins.length > 1) map.setBounds(bounds)
+    // F-12: 복원된 마운트에서는 아예 맞추지 않는다. 이 effect 는 방문 집계가 갱신될 때도
+    // 도므로, 조건을 "첫 실행"으로 두면 나중 갱신에 사용자가 잡아둔 화면이 튄다.
+    if (pins.length > 1 && !restoredRef.current) map.setBounds(bounds)
   }, [pins, sdkState, navigate])
 
   const showEmpty = sdkState === 'ready' && pins.length === 0

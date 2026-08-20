@@ -91,6 +91,14 @@ export type MapLine = {
   dimmed: boolean
 }
 
+/**
+ * 뷰포트 변환. 도식 좌표에 `translate(tx ty) scale(k)` 순서로 적용된다.
+ *
+ * - `k`: 배율. 1이 전체 보기, 상한 8 (F-18)
+ * - `tx`/`ty`: 이동량. **도식 좌표계 단위**이지 CSS px 가 아니다
+ */
+export type LineMapTransform = { k: number; tx: number; ty: number }
+
 export type LineMapCanvasHandle = {
   /** F-22: 전체 보기로 리셋 */
   reset: () => void
@@ -98,6 +106,16 @@ export type LineMapCanvasHandle = {
   zoomBy: (factor: number) => void
   /** F-14: 주어진 도식 좌표 박스가 화면에 차도록 이동/확대 */
   fitTo: (box: { x: number; y: number; width: number; height: number }) => void
+  /**
+   * AC-08: 현재 변환값 **사본**. 내부 상태는 제자리에서 변형되므로 사본이 아니면
+   * 보관하는 쪽이 계속 흔들리는 값을 들게 된다.
+   */
+  getTransform: () => LineMapTransform
+  /**
+   * AC-08: 보관해 둔 변환값을 그대로 되돌린다. 값은 clampTransform 을 거치므로
+   * 줌/팬 범위(F-18/F-19) 밖이거나 리사이즈로 의미가 달라진 값이 들어와도 안전하다.
+   */
+  setTransform: (t: LineMapTransform) => void
 }
 
 type Props = {
@@ -214,6 +232,12 @@ export function LineMapCanvas({
         t.tx = width / 2 - (box.x + box.width / 2) * t.k
         t.ty = height / 2 - (box.y + box.height / 2) * t.k
         clampTransform(t, width, height)
+        commit()
+      },
+      getTransform: () => ({ ...tf.current }),
+      setTransform: (t) => {
+        tf.current = { k: t.k, tx: t.tx, ty: t.ty }
+        clampTransform(tf.current, width, height)
         commit()
       },
     }),

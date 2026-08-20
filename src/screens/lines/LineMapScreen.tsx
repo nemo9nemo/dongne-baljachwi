@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { lineMap, stationGeometryByCode, lineCodeByStationCode } from '../../data/line-map'
 import type { LineRow } from '../../lib/station-master'
 import { useLineMapData } from './line-map-data'
 import { LineMapCanvas } from './LineMapCanvas'
-import type { LineMapCanvasHandle, MapLine, MapStation } from './LineMapCanvas'
+import type { LineMapCanvasHandle, LineMapTransform, MapLine, MapStation } from './LineMapCanvas'
 import styles from './line-map.module.css'
 import ui from '../../styles/ui.module.css'
 
@@ -15,8 +15,24 @@ import ui from '../../styles/ui.module.css'
  * 성수지선 4역 + 신정지선 3역만 있고, 나머지 노선은 좌표가 없어 그리지 않는다. 그래서
  * §5 마지막 행("좌표 미보유 역 존재 → 하단 안내")이 지금은 상시 표시된다 — 의도된 상태다.
  *
- * 미구현(다음 라운드): AC-08 뷰포트 상태 보존, AC-11 1,100역 성능 프로파일.
+ * 미구현(다음 라운드): AC-11 1,100역 성능 프로파일 — 좌표 파일이 50역뿐이라 지금은
+ * 측정 자체가 성립하지 않는다. 좌표를 채운 뒤 프로파일링해야 한다.
  */
+
+/**
+ * F-21 / AC-08 (07 F-12·AC-06 도 같은 요구): 노선도 뷰포트 보존소.
+ *
+ * 이 화면은 역 상세 드릴다운·하단 탭 전환·지도 보기 전환 어느 쪽으로 나가도 **컴포넌트가
+ * 실제로 언마운트된다**(react-router 데이터 라우터). 그래서 state 도 ref 도 못 쓰고,
+ * 생명주기 밖인 모듈 스코프에 둔다.
+ *
+ * sessionStorage·URL 쿼리로 올리지 않는 이유: 03 §7 확장 포인트가 뷰포트를 "화면 내 보존"
+ * 으로 못박았고 "지금은 URL에 넣지 않는다"고 명시했다. 새로고침 후 리셋되는 것이 스펙대로다.
+ *
+ * `lineId` 를 함께 들고 있는 이유는 F-14 와의 우선순위 때문이다 — 필터가 그대로면 사용자가
+ * 잡아둔 화면이 이기고, 필터가 바뀌었으면 F-14 의 자동 이동/확대가 이긴다.
+ */
+let savedViewport: { lineId: string; transform: LineMapTransform } | null = null
 
 /**
  * 셀렉트박스 한 항목.
@@ -142,9 +158,27 @@ export function LineMapScreen() {
   // 의존성에 `view` 자체를 넣으면 방문 집계가 도착할 때마다 사용자가 잡아둔 화면이 튄다 —
   // 캔버스가 마운트됐는지 여부(boolean)만 본다.
   const canvasMounted = view !== null
-  useEffect(() => {
+  // useEffect 가 아니라 useLayoutEffect 인 이유: passive effect 는 **페인트 이후**에 돈다.
+  // 그러면 복원/자동확대 직전 상태(=전체 보기)가 한 프레임 그려졌다가 튀는 게 눈에 보인다.
+  // 여기서 부른 변환은 캔버스 내부에서 rAF 로 커밋되는데, 레이아웃 단계에서 예약된 rAF 는
+  // 같은 프레임의 페인트 전에 실행되므로 잘못된 뷰포트가 한 번도 그려지지 않는다.
+  useLayoutEffect(() => {
     const canvas = canvasRef.current
     if (canvas === null) return
+
+    // AC-08: 같은 필터 상태로 되돌아온 것이면 보존해 둔 뷰포트가 최우선이다.
+    // 이 분기가 없으면 재마운트마다 아래 reset()/fitTo() 가 돌아 사용자가 확대해 둔
+    // 화면이 매번 전체 보기로 튕겨 나간다.
+    //
+    // 소비 후 비우는(1회용) 이유: 마스터 재적재 등으로 이 effect 가 마운트 도중 다시 돌 때,
+    // 남아 있는 값이 그 사이 사용자가 움직여 놓은 화면을 되감아 버린다. 복원은 "돌아왔을 때
+    // 한 번"이지 "필터 계산이 갱신될 때마다"가 아니다.
+    if (savedViewport !== null && savedViewport.lineId === selectedId) {
+      canvas.setTransform(savedViewport.transform)
+      savedViewport = null
+      return
+    }
+
     if (selectedDrawableCodes === null) {
       canvas.reset()
       return
@@ -162,7 +196,27 @@ export function LineMapScreen() {
       width: Math.max(...xs) - Math.min(...xs) + pad * 2,
       height: Math.max(...ys) - Math.min(...ys) + pad * 2,
     })
-  }, [selectedDrawableCodes, canvasMounted])
+  }, [selectedDrawableCodes, canvasMounted, selectedId])
+
+  /**
+   * AC-08: 화면을 떠날 때 변환값을 **1회만** 읽어 보존한다.
+   *
+   * 팬/줌 중에는 저장하지 않는다. LineMapCanvas 는 변환을 state 로 올리지 않는 설계인데
+   * (그쪽 §성능 설계 주석), 매 프레임 여기로 끌어올리면 그 이점이 그대로 사라진다.
+   *
+   * useEffect 가 아니라 useLayoutEffect 인 이유: 언마운트 시 자식의 useImperativeHandle
+   * 핸들은 커밋의 mutation 단계에서 떨어지고, 그건 passive effect(useEffect) 정리보다
+   * **먼저**다. useEffect 로 두면 cleanup 시점에 canvasRef.current 가 이미 null 이라
+   * 아무것도 저장하지 못한다. 더해서 핸들을 본문에서 지역 변수로 붙잡아 정리 순서에
+   * 아예 기대지 않는다 — 핸들은 떨어진 뒤에도 캔버스의 변환 ref 를 그대로 읽는다.
+   */
+  useLayoutEffect(() => {
+    const canvas = canvasRef.current
+    if (canvas === null) return
+    return () => {
+      savedViewport = { lineId: selectedId, transform: canvas.getTransform() }
+    }
+  }, [canvasMounted, selectedId])
 
   const goStation = useCallback(
     (stationId: string) => navigate(`/stations/${stationId}`),
