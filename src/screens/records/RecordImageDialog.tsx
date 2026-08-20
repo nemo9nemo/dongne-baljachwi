@@ -199,6 +199,8 @@ export function RecordImageDialog({ input, onClose }: Props) {
   }
 
   const busy = phase === 'preparing' || phase === 'saving'
+  // review §4 D-6: 실패 문구는 아래 `.error`(role="alert")가 이미 말한다 — alert 리전은
+  // 그 자체로 즉시 발화되므로, 여기(polite 리전)까지 같은 문장을 넣으면 두 번 읽힌다.
   const status =
     phase === 'preparing'
       ? '카드 미리보기를 만드는 중이에요'
@@ -209,14 +211,14 @@ export function RecordImageDialog({ input, onClose }: Props) {
           : phase === 'manual'
             ? '이미지를 만들었어요. 아래 이미지를 길게 눌러 저장하세요'
             : phase === 'failed'
-              ? '이미지를 만들지 못했어요'
+              ? ''
               : '미리보기가 준비됐어요'
 
   return createPortal(
     <div className={styles.overlay} onClick={busy ? undefined : onClose}>
       <div
         ref={dialogRef}
-        className={styles.dialog}
+        className={resultUrl === null ? styles.dialog : `${styles.dialog} ${styles.dialogResult}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="record-image-title"
@@ -228,7 +230,7 @@ export function RecordImageDialog({ input, onClose }: Props) {
           이미지로 저장
         </h2>
 
-        <div className={styles.preview}>
+        <div className={resultUrl === null ? styles.preview : `${styles.preview} ${styles.previewResult}`}>
           <canvas
             ref={canvasRef}
             className={resultUrl === null ? styles.canvas : styles.hidden}

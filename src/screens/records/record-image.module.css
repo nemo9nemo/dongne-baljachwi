@@ -1,11 +1,14 @@
 /*
  * 기록 카드 이미지 저장 시트 (docs/specs/10-record-card-image.md F-04).
+ * 비주얼 스펙: docs/design/record-card-review.md §5.
  * 값은 전부 tokens.css 변수를 참조한다 — 리터럴 색/간격을 새로 만들지 않는다.
  *
- * 여기는 **시트 UI**만 담당한다. 생성되는 PNG 카드 자체의 색은 CSS가 아니라
+ * 여기는 **시트 UI**만 담당한다. 생성되는 PNG 카드 자체의 색·조판은 CSS가 아니라
  * record-image-render.ts가 원시 팔레트에서 직접 읽는다(다크 모드에서 뒤집히면 안 되므로).
  */
 
+/* ConfirmDialog(record-editor.module.css)·DissolveCoupleDialog와 동일한 오버레이다.
+   같은 층위의 모달이 서로 다르게 떠오르면 앱이 여러 서비스처럼 보인다. */
 .overlay {
   position: fixed;
   inset: 0;
@@ -22,31 +25,60 @@
   flex-direction: column;
   gap: var(--space-3);
   width: 100%;
-  max-width: var(--content-max-width);
-  max-height: 92vh;
+  /*
+   * 다른 모달은 --content-max-width(560px)를 쓰지만 여기만 좁힌다.
+   * 이 시트의 내용은 4:5 고정비 객체 하나가 전부라, 560px 상자 안에서는 카드 양옆에
+   * 목적 없는 빈 띠만 남는다. 미리보기 최대 폭(344) + 좌우 패딩(48) = 392에 맞춘 값.
+   */
+  max-width: 400px;
+  max-height: 90vh;
   padding: var(--space-6);
   overflow-y: auto;
+  /* 시트를 끝까지 스크롤했을 때 뒤 화면이 따라 움직이지 않게 한다. */
+  overscroll-behavior: contain;
   background: var(--color-surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-dialog);
 }
 
+/* 버튼 행(항상 마지막 자식)만 한 단계 더 떼어 "보는 영역"과 "누르는 영역"을 가른다. */
+.dialog > :last-child {
+  margin-top: var(--space-3);
+}
+
+/* 상태(role=status)·누락 안내·일기 잘림 안내는 한 덩어리로 읽혀야 한다.
+   시트 기본 gap(12px) 그대로면 세 줄이 각각 별개 문단처럼 흩어진다 — 두 번째 줄부터 4px로 좁힌다. */
+.dialog > p + p {
+  margin-top: calc(var(--space-1) - var(--space-3));
+}
+
 /*
- * 4:5 비율을 CSS로 못 박아, 사진 로드 전(스켈레톤)에도 최종 카드와 같은 자리를 차지한다 —
+ * 카드 미리보기 매트.
+ *
+ * 4:5를 CSS로 못 박아 사진 로드 전(스켈레톤)에도 최종 카드와 같은 자리를 차지한다 —
  * 준비가 끝나는 순간 시트 높이가 튀는 걸 막는다.
- * max-width로 높이 상한을 거는 이유: aspect-ratio 상자에 max-height를 걸면 비율이 깨진다.
+ * 폭을 상한으로 거는 이유: aspect-ratio 상자에 max-height를 걸면 비율이 깨진다.
+ * 41.6vh = 52vh × 4/5 (세로 상한 52vh를 폭으로 환산한 값), 344px = 데스크톱 상한.
+ *
+ * **모서리 반경을 주지 않는다.** 출력 PNG는 직각이라, 매트를 둥글게 깎으면 미리보기가
+ * 실제 결과와 달라진다 (스펙 §6.3 "미리보기와 실제 출력의 레이아웃이 동일해야 한다").
+ * 같은 이유로 테두리도 없다 — 카드가 자기 테두리(라이트=검정/다크=흰색)를 이미 그리고
+ * 있어서, 매트에 선을 하나 더 두르면 결과물에 없는 이중 테두리가 보인다.
  */
 .preview {
   position: relative;
+  /*
+   * flex 아이템이라 기본값(flex-shrink:1)으로 두면 시트가 넘칠 때 세로로 눌려 4:5가 깨진다.
+   * (가로 모드 폰 812×375에서 실측 1.118:1로 찌그러졌다 — 미리보기가 결과와 달라지는 사고다.)
+   * 미리보기는 절대 찌그러지지 않고, 대신 시트가 스크롤된다.
+   */
+  flex: none;
   width: 100%;
-  /* 52vh × (4/5) = 41.6vh 가 이 상자의 최대 너비다 */
-  max-width: 41.6vh;
+  max-width: min(41.6vh, 344px);
   margin: 0 auto;
   overflow: hidden;
   aspect-ratio: 4 / 5;
   background: var(--color-surface-muted);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
 }
 
 .canvas {
@@ -56,19 +88,77 @@
   object-fit: contain;
 }
 
+/*
+ * review §4 D-7: 스펙 개정(2026-08-19)으로 저장 성공/미지원 양쪽 모두 결과 이미지가
+ * "길게 눌러 저장"의 주 출구가 됐다. 준비 중 매트 크기(최대 344px)로는 길게 눌러 저장하기엔
+ * 작다 — 결과 표시 중에는 매트와 시트 상한을 함께 넉넉히 키운다.
+ */
+.previewResult {
+  max-width: min(56vh, 400px);
+}
+
+.dialogResult {
+  max-width: 460px;
+}
+
 /* 저장 후에는 <img>를 대신 보여준다. 캔버스는 재생성(대비책 ③·재시도)을 위해 DOM에 남긴다 —
    display:none이어도 비트맵은 그대로 유지된다. */
 .hidden {
   display: none;
 }
 
+/*
+ * 준비 중 스켈레톤.
+ * 매트와 같은 색으로 두면 "만드는 중"과 "빈 상자"가 화면상 구분되지 않는다(직전 구현의 문제).
+ * surface-muted ↔ surface 사이를 훑는 스윕으로 진행 중임을 형태로 알린다 — 색만으로
+ * 알리는 게 아니라 움직임이 신호다. 문구는 아래 .live(aria-live)가 따로 전달한다.
+ */
 .skeleton {
   position: absolute;
   inset: 0;
-  background: var(--color-surface-muted);
+  background: linear-gradient(
+    100deg,
+    var(--color-surface-muted) 25%,
+    var(--color-surface) 45%,
+    var(--color-surface-muted) 65%
+  );
+  background-size: 300% 100%;
+  animation: previewSweep 1400ms linear infinite;
 }
 
+@keyframes previewSweep {
+  from {
+    background-position: 150% 0;
+  }
+
+  to {
+    background-position: -150% 0;
+  }
+}
+
+/* 진행/완료/실패 안내(role=status). ui.hint와 같은 층위로 맞춰 잔글씨 tier를 하나로 둔다 —
+   14px muted였을 때는 본문도 보조도 아닌 어중간한 크기로 떠 있었다. */
 .live {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--color-text-muted);
+}
+
+/* 낮은 창(가로 모드 폰 등)에서는 시트 안쪽 여백부터 줄인다. 미리보기는 vh로 이미 따라 줄어든다. */
+@media (max-height: 620px) {
+  .dialog {
+    gap: var(--space-2);
+    padding: var(--space-4);
+  }
+}
+
+/* 전정 장애 사용자에게 훑는 애니메이션은 빼고, 두 톤 대비만 남겨 "빈 상자"와 구분한다. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    background: linear-gradient(
+      100deg,
+      var(--color-surface-muted) 40%,
+      var(--color-surface) 60%
+    );
+    animation: none;
+  }
 }

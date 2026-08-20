@@ -35,16 +35,53 @@ const PHOTO_LOAD_TIMEOUT_MS = 8000
 const FONT_FAMILY = "'Noto Sans KR', sans-serif"
 
 // ── 레이아웃 상수 (논리 px) ──────────────────────────────────────────────
+// docs/design/record-card-review.md §3 — 디자이너 조판 스펙 이관분 (2026-08-20).
 const PAD = 72
 const CONTENT_WIDTH = CARD_WIDTH - PAD * 2
-const PHOTO_BLOCK_HEIGHT = 560
+
+// 사진 블록. 고정 높이 대신 일기 줄 수로 역산한 적응형 높이를 쓴다 (§3.3).
 const PHOTO_GAP = 16
 const PHOTO_RADIUS = 24
-const CHIP_HEIGHT = 56
-const NOTE_FONT_SIZE = 32
-const NOTE_LINE_HEIGHT = 50
+const PHOTO_MIN = 520
+const PHOTO_MAX = 780
+const PHOTO_NOTE_GAP = 48
+/** 세로 사진 커버 크롭 시 위쪽을 더 남긴다(0.5=정중앙). 인물이 화면 위쪽 1/3에 오는 경우가 많다 */
+const PHOTO_CROP_ANCHOR = 0.38
 
-/** F-03: 워터마크 문구. 서비스명이 확정되면 파일명(F-11)과 함께 바꿔야 한다 (§9) */
+// 칩 — 감정·날씨(채움)와 태그(윤곽)는 형태로 층위를 가른다 (§3.4)
+const CHIP_HEIGHT = 60
+const CHIP_FONT_SIZE = 30
+const CHIP_PAD_X = 30
+const TAG_HEIGHT = 52
+const TAG_FONT_SIZE = 28
+const TAG_PAD_X = 26
+/** "+N" 배지. 칩 높이(CHIP_HEIGHT)가 바뀌어도 따라 커지지 않도록 독립 상수로 둔다 */
+const BADGE_HEIGHT = 48
+
+// 타이포 위계 4단계 — ÷2.25로 환산하면 앱의 display/md/sm/xs와 겹친다 (§3.1)
+const STATION_FONT_SIZE = 72
+/** 역명이 CONTENT_WIDTH를 넘으면 한 단계 내린 뒤에도 넘치면 말줄임한다 */
+const STATION_FONT_SIZE_SMALL = 56
+const DATE_FONT_SIZE = 30
+const NOTE_FONT_SIZE = 34
+const NOTE_LINE_HEIGHT = 52
+/** 사진이 있을 때 일기 최대 줄 수. 사진 블록 높이 역산에도 같은 값을 쓴다 */
+const NOTE_MAX_LINES = 5
+/** 사진이 없는 카드(F-04 폴백 포함): 일기가 유일한 콘텐츠라 더 크게 키운다 */
+const NOTE_FONT_SIZE_SOLO = 44
+const NOTE_LINE_HEIGHT_SOLO = 68
+
+/** 워터마크 자간(em 비율). `ctx.letterSpacing`은 브라우저 지원이 갈려 AC-13을 깨므로
+ *  글자별로 직접 그려 트래킹한다 (§3.5) */
+const WATERMARK_LETTER_SPACING_EM = 0.18
+const WATERMARK_FONT_SIZE = 30
+/** 카드 바닥에서 워터마크 베이스라인까지 남기는 여백(§3.2 앵커 공식의 값 그대로) */
+const WATERMARK_BOTTOM_MARGIN = 34
+/** 발자국 마크(Wordmark `.brandMark`를 canvas 원 두 개로 옮긴 것) 한 변 */
+const WATERMARK_MARK_SIZE = 34
+
+/** F-03: 워터마크 문구. 2026-08-19 사용자 결정으로 "동네 발자취" 고정. 서비스명이 바뀌면
+ *  파일명(F-11, `cardFileName` 접두사)과 함께 고쳐야 한다 */
 const WATERMARK_TEXT = '동네 발자취'
 
 /**
@@ -222,12 +259,13 @@ export async function loadCardPhotos(
 }
 
 /**
- * 카드 색.
+ * 카드 색 (2026-08-19 사용자 결정).
  *
- * 예외적으로 **시맨틱 토큰이 아니라 원시 팔레트(`--white`/`--black`/`--gray-*`)를 읽는다.**
- * `--color-text`류는 다크 모드에서 뒤집히는데, 카드는 보는 사람의 OS 설정과 무관하게 항상
- * 같은 그림이어야 하는 산출물이다 — 밤에 저장하면 검은 카드가 나오는 건 버그다.
- * 원시 팔레트는 라이트/다크에서 값이 같아 이 용도에 맞는다.
+ * 카드는 생성 시점의 앱 테마를 따른다 — 다크 모드는 검정 배경 + 흰 테두리, 라이트는 흰
+ * 배경 + 검정 테두리. 그래서 시맨틱 토큰이 아니라 **원시 팔레트를 읽되, 현재 테마를 직접
+ * 판별해서** 어느 쌍을 쓸지 고른다(시맨틱 `--color-*`를 그대로 쓰지 않는 이유는 라이트의
+ * `--color-bg`가 순백이 아니라 `--gray-50`이라 미묘하게 오프화이트가 되기 때문 — 카드는
+ * 순수 흑/백을 원한다).
  */
 function cardPalette() {
   const root = getComputedStyle(document.documentElement)
@@ -235,13 +273,28 @@ function cardPalette() {
     const value = root.getPropertyValue(name).trim()
     return value === '' ? fallback : value
   }
-  return {
-    bg: read('--white', '#ffffff'),
-    text: read('--black', '#000000'),
-    muted: read('--gray-600', '#525252'),
-    border: read('--gray-200', '#e5e5e5'),
-    fill: read('--gray-100', '#f5f5f5'),
-  }
+  const dark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  const white = read('--white', '#ffffff')
+  const black = read('--black', '#000000')
+  // "+N" 배지는 항상 반투명 검정 스크림 위에 그린다(SCRIM) — 스크림이 테마와 무관하게
+  // 어두우므로 그 위 글자는 테마와 무관하게 항상 흰색이어야 읽힌다. 다크에서 palette.bg(검정)를
+  // 쓰면 검정 위에 검정이라 대비 1:1이 된다(review §3.7 D-1).
+  const onScrim = white
+  return dark
+    ? {
+        bg: black,
+        text: white,
+        muted: read('--gray-400', '#a3a3a3'),
+        border: white,
+        onScrim,
+      }
+    : {
+        bg: white,
+        text: black,
+        muted: read('--gray-600', '#525252'),
+        border: black,
+        onScrim,
+      }
 }
 
 function font(weight: number, size: number): string {
@@ -363,31 +416,71 @@ function drawCover(ctx: CanvasRenderingContext2D, photo: LoadedPhoto, rect: Rect
   ctx.drawImage(
     photo.source,
     rect.x + (rect.w - drawW) / 2,
-    rect.y + (rect.h - drawH) / 2,
+    // 정중앙(0.5)이 아니라 위쪽을 더 남긴다(PHOTO_CROP_ANCHOR) — 데이트 사진은 인물이
+    // 화면 위쪽 1/3에 있는 경우가 많아, 가로로 긴 슬롯에 세로 사진을 채우면 정중앙 크롭은
+    // 얼굴을 자른다 (review §2.2-⑥).
+    rect.y + (rect.h - drawH) * PHOTO_CROP_ANCHOR,
     drawW,
     drawH,
   )
   ctx.restore()
 }
 
-/** 알약 배경을 깔고 가운데 정렬로 글자를 얹는다. 반환값은 다음 칩이 시작할 x */
-function drawPill(
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max)
+}
+
+/**
+ * 채움 알약(감정·날씨). 태그가 윤곽인 것과 대비해 "이건 상위 정보"임을 형태로 알린다
+ * (review §3.4 — `tokens.css`의 primary/danger "채움 vs 윤곽" 문법과 같은 논리).
+ * 반환값은 다음 칩이 시작할 x.
+ */
+function drawFilledPill(
   ctx: CanvasRenderingContext2D,
   text: string,
   x: number,
   y: number,
-  fill: string,
+  bg: string,
   color: string,
   fontSize: number,
+  height: number,
+  padX: number,
 ): number {
   ctx.font = font(500, fontSize)
-  const width = ctx.measureText(text).width + 48
-  ctx.fillStyle = fill
-  roundRectPath(ctx, x, y, width, CHIP_HEIGHT, CHIP_HEIGHT / 2)
+  const width = ctx.measureText(text).width + padX * 2
+  ctx.fillStyle = bg
+  roundRectPath(ctx, x, y, width, height, height / 2)
   ctx.fill()
   ctx.fillStyle = color
   ctx.textBaseline = 'middle'
-  ctx.fillText(text, x + 24, y + CHIP_HEIGHT / 2)
+  ctx.fillText(text, x + padX, y + height / 2)
+  ctx.textBaseline = 'top'
+  return x + width
+}
+
+/** 윤곽 알약(태그). 이모지를 뺀 지금, 칩의 형태 자체가 "이건 감정/날씨가 아니라 태그다"를
+ *  전달하는 유일한 신호라 채움과 뚜렷이 달라야 한다 (review §3.4). */
+function drawOutlinePill(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  border: string,
+  color: string,
+  fontSize: number,
+  height: number,
+  padX: number,
+): number {
+  ctx.font = font(500, fontSize)
+  const width = ctx.measureText(text).width + padX * 2
+  ctx.strokeStyle = border
+  ctx.lineWidth = 2
+  // 1px 인셋 — 선을 알약 경계에 그대로 그리면 절반이 잘려 나가 실제보다 가늘어 보인다.
+  roundRectPath(ctx, x + 1, y + 1, width - 2, height - 2, (height - 2) / 2)
+  ctx.stroke()
+  ctx.fillStyle = color
+  ctx.textBaseline = 'middle'
+  ctx.fillText(text, x + padX, y + height / 2)
   ctx.textBaseline = 'top'
   return x + width
 }
@@ -424,44 +517,94 @@ export async function renderCard(
   ctx.fillStyle = palette.bg
   ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT)
   // 흰 배경 위(카톡·인스타)에 올리면 카드 경계가 사라진다. 헤어라인으로 가장자리를 남긴다.
+  // 3px인 이유: 카톡 썸네일 표시 크기(≈480px)로 줄이면 2px는 0.9px가 되어 렌더 아티팩트로
+  // 보인다(review §3.5) — 3px라야 "의도된 프레임"으로 읽힌다.
   ctx.strokeStyle = palette.border
-  ctx.lineWidth = 2
-  ctx.strokeRect(1, 1, CARD_WIDTH - 2, CARD_HEIGHT - 2)
+  ctx.lineWidth = 3
+  ctx.strokeRect(1.5, 1.5, CARD_WIDTH - 3, CARD_HEIGHT - 3)
 
   ctx.textBaseline = 'top'
   let y = PAD
 
-  ctx.font = font(700, 64)
+  // 역명: 72px가 CONTENT_WIDTH를 넘으면 56px로 한 단계 내리고, 그래도 넘치면 말줄임한다
+  // (review §3.1 — 긴 역명이 그냥 잘리던 문제).
+  ctx.font = font(700, STATION_FONT_SIZE)
+  const stationFits = ctx.measureText(input.stationName).width <= CONTENT_WIDTH
+  if (!stationFits) ctx.font = font(700, STATION_FONT_SIZE_SMALL)
   ctx.fillStyle = palette.text
   ctx.fillText(fitOneLine(ctx, input.stationName, CONTENT_WIDTH), PAD, y)
-  y += 80
+  y += 92
 
   const { dateLabel, weekday } = formatVisitedOn(input.visitedOn)
-  ctx.font = font(400, 34)
+  ctx.font = font(400, DATE_FONT_SIZE)
   ctx.fillStyle = palette.muted
   ctx.fillText(`${dateLabel} (${weekday})`, PAD, y)
-  y += 46 + 28
+  y += 42
 
-  // §9 미결정: 감정·날씨를 SVG 아이콘 세트로 그릴지 미정이라, 지금은 화면(`RecordDetailScreen`)과
-  // 같은 이모지를 텍스트로 그린다. OS별로 모양이 달라 AC-13(기기 간 동일성)을 이 부분에
-  // 한해서는 만족하지 못한다 — 알려진 한계이고, 아이콘 세트가 나오면 여기만 바꾸면 된다.
+  // 2026-08-19 사용자 결정: 텍스트 우선, 이모지는 나중에 태그를 활용해 별도로 추가한다.
+  // 이모지는 OS마다 모양이 달라 AC-13(기기 간 동일성)을 깨는 원인이었다 — 라벨 텍스트만
+  // 쓰면 그 문제 자체가 없어진다. 채움 알약으로 그려 태그(윤곽)와 층위를 가른다(§3.4).
   const moodMeta = MOODS.find((item) => item.slug === input.mood) ?? null
   const weatherMeta = WEATHERS.find((item) => item.slug === input.weather) ?? null
   if (moodMeta !== null || weatherMeta !== null) {
     let chipX = PAD
     if (moodMeta !== null) {
-      chipX = drawPill(ctx, `${moodMeta.emoji} ${moodMeta.label}`, chipX, y, palette.fill, palette.text, 30) + 16
+      chipX =
+        drawFilledPill(
+          ctx,
+          moodMeta.label,
+          chipX,
+          y,
+          palette.text,
+          palette.bg,
+          CHIP_FONT_SIZE,
+          CHIP_HEIGHT,
+          CHIP_PAD_X,
+        ) + 16
     }
     if (weatherMeta !== null) {
-      drawPill(ctx, `${weatherMeta.emoji} ${weatherMeta.label}`, chipX, y, palette.fill, palette.text, 30)
+      drawFilledPill(
+        ctx,
+        weatherMeta.label,
+        chipX,
+        y,
+        palette.text,
+        palette.bg,
+        CHIP_FONT_SIZE,
+        CHIP_HEIGHT,
+        CHIP_PAD_X,
+      )
     }
     y += CHIP_HEIGHT + 36
   } else {
-    y += 36
+    y += 20
   }
 
-  if (photos.length > 0) {
-    const slots = photoSlots(photos.length, PAD, y, CONTENT_WIDTH, PHOTO_BLOCK_HEIGHT)
+  // 아래쪽 고정 블록(구분선 → 워터마크, 그 위에 태그)을 먼저 잡는다. 사진·일기가 나눠 쓸
+  // 영역(NOTE_BOTTOM까지)의 바닥이 정해져야 사진 높이를 역산할 수 있다(F-09, §3.3).
+  const watermarkTop = CARD_HEIGHT - PAD - WATERMARK_BOTTOM_MARGIN
+  const ruleY = watermarkTop - 28
+  const visibleTags = input.tags.slice(0, MAX_CARD_TAGS)
+  const tagsTop = visibleTags.length > 0 ? ruleY - 36 - TAG_HEIGHT : ruleY
+  const noteBottom = tagsTop - 36
+
+  let noteTruncated = false
+  const note = input.note?.trim() ?? ''
+  const hasPhotos = photos.length > 0
+
+  if (hasPhotos) {
+    // §3.3 핵심 변경: 일기를 사진보다 먼저 "측정"해서(그리지는 않는다) 사진 블록에 줄
+    // 높이를 역산한다 — 짧은 일기(대다수)는 사진이 커지고, 긴 일기는 5줄까지 안 잘린다.
+    ctx.font = font(400, NOTE_FONT_SIZE)
+    const wrapped = note === '' ? [] : wrapText(ctx, note, CONTENT_WIDTH)
+    const noteLinesForSizing = Math.min(wrapped.length, NOTE_MAX_LINES)
+    const photoH = clamp(
+      noteBottom - y - PHOTO_NOTE_GAP - noteLinesForSizing * NOTE_LINE_HEIGHT,
+      PHOTO_MIN,
+      PHOTO_MAX,
+    )
+
+    const slots = photoSlots(photos.length, PAD, y, CONTENT_WIDTH, photoH)
     for (let i = 0; i < photos.length; i += 1) {
       const slot = slots[i]
       const photo = photos[i]
@@ -476,35 +619,44 @@ export async function renderCard(
     const lastSlot = slots[photos.length - 1]
     if (extraPhotoCount > 0 && lastSlot !== undefined) {
       const label = `+${extraPhotoCount}`
-      ctx.font = font(700, 32)
-      const badgeW = ctx.measureText(label).width + 40
+      ctx.font = font(700, 30)
+      const badgeW = ctx.measureText(label).width + 44
       const badgeX = lastSlot.x + lastSlot.w - badgeW - 20
-      const badgeY = lastSlot.y + lastSlot.h - CHIP_HEIGHT - 20
+      const badgeY = lastSlot.y + lastSlot.h - BADGE_HEIGHT - 20
       ctx.fillStyle = SCRIM
-      roundRectPath(ctx, badgeX, badgeY, badgeW, CHIP_HEIGHT, CHIP_HEIGHT / 2)
+      roundRectPath(ctx, badgeX, badgeY, badgeW, BADGE_HEIGHT, BADGE_HEIGHT / 2)
       ctx.fill()
-      ctx.fillStyle = palette.bg
+      // review §3.7 D-1: palette.bg가 아니라 항상 흰색(onScrim) — 다크 모드에서
+      // 검정 글자를 검정 스크림 위에 그리면 대비가 1:1이 된다.
+      ctx.fillStyle = palette.onScrim
       ctx.textBaseline = 'middle'
-      ctx.fillText(label, badgeX + 20, badgeY + CHIP_HEIGHT / 2)
+      ctx.fillText(label, badgeX + 22, badgeY + BADGE_HEIGHT / 2)
       ctx.textBaseline = 'top'
     }
-    y += PHOTO_BLOCK_HEIGHT + 44
-  }
+    y += photoH + PHOTO_NOTE_GAP
 
-  // 아래쪽 고정 블록(워터마크 → 태그)을 먼저 잡고, 남는 공간이 곧 일기 영역이다.
-  // F-09: 일기 전문을 넣으려고 카드 높이를 늘리지 않는다.
-  const watermarkTop = CARD_HEIGHT - PAD - 36
-  const ruleY = watermarkTop - 24
-  const visibleTags = input.tags.slice(0, MAX_CARD_TAGS)
-  const tagsTop = visibleTags.length > 0 ? ruleY - 28 - CHIP_HEIGHT : ruleY
-  const noteBottom = tagsTop - 32
-
-  let noteTruncated = false
-  const note = input.note?.trim() ?? ''
-  if (note !== '') {
-    ctx.font = font(400, NOTE_FONT_SIZE)
+    if (note !== '') {
+      ctx.font = font(400, NOTE_FONT_SIZE)
+      ctx.fillStyle = palette.text
+      const maxLines = Math.floor((noteBottom - y) / NOTE_LINE_HEIGHT)
+      const lines = wrapped.slice(0, Math.max(0, maxLines))
+      if (lines.length < wrapped.length) {
+        noteTruncated = true
+        const lastIndex = lines.length - 1
+        let last = lines[lastIndex] ?? ''
+        while (last !== '' && ctx.measureText(`${last}…`).width > CONTENT_WIDTH) last = last.slice(0, -1)
+        if (lastIndex >= 0) lines[lastIndex] = `${last}…`
+      }
+      for (let i = 0; i < lines.length; i += 1) {
+        ctx.fillText(lines[i] ?? '', PAD, y + i * NOTE_LINE_HEIGHT)
+      }
+    }
+  } else if (note !== '') {
+    // 사진 없는 카드(F-04 폴백 포함): 일기가 유일한 콘텐츠라 큰 글자로 상단 정렬한다.
+    // 본문 크기(34px)로 두면 1350 높이 카드에 두 줄만 떠 "실패한 카드"로 보인다(review §3.3).
+    ctx.font = font(400, NOTE_FONT_SIZE_SOLO)
     ctx.fillStyle = palette.text
-    const maxLines = Math.floor((noteBottom - y) / NOTE_LINE_HEIGHT)
+    const maxLines = Math.floor((noteBottom - y) / NOTE_LINE_HEIGHT_SOLO)
     const wrapped = wrapText(ctx, note, CONTENT_WIDTH)
     const lines = wrapped.slice(0, Math.max(0, maxLines))
     if (lines.length < wrapped.length) {
@@ -515,46 +667,70 @@ export async function renderCard(
       if (lastIndex >= 0) lines[lastIndex] = `${last}…`
     }
     for (let i = 0; i < lines.length; i += 1) {
-      ctx.fillText(lines[i] ?? '', PAD, y + i * NOTE_LINE_HEIGHT)
+      ctx.fillText(lines[i] ?? '', PAD, y + i * NOTE_LINE_HEIGHT_SOLO)
     }
   }
 
   // F-10: 최대 5개 + "+N". 다만 5개여도 폭을 넘길 수 있어(긴 태그) 실제로 들어간 만큼만 세고
-  // 나머지는 초과분에 합친다 — 칩이 카드 밖으로 삐져나가는 것보다 낫다.
+  // 나머지는 초과분에 합친다 — 칩이 카드 밖으로 삐져나가는 것보다 낫다. 태그는 윤곽 알약이다
+  // (§3.4) — 채움인 감정·날씨와 형태로 구분된다.
   if (visibleTags.length > 0) {
     let tagX = PAD
     let drawn = 0
-    ctx.font = font(500, 28)
+    ctx.font = font(500, TAG_FONT_SIZE)
     for (const tag of visibleTags) {
       const label = `#${tag}`
-      const width = ctx.measureText(label).width + 48
+      const width = ctx.measureText(label).width + TAG_PAD_X * 2
       if (drawn > 0 && tagX + width > PAD + CONTENT_WIDTH) break
-      tagX = drawPill(ctx, label, tagX, tagsTop, palette.fill, palette.text, 28) + 12
+      tagX =
+        drawOutlinePill(ctx, label, tagX, tagsTop, palette.muted, palette.muted, TAG_FONT_SIZE, TAG_HEIGHT, TAG_PAD_X) +
+        12
       drawn += 1
     }
     const restCount = input.tags.length - drawn
     if (restCount > 0) {
       const label = `+${restCount}`
-      const width = ctx.measureText(label).width + 48
+      const width = ctx.measureText(label).width + TAG_PAD_X * 2
       if (tagX + width <= PAD + CONTENT_WIDTH) {
-        drawPill(ctx, label, tagX, tagsTop, palette.fill, palette.muted, 28)
+        drawOutlinePill(ctx, label, tagX, tagsTop, palette.muted, palette.muted, TAG_FONT_SIZE, TAG_HEIGHT, TAG_PAD_X)
       }
     }
   }
 
-  // F-03: 공유 대체재이므로 출처를 남긴다.
-  ctx.strokeStyle = palette.border
-  ctx.lineWidth = 1
+  // F-03: 공유 대체재이므로 출처를 남긴다. 전폭 실선+가운데 정렬(각주 톤) 대신, 좌측 축에
+  // 맞춘 짧은 룰 + 발자국 마크 + 로고타입으로 그린다 — 앱 워드마크(`Wordmark.tsx`) 규격을
+  // canvas로 옮긴 것이다(review §3.5). 전폭 순색 실선은 카드 테두리와 시각적으로 경쟁했다.
+  ctx.strokeStyle = palette.text
+  ctx.lineWidth = 3
   ctx.beginPath()
   ctx.moveTo(PAD, ruleY)
-  ctx.lineTo(CARD_WIDTH - PAD, ruleY)
+  ctx.lineTo(PAD + 120, ruleY)
   ctx.stroke()
 
-  ctx.font = font(500, 28)
-  ctx.fillStyle = palette.muted
-  ctx.textAlign = 'center'
-  ctx.fillText(WATERMARK_TEXT, CARD_WIDTH / 2, watermarkTop)
-  ctx.textAlign = 'left'
+  // 발자국 마크: 대각선으로 겹친 원 두 개(뒤쪽은 반투명) — `.brandMark`와 같은 모티프.
+  // review §3.5: 앞 중심 (PAD+9.5, watermarkTop+7.5) 불투명 / 뒤 중심
+  // (PAD+24.5, watermarkTop+26.5) alpha 0.5. WATERMARK_MARK_SIZE(34) 영역 안에 겹쳐 앉는다.
+  const dotR = 7.5
+  ctx.fillStyle = palette.text
+  ctx.beginPath()
+  ctx.arc(PAD + 9.5, watermarkTop + 7.5, dotR, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.save()
+  ctx.globalAlpha = 0.5
+  ctx.beginPath()
+  ctx.arc(PAD + 24.5, watermarkTop + 26.5, dotR, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
+
+  // 로고타입: 자간을 CSS/letterSpacing에 기대지 않고 글자별로 직접 그린다 — 브라우저 지원
+  // 편차로 AC-13(기기 간 동일성)이 깨지는 걸 막는다.
+  ctx.font = font(700, WATERMARK_FONT_SIZE)
+  ctx.fillStyle = palette.text
+  let wx = PAD + WATERMARK_MARK_SIZE + 18
+  for (const ch of WATERMARK_TEXT) {
+    ctx.fillText(ch, wx, watermarkTop)
+    wx += ctx.measureText(ch).width + WATERMARK_FONT_SIZE * WATERMARK_LETTER_SPACING_EM
+  }
 
   return { noteTruncated }
 }
