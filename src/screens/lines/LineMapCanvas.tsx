@@ -107,12 +107,12 @@ export type LineMapCanvasHandle = {
   /** F-14: 주어진 도식 좌표 박스가 화면에 차도록 이동/확대 */
   fitTo: (box: { x: number; y: number; width: number; height: number }) => void
   /**
-   * AC-08: 현재 변환값 **사본**. 내부 상태는 제자리에서 변형되므로 사본이 아니면
+   * F-21 / AC-08: 현재 변환값 **사본**. 내부 상태는 제자리에서 변형되므로 사본이 아니면
    * 보관하는 쪽이 계속 흔들리는 값을 들게 된다.
    */
   getTransform: () => LineMapTransform
   /**
-   * AC-08: 보관해 둔 변환값을 그대로 되돌린다. 값은 clampTransform 을 거치므로
+   * F-21 / AC-08: 보관해 둔 변환값을 그대로 되돌린다. 값은 clampTransform 을 거치므로
    * 줌/팬 범위(F-18/F-19) 밖이거나 리사이즈로 의미가 달라진 값이 들어와도 안전하다.
    */
   setTransform: (t: LineMapTransform) => void

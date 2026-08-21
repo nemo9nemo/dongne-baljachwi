@@ -27,10 +27,12 @@ import ui from '../../styles/ui.module.css'
  * 생명주기 밖인 모듈 스코프에 둔다.
  *
  * sessionStorage·URL 쿼리로 올리지 않는 이유: 03 §7 확장 포인트가 뷰포트를 "화면 내 보존"
- * 으로 못박았고 "지금은 URL에 넣지 않는다"고 명시했다. 새로고침 후 리셋되는 것이 스펙대로다.
+ * 으로 못박았고 "지금은 URL에 넣지 않는다"고 명시했다. 새로고침 후 리셋되는 것이 스펙대로다
+ * (AC-15 — 결함이 아니다).
  *
- * `lineId` 를 함께 들고 있는 이유는 F-14 와의 우선순위 때문이다 — 필터가 그대로면 사용자가
- * 잡아둔 화면이 이기고, 필터가 바뀌었으면 F-14 의 자동 이동/확대가 이긴다.
+ * `lineId` 를 함께 들고 있는 이유는 F-21a 때문이다 — 보존 단위가 `{필터, 뷰포트}` 한 쌍이라,
+ * 필터가 그대로면 사용자가 잡아둔 화면이 이기고, 필터가 바뀌었으면 F-14 의 자동 이동/확대가
+ * 이긴다. 필터별로 각각 기억하지 않고 마지막 한 쌍만 들고 있다.
  */
 let savedViewport: { lineId: string; transform: LineMapTransform } | null = null
 
@@ -166,9 +168,9 @@ export function LineMapScreen() {
     const canvas = canvasRef.current
     if (canvas === null) return
 
-    // AC-08: 같은 필터 상태로 되돌아온 것이면 보존해 둔 뷰포트가 최우선이다.
-    // 이 분기가 없으면 재마운트마다 아래 reset()/fitTo() 가 돌아 사용자가 확대해 둔
-    // 화면이 매번 전체 보기로 튕겨 나간다.
+    // F-21 / AC-08: 같은 필터 상태로 되돌아온 것이면 보존해 둔 뷰포트가 최우선이다
+    // (F-21 > F-09·F-14). 이 분기가 없으면 재마운트마다 아래 reset()/fitTo() 가 돌아
+    // 사용자가 확대해 둔 화면이 매번 전체 보기로 튕겨 나간다.
     //
     // 소비 후 비우는(1회용) 이유: 마스터 재적재 등으로 이 effect 가 마운트 도중 다시 돌 때,
     // 남아 있는 값이 그 사이 사용자가 움직여 놓은 화면을 되감아 버린다. 복원은 "돌아왔을 때
@@ -179,6 +181,10 @@ export function LineMapScreen() {
       return
     }
 
+    // F-21a / AC-16: 필터가 저장 시점과 다르면 복원을 포기하고 여기(F-09 전체 보기 /
+    // F-14 호선 맞춤)로 폴백한다. 버려진 뷰포트는 필터를 되돌려도 되살아나지 않는데,
+    // 아래 보존 effect 의 cleanup 이 이 effect 본문보다 **먼저** 돌아(정리 → 실행 순서)
+    // selectedId 가 바뀌는 순간 savedViewport 가 직전 필터의 값으로 덮이기 때문이다.
     if (selectedDrawableCodes === null) {
       canvas.reset()
       return
@@ -199,7 +205,7 @@ export function LineMapScreen() {
   }, [selectedDrawableCodes, canvasMounted, selectedId])
 
   /**
-   * AC-08: 화면을 떠날 때 변환값을 **1회만** 읽어 보존한다.
+   * F-21 / AC-08: 화면을 떠날 때 `{필터, 변환값}` 을 **1회만** 읽어 보존한다.
    *
    * 팬/줌 중에는 저장하지 않는다. LineMapCanvas 는 변환을 state 로 올리지 않는 설계인데
    * (그쪽 §성능 설계 주석), 매 프레임 여기로 끌어올리면 그 이점이 그대로 사라진다.

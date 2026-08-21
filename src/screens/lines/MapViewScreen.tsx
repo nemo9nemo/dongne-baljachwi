@@ -24,12 +24,13 @@ import ui from '../../styles/ui.module.css'
  */
 
 /**
- * F-12 / AC-06: 지도 뷰포트 보존소.
+ * F-12 / AC-16: 지도 뷰포트 보존소.
  *
  * 노선도와 **독립적으로** 기억한다 — 좌표계가 다르므로 서로 변환하지 않는다(F-12).
  * 노선도 쪽(`LineMapScreen.tsx`의 `savedViewport`)과 같은 이유로 모듈 스코프다:
  * 토글로 노선도에 갔다 오면 이 컴포넌트는 언마운트되고 state·ref 는 모두 사라진다.
- * 새로고침까지 살릴 필요는 없어 sessionStorage 로 올리지 않는다.
+ * 새로고침까지 살릴 필요는 없어 sessionStorage 로 올리지 않는다 (AC-17 — 명세 동작이다).
+ * 지도에는 호선 필터가 없으므로(F-13) 노선도와 달리 필터 일치 조건도 없다.
  */
 let savedMapViewport: { lat: number; lng: number; level: number } | null = null
 
@@ -54,9 +55,9 @@ export function MapViewScreen() {
   const clustererRef = useRef<KakaoMarkerClusterer | null>(null)
   const overlayRef = useRef<KakaoCustomOverlay | null>(null)
   const [sdkState, setSdkState] = useState<SdkState>('loading')
-  // F-12: 이 마운트가 "복원된" 마운트인지. 첫 렌더 시점의 보존값 유무로 한 번만 정한다.
-  // 아래 마커 effect 의 자동 bounds 맞춤을 막는 데 쓴다 — 복원해 놓고 곧바로 전체 핀에
-  // 맞춰버리면 복원한 의미가 없다.
+  // F-12 > F-06 (AC-16): 이 마운트가 "복원된" 마운트인지. 첫 렌더 시점의 보존값 유무로
+  // 한 번만 정한다. 아래 마커 effect 의 자동 bounds 맞춤을 막는 데 쓴다 — 복원해 놓고
+  // 곧바로 전체 핀에 맞춰버리면 복원한 의미가 없다.
   const restoredRef = useRef(savedMapViewport !== null)
 
   const masterData = master.kind === 'ready' ? master.master : null
@@ -93,7 +94,8 @@ export function MapViewScreen() {
     void loadKakaoMapsSdk().then(
       (kakao) => {
         if (cancelled) return
-        // F-12: 보존된 뷰포트가 있으면 핀 기준 초기화보다 그쪽이 우선이다. 생성 후
+        // F-12 > F-06·F-07: 보존된 뷰포트가 있으면 핀 bounds(F-06)든 기록 0건 기본 뷰
+        // (F-07)든 초기화보다 복원이 우선이다. 생성 후
         // setCenter/setLevel 로 옮기지 않고 생성 옵션으로 주는 이유는, 옮기는 방식이면
         // 기본 위치가 한 프레임 보였다가 튀기 때문이다.
         const saved = savedMapViewport
@@ -139,7 +141,7 @@ export function MapViewScreen() {
   }, [masterData, navigate])
 
   /**
-   * F-12/AC-06: 화면을 떠날 때 지도 뷰포트를 1회 읽어 보존한다.
+   * F-12 / AC-16: 화면을 떠날 때 지도 뷰포트를 1회 읽어 보존한다.
    *
    * 카카오맵의 center/level 은 SDK 인스턴스 내부 상태라 React 렌더와 무관하다 —
    * 'center_changed' 를 구독해 매번 저장할 이유가 없고, 팬 중에 저장하면 그만큼
@@ -183,8 +185,12 @@ export function MapViewScreen() {
     clusterer.addMarkers(markers)
 
     // F-06: 핀 1개면 이미 SINGLE_PIN_LEVEL로 센터링돼 있으니 bounds로 다시 맞추지 않는다.
-    // F-12: 복원된 마운트에서는 아예 맞추지 않는다. 이 effect 는 방문 집계가 갱신될 때도
-    // 도므로, 조건을 "첫 실행"으로 두면 나중 갱신에 사용자가 잡아둔 화면이 튄다.
+    // F-12 > F-06 (AC-16): 복원된 마운트에서는 아예 맞추지 않는다. 이 effect 는 방문 집계가
+    // 갱신될 때도 도므로, 조건을 "첫 실행"으로 두면 나중 갱신에 사용자가 잡아둔 화면이 튄다.
+    //
+    // 07 §9 미결정: 복원된 뷰포트에 핀이 하나도 없으면(핀에서 멀리 떨어진 곳을 보다 나갔다
+    // 돌아온 경우) 빈 지도가 그대로 복원되고, 노선도의 F-22 같은 "전체 핀 보기" 탈출구가
+    // 지도에는 없다. 의도적으로 처리하지 않은 케이스 — 버튼을 둘지 결정되면 여기에 붙인다.
     if (pins.length > 1 && !restoredRef.current) map.setBounds(bounds)
   }, [pins, sdkState, navigate])
 
