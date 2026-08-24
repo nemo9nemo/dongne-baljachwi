@@ -226,6 +226,67 @@ function round1(v) {
   return Math.round(v * 10) / 10;
 }
 
+// ── 2호선 루프 관통 자동 회피 ──────────────────────────────────────────────────────
+// 왜 넣었는가: 3호선·4호선 파일럿에서 "환승 회랑이 2호선 루프 내부를 가로지른다"는
+// 문제가 2회 연속 재현됐다(같은 회랑, 방향만 반대: 3호선은 동쪽, 4호선은 서쪽). 우연이
+// 아니라 이 방법(위경도 직접 투영) 자체의 구조적 특성 — 2호선 루프는 실지리가 아니라
+// 예술적으로 왜곡한 도형이고, 나머지 노선은 실지리 기반이라 둘이 같은 좌표계에서 겹칠
+// 이유가 없다. 패턴이 예측 가능하므로 매번 사람이 육안으로 찾아 손으로 미는 대신 규칙화한다.
+//
+// 왜 폴리곤이 아니라 타원인가: `src/data/line-map/index.ts` 주석에 2호선 루프 자체가
+// 처음부터 "종횡비 1.35:1의 타원"으로 설계됐다고 적혀 있다 — 이 모델이 원안 설계 의도에
+// 가깝고, 127점짜리 실제 폴리곤으로 레이캐스팅하는 것보다 코드가 훨씬 단순하며 경계
+// 케이스(자기교차, 부동소수점) 버그가 날 여지가 적다.
+//
+// 두 파일럿에서 손으로 밀어냈던 18개 역 좌표를 이 모델로 역검증했더니 전부 "내부"로
+// 정확히 잡혔다(오차 없음) — 회피 자체는 유효하지만, 그 결과가 사람이 만든 결과만큼
+// "예쁘게" 밀리는 건 아니다(방향만 유지한 채 최단거리로 미는 것이라, 미감 있는 곡선을
+// 만들지는 못한다). 그래서 이후에도 육안 검토 자체는 계속 필요하다 — 이 규칙은 "루프를
+// 관통하는 명백한 오류"만 없애고, "자연스러운 곡선"까지 만들어주지는 않는다.
+const LOOP_LINE_CODE = 'L-S1102';
+/** 타원 경계에서 얼마나 더 바깥으로 미는가(비율). 딱 경계에 걸치면 다른 노선과 겹칠 수 있다. */
+const LOOP_PUSH_MARGIN = 0.12;
+
+/**
+ * @typedef {{ cx: number, cy: number, rx: number, ry: number }} LoopEllipse
+ */
+
+/**
+ * 이미 배치된 `lines[]`에서 2호선 루프를 찾아 바운딩박스 기반 타원으로 근사한다.
+ * 루프가 아직 없는 파일(예: 수도권 밖 신규 권역)에서는 null — 이 경우 회피를 건너뛴다.
+ * @param {LineEntry[]} lines
+ * @returns {LoopEllipse | null}
+ */
+function findLoopEllipse(lines) {
+  const loop = lines.find((l) => l.lineCode === LOOP_LINE_CODE);
+  if (!loop) return null;
+  let minX = Number.POSITIVE_INFINITY, minY = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY, maxY = Number.NEGATIVE_INFINITY;
+  for (const [x, y] of loop.polyline) {
+    minX = Math.min(minX, x); minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+  }
+  return { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2, rx: (maxX - minX) / 2, ry: (maxY - minY) / 2 };
+}
+
+/**
+ * pt가 루프 타원 내부면 중심에서 pt 방향으로 경계 밖까지 밀어낸 새 좌표를 돌려준다.
+ * 이미 바깥이면 원래 좌표를 그대로 돌려준다(불필요한 이동을 만들지 않는다).
+ * @param {Point} pt
+ * @param {LoopEllipse} ellipse
+ * @returns {Point}
+ */
+function pushOutsideLoop(pt, ellipse) {
+  const dx = pt.x - ellipse.cx;
+  const dy = pt.y - ellipse.cy;
+  const r = Math.sqrt((dx / ellipse.rx) ** 2 + (dy / ellipse.ry) ** 2);
+  // r>=1 은 이미 경계 위/바깥. r===0(중심과 정확히 일치)은 미는 방향 자체가 없어 포기한다
+  // — 실제로는 역이 루프 중심(강남 어딘가)에 정확히 찍힐 확률은 0에 가깝다.
+  if (r >= 1 || r === 0) return pt;
+  const scale = (1 + LOOP_PUSH_MARGIN) / r;
+  return { x: ellipse.cx + dx * scale, y: ellipse.cy + dy * scale };
+}
+
 /** @param {GeomDoc} d @returns {string} */
 function formatDoc(d) {
   // 기존 metro-seoul.json은 손으로 쓰기 좋게 컴팩트 스타일(폴리라인 점 한 줄, 역 한 줄)로
@@ -295,6 +356,15 @@ console.log(
     `a=${transform.a.re.toFixed(4)}+${transform.a.im.toFixed(4)}i, b=(${transform.b.re.toFixed(1)}, ${transform.b.im.toFixed(1)})`,
 );
 
+// 루프 관통 회피는 이번 실행 시작 시점의 2호선 루프 하나만 기준으로 삼는다(전역 보정과
+// 같은 이유 — 노선을 여러 개 연달아 처리해도 기준이 흔들리지 않도록).
+const loopEllipse = findLoopEllipse(doc.lines);
+console.log(
+  loopEllipse
+    ? `루프 관통 회피 활성화: 2호선 타원 중심(${round1(loopEllipse.cx)}, ${round1(loopEllipse.cy)}), 반경(${round1(loopEllipse.rx)}, ${round1(loopEllipse.ry)})`
+    : '루프 관통 회피 비활성화: 파일에 2호선(L-S1102)이 없음',
+);
+
 for (const lineCode of targetLineCodes) {
   if (doc.lines.some((l) => l.lineCode === lineCode)) {
     console.error(`이미 파일에 있음(건너뜀): ${lineCode}`);
@@ -325,13 +395,22 @@ for (const lineCode of targetLineCodes) {
   );
   const ordered = reconstructPathOrder(raw);
 
+  let pushedCount = 0;
   const placed = ordered.map((s) => {
     const existing = existingByCode.get(s.code);
     if (existing) {
       return { stationCode: s.code, x: existing.x, y: existing.y, labelAnchor: existing.labelAnchor, reused: true };
     }
-    const { x, y } = applyTransform(transform, projectRaw(s.lat, s.lng));
-    return { stationCode: s.code, x: round1(x), y: round1(y), labelAnchor: 'top', reused: false };
+    let pt = applyTransform(transform, projectRaw(s.lat, s.lng));
+    // 앵커(이미 배치된 역)는 절대 밀지 않는다 — 사람이 확정한 좌표이기 때문이다.
+    // 루프 자기 자신(L-S1102)을 처리 중일 때는 회피를 적용하지 않는다(자기 자신과 비교하는
+    // 게 되어 의미가 없다).
+    if (loopEllipse && lineCode !== LOOP_LINE_CODE) {
+      const pushed = pushOutsideLoop(pt, loopEllipse);
+      if (pushed.x !== pt.x || pushed.y !== pt.y) pushedCount += 1;
+      pt = pushed;
+    }
+    return { stationCode: s.code, x: round1(pt.x), y: round1(pt.y), labelAnchor: 'top', reused: false };
   });
 
   placed.forEach((st, i) => {
@@ -361,8 +440,8 @@ for (const lineCode of targetLineCodes) {
   });
 
   console.log(
-    `${lineCode}(${lineRow.name}): 역 ${placed.length}개, 신규 배치 ${addedCount}개, ` +
-      `기존 재사용(앵커) ${placed.length - addedCount}개`,
+    `${lineCode}(${lineRow.name}): 역 ${placed.length}개, 신규 배치 ${addedCount}개 ` +
+      `(그중 루프 관통 회피로 자동으로 민 역 ${pushedCount}개), 기존 재사용(앵커) ${placed.length - addedCount}개`,
   );
 }
 
