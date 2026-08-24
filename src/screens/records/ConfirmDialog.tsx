@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react'
-import type { KeyboardEvent, ReactNode } from 'react'
-import { createPortal } from 'react-dom'
+import type { ReactNode } from 'react'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogOverlay, DialogPortal, DialogTitle } from '@/components/ui/dialog'
 import styles from './record-editor.module.css'
 import ui from '../../styles/ui.module.css'
 
@@ -20,8 +20,9 @@ type Props = {
 /**
  * 확인 모달. 이 화면에서 두 곳에 쓴다 — 작성 중 이탈(F-04)과 "삭제된 기록" 안내(§2.3).
  *
- * `DissolveCoupleDialog`와 같은 접근성 처리(배경 inert + body 포털 + Esc + 포커스 복귀)를
- * 쓰되, 여기는 단계가 없어 포커스 트랩을 버튼 두 개 순환으로 단순화했다.
+ * 접근성 배관(포털·포커스 트랩·Esc·포커스 복귀)은 Radix `Dialog`(`@/components/ui/dialog`)가
+ * 담당한다 — Content 마운트 시 첫 포커스 가능 요소(취소 버튼, 파괴적이지 않은 쪽)로 자동
+ * 이동하므로 `DissolveCoupleDialog`처럼 별도 지정이 필요 없다.
  */
 export function ConfirmDialog({
   title,
@@ -33,89 +34,40 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: Props) {
-  const dialogRef = useRef<HTMLDivElement>(null)
-  const cancelRef = useRef<HTMLButtonElement>(null)
-
-  /**
-   * `aria-hidden`이 아니라 `inert`를 쓴다: aria-hidden은 AT 트리에서만 감출 뿐 키보드
-   * 포커스는 배경으로 새어 나간다. 모달 자체를 body로 포털하는 이유도 같다 —
-   * 앱 트리 안에 두면 inert에 함께 걸린다.
-   */
-  useEffect(() => {
-    const previouslyFocused =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null
-    const appRoot = document.getElementById('root')
-    appRoot?.setAttribute('inert', '')
-    // 파괴적이지 않은 쪽(취소)에 기본 포커스를 준다.
-    cancelRef.current?.focus()
-    return () => {
-      // inert를 먼저 풀어야 한다. inert 하위 요소에 대한 focus()는 무시된다.
-      appRoot?.removeAttribute('inert')
-      previouslyFocused?.focus()
-    }
-  }, [])
-
-  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key === 'Escape') {
-      if (!busy) onCancel()
-      return
-    }
-    if (event.key !== 'Tab') return
-    const dialog = dialogRef.current
-    if (dialog === null) return
-    const buttons = [...dialog.querySelectorAll<HTMLButtonElement>('button')]
-    if (buttons.length === 0) return
-    const first = buttons[0]
-    const last = buttons[buttons.length - 1]
-    const active = document.activeElement
-    if (event.shiftKey) {
-      if (active === first || active === dialog || !dialog.contains(active)) {
-        event.preventDefault()
-        last?.focus()
-      }
-    } else if (active === last) {
-      event.preventDefault()
-      first?.focus()
-    }
-  }
-
-  return createPortal(
-    <div className={styles.overlay} onClick={busy ? undefined : onCancel}>
-      <div
-        ref={dialogRef}
-        className={styles.dialog}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="record-dialog-title"
-        tabIndex={-1}
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={handleKeyDown}
-      >
-        <h2 id="record-dialog-title" className={ui.sectionTitle}>
-          {title}
-        </h2>
-        {children}
-        <div className={ui.buttonRow}>
-          <button
-            ref={cancelRef}
-            type="button"
-            className={ui.button}
-            disabled={busy}
-            onClick={onCancel}
+  return (
+    <Dialog
+      open
+      onOpenChange={(next) => {
+        if (!next && !busy) onCancel()
+      }}
+    >
+      <DialogPortal>
+        <DialogOverlay className={styles.overlay}>
+          <DialogContent
+            className={styles.dialog}
+            // busy 중에는 Esc·바깥 클릭 모두로 닫히지 않는다(진행 중 삭제 요청 등).
+            onEscapeKeyDown={(event) => busy && event.preventDefault()}
+            onInteractOutside={(event) => busy && event.preventDefault()}
           >
-            {cancelLabel}
-          </button>
-          <button
-            type="button"
-            className={danger ? `${ui.button} ${ui.buttonDanger}` : `${ui.button} ${ui.buttonPrimary}`}
-            disabled={busy}
-            onClick={onConfirm}
-          >
-            {confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>,
-    document.body,
+            {/* Radix가 id를 자동 생성해 Content의 aria-labelledby에 연결한다 — 직접 잇지 않는다. */}
+            <DialogTitle className={ui.sectionTitle}>{title}</DialogTitle>
+            {children}
+            <div className={ui.buttonRow}>
+              <Button type="button" disabled={busy} onClick={onCancel}>
+                {cancelLabel}
+              </Button>
+              <Button
+                type="button"
+                variant={danger ? 'destructive' : 'default'}
+                disabled={busy}
+                onClick={onConfirm}
+              >
+                {confirmLabel}
+              </Button>
+            </div>
+          </DialogContent>
+        </DialogOverlay>
+      </DialogPortal>
+    </Dialog>
   )
 }

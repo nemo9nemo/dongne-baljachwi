@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { useSession } from '../../auth/session-context'
 import { createCouple, failureMessage, redeemInvite } from '../../lib/couple-rpc'
 import type { RpcFailure } from '../../lib/couple-rpc'
@@ -134,9 +136,8 @@ export function OnboardingScreen() {
             <label className={ui.label} htmlFor="onboarding-name">
               내 이름
             </label>
-            <input
+            <Input
               id="onboarding-name"
-              className={ui.input}
               type="text"
               value={name}
               maxLength={NAME_MAX}
@@ -148,13 +149,9 @@ export function OnboardingScreen() {
               {NAME_MIN}~{NAME_MAX}자
             </p>
           </div>
-          <button
-            type="submit"
-            className={`${ui.button} ${ui.buttonPrimary}`}
-            disabled={!nameValid}
-          >
+          <Button type="submit" variant="default" disabled={!nameValid}>
             다음
-          </button>
+          </Button>
         </form>
       </div>
     )
@@ -168,31 +165,30 @@ export function OnboardingScreen() {
           <p className={ui.subtitle}>둘 중 하나를 고르면 돼요.</p>
         </header>
         <div className={ui.form}>
-          <button
+          <Button
             type="button"
-            className={`${ui.button} ${ui.buttonPrimary}`}
+            variant="default"
             onClick={() => {
               setFailure(null)
               setStep('create')
             }}
           >
             우리 커플 만들기
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className={ui.button}
             onClick={() => {
               setFailure(null)
               setStep('join')
             }}
           >
             초대 코드 입력하기
-          </button>
+          </Button>
         </div>
         <p className={ui.linkRow}>
-          <button type="button" className={ui.button} onClick={() => setStep('name')}>
+          <Button type="button" onClick={() => setStep('name')}>
             이름 다시 입력
-          </button>
+          </Button>
         </p>
       </div>
     )
@@ -217,9 +213,8 @@ export function OnboardingScreen() {
             <label className={ui.label} htmlFor="onboarding-started-on">
               사귀기 시작한 날
             </label>
-            <input
+            <Input
               id="onboarding-started-on"
-              className={ui.input}
               type="date"
               value={startedOn}
               // F-07: 미래 날짜 금지. 브라우저 제약은 편의일 뿐이고 서버도 검증한다.
@@ -228,21 +223,12 @@ export function OnboardingScreen() {
               onChange={(event) => setStartedOn(event.target.value)}
             />
           </div>
-          <button
-            type="submit"
-            className={`${ui.button} ${ui.buttonPrimary}`}
-            disabled={startedOn.length === 0 || pending}
-          >
+          <Button type="submit" variant="default" disabled={startedOn.length === 0 || pending}>
             {pending ? '만드는 중…' : '커플 만들기'}
-          </button>
-          <button
-            type="button"
-            className={ui.button}
-            disabled={pending}
-            onClick={() => setStep('choice')}
-          >
+          </Button>
+          <Button type="button" disabled={pending} onClick={() => setStep('choice')}>
             뒤로
-          </button>
+          </Button>
         </form>
       </div>
     )
@@ -260,9 +246,9 @@ export function OnboardingScreen() {
           <label className={ui.label} htmlFor="onboarding-code">
             초대 코드
           </label>
-          <input
+          <Input
             id="onboarding-code"
-            className={`${ui.input} ${ui.codeInput}`}
+            className={ui.codeInput}
             type="text"
             value={codeInput}
             // 브라우저 자동완성/자동수정이 코드 문자를 건드리면 안 된다 (01 §6).
@@ -292,21 +278,16 @@ export function OnboardingScreen() {
           )}
         </div>
 
-        <button
+        <Button
           type="submit"
-          className={`${ui.button} ${ui.buttonPrimary}`}
+          variant="default"
           disabled={normalizedCode.length !== INVITE_CODE_LENGTH || pending || counting}
         >
           {pending ? '확인하는 중…' : '연결하기'}
-        </button>
-        <button
-          type="button"
-          className={ui.button}
-          disabled={pending}
-          onClick={() => setStep('choice')}
-        >
+        </Button>
+        <Button type="button" disabled={pending} onClick={() => setStep('choice')}>
           뒤로
-        </button>
+        </Button>
       </form>
     </div>
   )

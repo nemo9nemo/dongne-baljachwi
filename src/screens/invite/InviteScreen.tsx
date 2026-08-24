@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
 import { useSession } from '../../auth/session-context'
 import { supabase } from '../../lib/supabase'
 import { failureMessage, issueInvite } from '../../lib/couple-rpc'
@@ -137,13 +138,9 @@ export function InviteScreen() {
       <div className={ui.screen}>
         <h1 className={ui.title}>이미 두 사람이 연결되어 있어요</h1>
         <p className={ui.subtitle}>더 이상 초대 코드가 필요하지 않아요.</p>
-        <button
-          type="button"
-          className={`${ui.button} ${ui.buttonPrimary}`}
-          onClick={() => navigate('/lines', { replace: true })}
-        >
+        <Button type="button" variant="default" onClick={() => navigate('/lines', { replace: true })}>
           돌아가기
-        </button>
+        </Button>
       </div>
     )
   }
@@ -168,9 +165,9 @@ export function InviteScreen() {
       {state.kind === 'error' && (
         <div className={ui.card}>
           <p className={ui.error}>코드를 불러오지 못했어요.</p>
-          <button type="button" className={ui.button} onClick={() => void load()}>
+          <Button type="button" onClick={() => void load()}>
             다시 불러오기
-          </button>
+          </Button>
         </div>
       )}
 
@@ -185,13 +182,9 @@ export function InviteScreen() {
           {/* 전화로 불러주는 경우를 위해 큰 글자로 보여준다 (01 §6). */}
           <p className={ui.code}>{formatInviteCode(state.invite.code)}</p>
           <p className={ui.subtitle}>{formatRemaining(state.invite.expiresAt)}</p>
-          <button
-            type="button"
-            className={`${ui.button} ${ui.buttonPrimary}`}
-            onClick={() => void handleCopy(state.invite.code)}
-          >
+          <Button type="button" variant="default" onClick={() => void handleCopy(state.invite.code)}>
             코드 복사
-          </button>
+          </Button>
           {copyNotice !== null && (
             <p className={ui.subtitle} role="status" aria-live="polite">
               {copyNotice}
@@ -207,26 +200,17 @@ export function InviteScreen() {
       )}
 
       <div className={ui.field}>
-        <button
-          type="button"
-          className={ui.button}
-          disabled={issuing || state.kind === 'loading'}
-          onClick={() => void handleIssue()}
-        >
+        <Button type="button" disabled={issuing || state.kind === 'loading'} onClick={() => void handleIssue()}>
           {issuing ? '발급하는 중…' : '새 코드 발급'}
-        </button>
+        </Button>
         {/* F-08: 커플당 유효 코드는 1개다. 재발급이 곧 이전 코드 폐기라는 걸 미리 알린다. */}
         <p className={ui.hint}>새로 발급하면 이전 코드는 바로 쓸 수 없게 돼요.</p>
       </div>
 
-      <button
-        type="button"
-        className={ui.button}
-        onClick={() => navigate('/lines', { replace: true })}
-      >
+      <Button type="button" onClick={() => navigate('/lines', { replace: true })}>
         {/* F-17: 상대가 합류하기 전에도 앱을 그대로 쓸 수 있다. */}
         {justCreated ? '먼저 시작하기' : '돌아가기'}
-      </button>
+      </Button>
     </div>
   )
 }

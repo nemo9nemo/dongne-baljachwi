@@ -4,6 +4,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { isNetworkFailure, supabase } from '../../lib/supabase'
 import { readStateString } from '../../lib/router-state'
 import { Wordmark } from '../../components/Wordmark'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import ui from '../../styles/ui.module.css'
 
 /** F-01: 이메일+비밀번호 로그인. */
@@ -77,9 +79,8 @@ export function LoginScreen() {
           <label className={ui.label} htmlFor="login-email">
             이메일
           </label>
-          <input
+          <Input
             id="login-email"
-            className={ui.input}
             type="email"
             value={email}
             autoComplete="email"
@@ -92,9 +93,8 @@ export function LoginScreen() {
           <label className={ui.label} htmlFor="login-password">
             비밀번호
           </label>
-          <input
+          <Input
             id="login-password"
-            className={ui.input}
             type="password"
             value={password}
             autoComplete="current-password"
@@ -103,13 +103,9 @@ export function LoginScreen() {
           />
         </div>
 
-        <button
-          type="submit"
-          className={`${ui.button} ${ui.buttonPrimary}`}
-          disabled={!submittable}
-        >
+        <Button type="submit" variant="default" disabled={!submittable}>
           {pending ? '로그인하는 중…' : '로그인'}
-        </button>
+        </Button>
       </form>
 
       <p className={ui.linkRow}>

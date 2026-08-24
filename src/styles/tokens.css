@@ -23,6 +23,24 @@
  *
  * 폰트는 Noto Sans KR로 고정한다(자체 호스팅, `@fontsource/noto-sans-kr`).
  *
+ * ── 2026-08-21 Resend 레퍼런스 재구성(shadcn/ui 준비) ─────────────────────
+ * 사용자가 첨부한 Resend 마케팅 사이트 캡처 문서(DESIGN.md)를 참고 자료로 검토했다. 그 문서
+ * 자신이 §7에서 "직접 지시 > 리포지토리 사실 > 이 문서 > 참고 영감" 순으로 자기 권위를
+ * 낮춰 뒀고, 이 프로젝트는 커플 다이어리이지 개발자 대상 마케팅 사이트가 아니므로 그 순서를
+ * 그대로 따랐다. 자세한 판단 근거는 `docs/design/redesign-resend-reference.md`.
+ *
+ * 가져온 것: 다크 캔버스와 절제된 헤어라인이라는 "정밀하고 소란스럽지 않은" 어휘 —
+ * 이미 2026-08-19 흑백 개편이 같은 방향이었으므로 자연스럽게 얹었다(`--color-hairline`).
+ * shadcn/ui가 기대하는 표준 변수명(`--background` 등)을 별칭으로 추가했다(하단 절 참고).
+ *
+ * 버린 것: Resend의 `#00a3ff` 프라이머리 블루. 흑백 개편(위 2026-08-19 섹션)이 "primary/danger는
+ * 색이 아니라 채움/윤곽 형태로 구분한다"를 대비 재계산까지 마쳐 확정한 리포지토리 사실이고,
+ * Resend 문서 자신의 적용 우선순위(리포지토리 사실 > 참고 영감)로도 이게 이긴다. 커플의
+ * 다정한 정서에 차가운 개발자-툴 블루를 얹는 것도 페르소나(PRD §2)와 맞지 않는다고 판단했다.
+ * Domaine Display/ABC Favorit도 그대로 가져오지 않는다 — 한글 글리프가 없는 라틴 전용
+ * 서체라 그대로 쓰면 시스템 폰트로 깨져 폴백된다(DESIGN.md 자신도 이를 "우기지 말라"고
+ * 경고한다). 대신 Noto Sans KR의 굵기·자간·크기로 같은 "에디토리얼 무게감"을 낸다.
+ *
  * ── ⚠ 아직 PLACEHOLDER인 것 ───────────────────────────────────────────────
  *   · 타이포 스케일(--font-size-*, --line-height-*): 흑백 개편과 무관하게 여전히 임시값.
  *   · 간격 스케일(--space-*): 이전과 동일하게 임시 단계.
@@ -54,6 +72,12 @@
   --color-field: var(--gray-150);
   --color-border: var(--gray-200);
   --color-border-strong: var(--gray-500);
+  /* Resend가 검정 캔버스에서 쓰던 "쿨 반투명 헤어라인" 어휘를 무채색으로 옮긴 것.
+     --color-border(불투명 실선)와 역할이 다르다 — 이건 이미 불투명 서피스 위에 얹히는
+     카드·다이얼로그·열린 메뉴의 "떠 있는 경계"용 장식 보더다. 지도/노선도 위 컨트롤처럼
+     배경이 예측 불가능한 곳에는 절대 쓰지 않는다(그 규칙은 §5 참고, 아래에서도 다시 적는다).
+     장식용이라 3:1 요건이 걸리지 않는다 — 상태 구분은 이 보더가 아니라 형태·텍스트가 한다. */
+  --color-hairline: rgb(0 0 0 / 12%);
 
   --color-text: var(--black);
   --color-text-muted: var(--gray-600);
@@ -118,6 +142,15 @@
   --font-sans: 'Noto Sans KR', system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic',
     sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  /* Resend의 3단 타이포(Domaine/ABC Favorit/Inter) 중 유일하게 그대로 계승 가능한 게 Inter다
+     — 라틴/숫자 전용이라도 지정 안 된 문자는 --font-sans(Noto Sans KR)로 자연스럽게
+     폴백되는 정상적인 스택이다. 날짜·통계 숫자·디데이처럼 숫자 비중이 큰 자리에 써서
+     "정밀한 제어 UI" 결을 낸다.
+     ⚠ 미설치 상태다 — @fontsource/inter(또는 동급)를 developer-frontend가 추가하기 전까지는
+     Inter 없이 시스템 폰트로 폴백된다. 그 상태를 "Inter 적용됨"이라고 부르지 않는다
+     (DESIGN.md 자신의 경고: 시스템 폰트를 갖다 놓고 다른 서체라고 우기지 말 것). */
+  --font-numeric: 'Inter', 'Noto Sans KR', system-ui, -apple-system, 'Apple SD Gothic Neo',
+    'Malgun Gothic', sans-serif;
 
   --font-size-xs: 12px;
   --font-size-sm: 14px;
@@ -125,6 +158,12 @@
   --font-size-lg: 20px;
   --font-size-xl: 26px;
   --font-size-code: 40px;
+  /* 새 스텝이 아니라 --font-size-code(40)의 별칭이다 — "타이포 5~6단계" 상한을 지키면서,
+     초대 코드 전용이 아니라 프로필 디데이·통계 히어로 숫자처럼 "포스터 헤드라인" 무게가
+     필요한 자리에도 같은 40px을 재사용할 수 있게 이름만 하나 더 붙였다.
+     Resend의 96px 히어로를 그대로 가져오지 않은 이유는 docs/design/redesign-resend-reference.md
+     §2 참고 — 이 앱 화면 폭(~480px 프레임)에서 40px이 이미 "포스터"급이다. */
+  --font-size-display: var(--font-size-code);
 
   --font-weight-regular: 400;
   --font-weight-medium: 500;
@@ -146,12 +185,62 @@
   --control-height: 48px;
   --touch-target: 44px;
   --content-max-width: 560px;
+
+  /* ── shadcn/ui 호환 별칭 (2026-08-21) ─────────────────────────────────
+   * shadcn/ui 프리미티브(Button, Card, Dialog, Select, Popover …)는 이 이름의 변수를
+   * :root/.dark에서 찾는다. 기존 --color-* 이름은 전 화면 CSS 모듈이 이미 참조하고
+   * 있으므로 유지하고, 여기서는 **같은 값을 가리키는 별칭만** 추가한다 — 값을 두 곳에
+   * 관리하지 않기 위해 전부 var(--color-*)로 참조한다(라이트 값은 자동으로 위 정의를 따르고,
+   * 다크는 아래 @media 블록이 --color-*를 덮어쓰면 이 별칭도 같이 뒤집힌다. 리터럴을
+   * 새로 적지 않는다).
+   *
+   * primary/secondary/accent를 셋 다 다른 색으로 채우지 않았다 — 이 앱은 흑백 개편에서
+   * "강조는 색이 아니라 채움/윤곽 형태"로 정하기로 했고(위 2026-08-19 섹션), Resend의
+   * #00a3ff를 다시 들여오지 않기로 한 것과 같은 판단이다(위 2026-08-21 섹션). secondary와
+   * accent가 같은 중립 톤을 가리키는 것도 의도다 — shadcn 기본 테마에서도 이 둘은 대개
+   * "은은한 hover/보조 배경"이라는 같은 역할이라 억지로 갈라놓지 않았다.
+   *
+   * --radius는 shadcn 기본 테마처럼 calc(var(--radius) - 2px) 같은 파생 공식을 쓰지 않는다.
+   * 이 프로젝트는 "간격/반경은 유한한 단계만" 원칙이라 --radius-sm/md/lg/pill 네 값이 이미
+   * 확정돼 있다(§ 반경). Tailwind 설정에서 borderRadius.sm/DEFAULT/lg/full을 그 네 토큰에
+   * 직접 매핑하고, --radius 하나는 "기본값이 필요한 shadcn 컴포넌트 prop"용으로만 남겨 둔다.
+   */
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text);
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-text-inverse);
+  --secondary: var(--color-surface-muted);
+  --secondary-foreground: var(--color-text);
+  --muted: var(--color-surface-muted);
+  --muted-foreground: var(--color-text-muted);
+  --accent: var(--color-surface-muted);
+  --accent-foreground: var(--color-text);
+  --destructive: var(--color-danger);
+  --destructive-foreground: var(--color-text-inverse);
+  --border: var(--color-border);
+  /* shadcn Input이 실제로 그리는 테두리색. 이 앱 입력은 border가 아니라
+     border-strong을 쓴다(§2 표 "쓰면 안 되는 곳: 입력 테두리") — 그 규칙을 그대로 물려준다. */
+  --input: var(--color-border-strong);
+  --ring: var(--color-focus);
+  --radius: var(--radius-md);
 }
 
 /*
- * 다크 — 시스템 설정만 따른다. 앱 내 테마 토글은 아직 없다.
- * 라이트를 그대로 반전한 그레이스케일이다 — bg/surface/text가 뒤집히고, primary/danger도
- * 검정 대신 흰색이 된다(다크에서는 "밝은 게 강조"이므로).
+ * 다크 — 지금은 시스템 설정만 따른다(앱 내 수동 토글은 아직 없다). 값은 라이트를 그대로
+ * 반전한 그레이스케일이다 — bg/surface/text가 뒤집히고, primary/danger도 검정 대신
+ * 흰색이 된다(다크에서는 "밝은 게 강조"이므로).
+ *
+ * 이 블록 바로 아래에 .dark 클래스 블록이 있다 — **값은 여기와 완전히 동일해야 한다.**
+ * shadcn/ui는 보통 JS(next-themes 등)로 <html class="dark">를 토글하는 방식을 기대하는데,
+ * 이 앱은 아직 OS 설정만 따르므로 두 경로(OS 자동 / 수동 클래스)를 다 열어 둔다. CSS
+ * 커스텀 프로퍼티에는 "상속" 개념이 없어 리터럴을 두 곳에 두는 수밖에 없다 — 값을 고칠 때는
+ * 반드시 두 블록을 같이 고친다. 중복이 부담되면 `light-dark()`(Baseline 2024) 기반으로
+ * 재작성하는 방법도 있으나, 이번 라운드는 이미 검증된 라이트/다크 구조를 흔들지 않으려고
+ * 보류했다 — developer-frontend가 실제로 수동 토글 UI를 만들 때 판단할 문제다.
  */
 @media (prefers-color-scheme: dark) {
   :root {
@@ -162,6 +251,7 @@
     --color-field: var(--gray-800);
     --color-border: var(--gray-800);
     --color-border-strong: var(--gray-500);
+    --color-hairline: rgb(255 255 255 / 14%);
 
     --color-text: var(--white);
     --color-text-muted: var(--gray-400);
@@ -199,4 +289,52 @@
     --shadow-button: 0 1px 2px rgb(0 0 0 / 40%), 0 10px 20px -12px rgb(255 255 255 / 15%);
     --shadow-button-hover: 0 2px 4px rgb(0 0 0 / 45%), 0 14px 26px -14px rgb(255 255 255 / 20%);
   }
+}
+
+/*
+ * 다크 — 수동 토글 경로(2026-08-21, shadcn/ui 대비). 지금 이 앱 어떤 화면도 `.dark`를
+ * 붙이지 않으므로 **현재는 비활성 상태**다 — OS가 다크일 때 위 @media 블록만으로 이미
+ * 다크가 적용된다. developer-frontend가 next-themes류로 <html class="dark">를 토글하는
+ * 순간부터 의미를 갖는다. 값은 위 @media 블록과 한 글자도 다르면 안 된다.
+ */
+.dark {
+  --color-bg: var(--black);
+  --color-surface: var(--gray-900);
+  --color-surface-muted: var(--gray-800);
+  --color-field: var(--gray-800);
+  --color-border: var(--gray-800);
+  --color-border-strong: var(--gray-500);
+  --color-hairline: rgb(255 255 255 / 14%);
+
+  --color-text: var(--white);
+  --color-text-muted: var(--gray-400);
+  --color-text-inverse: var(--black);
+
+  --color-primary: var(--white);
+  --color-primary-hover: var(--gray-200);
+  --color-primary-soft: var(--gray-800);
+
+  --color-danger: var(--white);
+  --color-danger-hover: var(--gray-200);
+  --color-danger-soft: var(--gray-800);
+
+  --color-notice-bg: var(--gray-800);
+  --color-notice-border: var(--gray-600);
+
+  --color-focus: var(--white);
+
+  --line-2: #2dc46f;
+  --line-default: var(--gray-400);
+
+  --color-overlay: rgb(0 0 0 / 70%);
+
+  --app-backdrop: linear-gradient(155deg, #0a0a0a 0%, #000000 55%, #0a0a0a 100%);
+  --app-frame-border: rgb(255 255 255 / 10%);
+  --shadow-frame: 0 32px 64px -24px rgb(0 0 0 / 70%), 0 8px 24px -12px rgb(0 0 0 / 50%);
+  --app-screen-wash: linear-gradient(180deg, rgb(255 255 255 / 6%) 0%, rgb(255 255 255 / 0%) 100%);
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-dialog: 0 12px 32px rgb(0 0 0 / 60%);
+  --shadow-button: 0 1px 2px rgb(0 0 0 / 40%), 0 10px 20px -12px rgb(255 255 255 / 15%);
+  --shadow-button-hover: 0 2px 4px rgb(0 0 0 / 45%), 0 14px 26px -14px rgb(255 255 255 / 20%);
 }

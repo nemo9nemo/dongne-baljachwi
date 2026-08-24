@@ -6,6 +6,10 @@ import { createRoot } from 'react-dom/client'
 import '@fontsource/noto-sans-kr/400.css'
 import '@fontsource/noto-sans-kr/500.css'
 import '@fontsource/noto-sans-kr/700.css'
+// --font-numeric(tokens.css)이 실제로 Inter를 쓰게 하는 실체. 날짜·통계 숫자처럼 라틴/숫자
+// 비중이 큰 자리에만 제한적으로 쓴다(2026-08-21 디자이너 인수인계 §7 항목 1 해소).
+import '@fontsource/inter/500.css'
+import '@fontsource/inter/700.css'
 import './index.css'
 import App from './App.tsx'
 

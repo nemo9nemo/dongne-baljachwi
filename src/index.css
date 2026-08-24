@@ -1,6 +1,16 @@
 @import './styles/tokens.css';
 
 /*
+ * Tailwind (v3, shadcn/ui 프리미티브 전용). 기존 화면은 여전히 CSS Modules(`*.module.css`)로
+ * tokens.css 변수를 직접 참조한다 — Tailwind 유틸리티는 `src/components/ui/*`(shadcn) 및
+ * 이를 사용하는 화면에서만 쓴다. 색·반경·그림자 값은 여기서 새로 만들지 않고
+ * `tailwind.config.ts`가 tokens.css 변수를 그대로 가리킨다(중복 정의 금지).
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
  * 전역 베이스 스타일. 컴포넌트 스타일은 CSS Modules로 각 컴포넌트 옆에 둔다.
  * 여기에는 "모든 화면에 예외 없이 해당하는 것"만 넣는다.
  */

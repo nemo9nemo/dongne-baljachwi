@@ -16,6 +16,14 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* shadcn/ui가 기대하는 `@/*` 별칭 (components.json과 짝 맞춤). vite.config.ts의
+       resolve.alias에도 동일하게 등록해야 실제 번들링에서 해석된다.
+       baseUrl 없이 paths만 쓴다 — TS 6.0.2부터 baseUrl이 폐기 예정(TS5101)이고, paths만으로도
+       tsconfig 위치(=프로젝트 루트) 기준으로 해석된다. */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,

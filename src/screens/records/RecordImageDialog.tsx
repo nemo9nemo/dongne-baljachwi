@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import type { KeyboardEvent } from 'react'
-import { createPortal } from 'react-dom'
 import {
   canvasToPngBlob,
   cardFileName,
@@ -10,6 +8,8 @@ import {
   renderCard,
 } from './record-image-render'
 import type { CardInput } from './record-image-render'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogOverlay, DialogPortal, DialogTitle } from '@/components/ui/dialog'
 import styles from './record-image.module.css'
 import ui from '../../styles/ui.module.css'
 
@@ -43,8 +43,9 @@ function downloadSupported(): boolean {
 /**
  * 기록 카드 PNG 미리보기 시트 (`docs/specs/10-record-card-image.md` F-04).
  *
- * 접근성 골격은 `ConfirmDialog`/`PhotoViewer`와 같다 — body 포털 + 배경 `inert` + Esc +
- * 포커스 복귀 (§6.4). 생성 중에는 Esc·배경 클릭을 막는다(`ConfirmDialog`의 `busy`와 같은 규칙).
+ * 접근성 골격(포털·포커스 트랩·Esc·포커스 복귀, §6.4)은 Radix `Dialog`가 담당한다.
+ * 생성 중에는 Esc·배경 클릭을 막는다(`ConfirmDialog`의 `busy`와 같은 규칙) — 단 "닫기"
+ * 버튼 자체는 preparing 중엔 눌러서 생성을 취소할 수 있다(§2.2), saving 중에만 막는다.
  *
  * 미리보기와 최종 PNG가 **같은 캔버스**다. "저장"은 이미 그려진 캔버스를 인코딩할 뿐이라
  * §6.3의 "미리보기와 실제 출력이 동일해야 한다"가 구조적으로 지켜진다.
@@ -59,25 +60,7 @@ export function RecordImageDialog({ input, onClose }: Props) {
   const [resultUrl, setResultUrl] = useState<string | null>(null)
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const dialogRef = useRef<HTMLDivElement>(null)
-  const closeRef = useRef<HTMLButtonElement>(null)
   const resultUrlRef = useRef<string | null>(null)
-
-  /**
-   * `aria-hidden`이 아니라 `inert`를 쓰는 이유는 `ConfirmDialog`와 같다 — aria-hidden은
-   * 키보드 포커스를 막지 못한다. body 포털도 같은 이유(앱 트리 안이면 inert에 함께 걸린다).
-   */
-  useEffect(() => {
-    const previouslyFocused =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null
-    const appRoot = document.getElementById('root')
-    appRoot?.setAttribute('inert', '')
-    closeRef.current?.focus()
-    return () => {
-      appRoot?.removeAttribute('inert')
-      previouslyFocused?.focus()
-    }
-  }, [])
 
   // 생성물 objectURL은 시트가 사라질 때 반드시 해제한다. 2160×2700 PNG라 수 MB짜리다.
   useEffect(
@@ -173,31 +156,6 @@ export function RecordImageDialog({ input, onClose }: Props) {
     setPhase('saved')
   }
 
-  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    const busy = phase === 'preparing' || phase === 'saving'
-    if (event.key === 'Escape') {
-      if (!busy) onClose()
-      return
-    }
-    if (event.key !== 'Tab') return
-    const dialog = dialogRef.current
-    if (dialog === null) return
-    const buttons = [...dialog.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')]
-    if (buttons.length === 0) return
-    const first = buttons[0]
-    const last = buttons[buttons.length - 1]
-    const active = document.activeElement
-    if (event.shiftKey) {
-      if (active === first || active === dialog || !dialog.contains(active)) {
-        event.preventDefault()
-        last?.focus()
-      }
-    } else if (active === last) {
-      event.preventDefault()
-      first?.focus()
-    }
-  }
-
   const busy = phase === 'preparing' || phase === 'saving'
   // review §4 D-6: 실패 문구는 아래 `.error`(role="alert")가 이미 말한다 — alert 리전은
   // 그 자체로 즉시 발화되므로, 여기(polite 리전)까지 같은 문장을 넣으면 두 번 읽힌다.
@@ -214,100 +172,100 @@ export function RecordImageDialog({ input, onClose }: Props) {
               ? ''
               : '미리보기가 준비됐어요'
 
-  return createPortal(
-    <div className={styles.overlay} onClick={busy ? undefined : onClose}>
-      <div
-        ref={dialogRef}
-        className={resultUrl === null ? styles.dialog : `${styles.dialog} ${styles.dialogResult}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="record-image-title"
-        tabIndex={-1}
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={handleKeyDown}
-      >
-        <h2 id="record-image-title" className={ui.sectionTitle}>
-          이미지로 저장
-        </h2>
-
-        <div className={resultUrl === null ? styles.preview : `${styles.preview} ${styles.previewResult}`}>
-          <canvas
-            ref={canvasRef}
-            className={resultUrl === null ? styles.canvas : styles.hidden}
-            // 캔버스 내용은 아래 안내 문구와 본문(기록 상세)이 이미 텍스트로 전달한다.
-            aria-hidden="true"
-          />
-          {resultUrl !== null && (
-            <img
-              className={styles.canvas}
-              src={resultUrl}
-              // §6.4: 폴백으로 화면에 남는 이미지이므로 의미 있는 대체 텍스트를 준다.
-              alt={`${input.stationName} ${input.visitedOn} 기록 카드 이미지`}
-            />
-          )}
-          {phase === 'preparing' && <div className={styles.skeleton} aria-hidden="true" />}
-        </div>
-
-        <p className={styles.live} role="status" aria-live="polite">
-          {status}
-        </p>
-
-        {/* §5 부분 성공: 무엇이 빠졌는지는 반드시 알린다 */}
-        {missingCount > 0 && (
-          <p className={ui.hint}>
-            사진 {missingCount}장을 넣지 못했어요
-            {textOnlyFallback && ' — 글자만 담은 카드로 만들었어요'}.
-          </p>
-        )}
-        {noteTruncated && <p className={ui.hint}>일기가 길어 카드에는 앞부분만 담겨요.</p>}
-        {phase === 'manual' && (
-          <p className={ui.notice}>이미지를 길게 눌러 &quot;사진에 저장&quot;을 선택하세요.</p>
-        )}
-        {phase === 'saved' && (
-          // AC-11: 다운로드를 트리거했어도 실제로 파일이 떨어졌는지는 알 수 없다. "아무 일도
-          // 일어나지 않은" 상태로 남지 않도록 길게 눌러 저장하는 길을 함께 열어 둔다.
-          <p className={ui.hint}>저장되지 않았다면 위 이미지를 길게 눌러 저장하세요.</p>
-        )}
-        {phase === 'failed' && (
-          <p className={ui.error} role="alert">
-            이미지를 만들지 못했어요.
-          </p>
-        )}
-
-        <div className={ui.buttonRow}>
-          <button
-            ref={closeRef}
-            type="button"
-            className={ui.button}
-            disabled={phase === 'saving'}
-            onClick={onClose}
+  return (
+    <Dialog
+      open
+      onOpenChange={(next) => {
+        if (!next && !busy) onClose()
+      }}
+    >
+      <DialogPortal>
+        <DialogOverlay className={styles.overlay}>
+          <DialogContent
+            className={resultUrl === null ? styles.dialog : `${styles.dialog} ${styles.dialogResult}`}
+            // preparing/saving 중에는 Esc·바깥 클릭으로 닫히지 않는다. 아래 "닫기" 버튼은
+            // saving 중에만 막는다 — preparing 중 명시적 닫기는 허용해 생성을 취소할 수 있게
+            // 두되(§2.2), 실수로 배경을 클릭하거나 Esc를 누르는 것까지는 막는 것이 이 화면의
+            // 기존 규칙이었다(원본 구현 그대로 유지).
+            onEscapeKeyDown={(event) => busy && event.preventDefault()}
+            onInteractOutside={(event) => busy && event.preventDefault()}
           >
-            닫기
-          </button>
-          {phase === 'failed' ? (
-            <button
-              type="button"
-              className={`${ui.button} ${ui.buttonPrimary}`}
-              onClick={() => {
-                setPhase('preparing')
-                setAttempt((prev) => prev + 1)
-              }}
-            >
-              다시 시도
-            </button>
-          ) : (
-            <button
-              type="button"
-              className={`${ui.button} ${ui.buttonPrimary}`}
-              disabled={busy}
-              onClick={() => void handleSave()}
-            >
-              {phase === 'saving' ? '만드는 중…' : '저장'}
-            </button>
-          )}
-        </div>
-      </div>
-    </div>,
-    document.body,
+            <DialogTitle className={ui.sectionTitle}>이미지로 저장</DialogTitle>
+
+            <div className={resultUrl === null ? styles.preview : `${styles.preview} ${styles.previewResult}`}>
+              <canvas
+                ref={canvasRef}
+                className={resultUrl === null ? styles.canvas : styles.hidden}
+                // 캔버스 내용은 아래 안내 문구와 본문(기록 상세)이 이미 텍스트로 전달한다.
+                aria-hidden="true"
+              />
+              {resultUrl !== null && (
+                <img
+                  className={styles.canvas}
+                  src={resultUrl}
+                  // §6.4: 폴백으로 화면에 남는 이미지이므로 의미 있는 대체 텍스트를 준다.
+                  alt={`${input.stationName} ${input.visitedOn} 기록 카드 이미지`}
+                />
+              )}
+              {phase === 'preparing' && <div className={styles.skeleton} aria-hidden="true" />}
+            </div>
+
+            <p className={styles.live} role="status" aria-live="polite">
+              {status}
+            </p>
+
+            {/* §5 부분 성공: 무엇이 빠졌는지는 반드시 알린다 */}
+            {missingCount > 0 && (
+              <p className={ui.hint}>
+                사진 {missingCount}장을 넣지 못했어요
+                {textOnlyFallback && ' — 글자만 담은 카드로 만들었어요'}.
+              </p>
+            )}
+            {noteTruncated && <p className={ui.hint}>일기가 길어 카드에는 앞부분만 담겨요.</p>}
+            {phase === 'manual' && (
+              <p className={ui.notice}>이미지를 길게 눌러 &quot;사진에 저장&quot;을 선택하세요.</p>
+            )}
+            {phase === 'saved' && (
+              // AC-11: 다운로드를 트리거했어도 실제로 파일이 떨어졌는지는 알 수 없다. "아무 일도
+              // 일어나지 않은" 상태로 남지 않도록 길게 눌러 저장하는 길을 함께 열어 둔다.
+              <p className={ui.hint}>저장되지 않았다면 위 이미지를 길게 눌러 저장하세요.</p>
+            )}
+            {phase === 'failed' && (
+              <p className={ui.error} role="alert">
+                이미지를 만들지 못했어요.
+              </p>
+            )}
+
+            <div className={ui.buttonRow}>
+              {/* preparing 중에는 닫을 수 있게 둔다(생성 취소, §2.2) — saving 중에만 막는다. */}
+              <Button type="button" disabled={phase === 'saving'} onClick={onClose}>
+                닫기
+              </Button>
+              {phase === 'failed' ? (
+                <Button
+                  type="button"
+                  variant="default"
+                  onClick={() => {
+                    setPhase('preparing')
+                    setAttempt((prev) => prev + 1)
+                  }}
+                >
+                  다시 시도
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="default"
+                  disabled={busy}
+                  onClick={() => void handleSave()}
+                >
+                  {phase === 'saving' ? '만드는 중…' : '저장'}
+                </Button>
+              )}
+            </div>
+          </DialogContent>
+        </DialogOverlay>
+      </DialogPortal>
+    </Dialog>
   )
 }

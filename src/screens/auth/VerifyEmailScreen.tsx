@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { STORAGE_PREFIX } from '../../lib/app-storage'
 import { readStateString } from '../../lib/router-state'
 import { Wordmark } from '../../components/Wordmark'
+import { Button } from '@/components/ui/button'
 import ui from '../../styles/ui.module.css'
 
 /** 01 §5: 재발송 버튼 쿨다운(초) */
@@ -82,14 +83,13 @@ export function VerifyEmailScreen() {
         </p>
       )}
 
-      <button
+      <Button
         type="button"
-        className={ui.button}
         disabled={email === null || remaining > 0 || pending}
         onClick={() => void handleResend()}
       >
         {remaining > 0 ? `확인 메일 다시 보내기 (${remaining}초)` : '확인 메일 다시 보내기'}
-      </button>
+      </Button>
 
       <p className={ui.linkRow}>
         <Link to="/login">로그인으로 돌아가기</Link>

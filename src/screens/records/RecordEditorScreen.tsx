@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent, KeyboardEvent } from 'react'
 import { useBlocker, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { useSession } from '../../auth/session-context'
 import { STORAGE_PREFIX } from '../../lib/app-storage'
 import { supabase } from '../../lib/supabase'
@@ -559,13 +562,9 @@ export function RecordEditorScreen() {
     return (
       <div className={ui.centerBox}>
         <p>{loadState.message}</p>
-        <button
-          type="button"
-          className={`${ui.button} ${ui.buttonPrimary}`}
-          onClick={() => void load()}
-        >
+        <Button type="button" variant="default" onClick={() => void load()}>
           다시 시도
-        </button>
+        </Button>
       </div>
     )
   }
@@ -582,26 +581,25 @@ export function RecordEditorScreen() {
         <div className={ui.notice} role="status">
           <p>작성 중이던 내용이 있어요. 이어서 쓸까요?</p>
           <div className={ui.buttonRow}>
-            <button
+            <Button
               type="button"
-              className={ui.button}
               onClick={() => {
                 window.localStorage.removeItem(draftKey)
                 setDraftOffer(null)
               }}
             >
               새로 시작
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className={`${ui.button} ${ui.buttonPrimary}`}
+              variant="default"
               onClick={() => {
                 setForm(draftOffer)
                 setDraftOffer(null)
               }}
             >
               이어서 쓰기
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -616,14 +614,9 @@ export function RecordEditorScreen() {
       {photoError !== null && (
         <div className={ui.errorBanner} role="alert">
           <p>{photoError}</p>
-          <button
-            type="button"
-            className={ui.button}
-            disabled={saving || !online}
-            onClick={() => void save(false, photos)}
-          >
+          <Button type="button" disabled={saving || !online} onClick={() => void save(false, photos)}>
             사진 다시 올리기
-          </button>
+          </Button>
         </div>
       )}
 
@@ -644,9 +637,8 @@ export function RecordEditorScreen() {
           <label className={ui.label} htmlFor="visited-on">
             날짜 <span className={styles.required}>*</span>
           </label>
-          <input
+          <Input
             id="visited-on"
-            className={ui.input}
             type="date"
             value={form.visitedOn}
             required
@@ -751,9 +743,8 @@ export function RecordEditorScreen() {
           <label className={ui.label} htmlFor="note">
             일기
           </label>
-          <textarea
+          <Textarea
             id="note"
-            className={`${ui.input} ${styles.textarea}`}
             value={form.note}
             rows={6}
             maxLength={MAX_NOTE}
@@ -779,17 +770,13 @@ export function RecordEditorScreen() {
         <div className={styles.saveBar}>
           {!online && <p className={ui.hint}>오프라인이라 저장할 수 없어요.</p>}
           {form.stationId === null && <p className={ui.hint}>역을 선택하면 저장할 수 있어요.</p>}
-          <button
-            type="submit"
-            className={`${ui.button} ${ui.buttonPrimary}`}
-            disabled={!canSave}
-          >
+          <Button type="submit" variant="default" disabled={!canSave}>
             {saveState.kind === 'saving'
               ? '저장하는 중…'
               : saveState.kind === 'uploading'
                 ? `사진 올리는 중 ${saveState.done}/${saveState.total}`
                 : '저장'}
-          </button>
+          </Button>
         </div>
       </form>
 

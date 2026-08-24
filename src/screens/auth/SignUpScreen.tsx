@@ -3,6 +3,8 @@ import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { Wordmark } from '../../components/Wordmark'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import ui from '../../styles/ui.module.css'
 
 /** F-03: 비밀번호 최소 길이. 문자 종류는 강제하지 않는다. */
@@ -97,9 +99,8 @@ export function SignUpScreen() {
           <label className={ui.label} htmlFor="signup-email">
             이메일
           </label>
-          <input
+          <Input
             id="signup-email"
-            className={ui.input}
             type="email"
             value={email}
             autoComplete="email"
@@ -114,9 +115,8 @@ export function SignUpScreen() {
           <label className={ui.label} htmlFor="signup-password">
             비밀번호
           </label>
-          <input
+          <Input
             id="signup-password"
-            className={ui.input}
             type="password"
             value={password}
             autoComplete="new-password"
@@ -130,13 +130,9 @@ export function SignUpScreen() {
           </p>
         </div>
 
-        <button
-          type="submit"
-          className={`${ui.button} ${ui.buttonPrimary}`}
-          disabled={!submittable}
-        >
+        <Button type="submit" variant="default" disabled={!submittable}>
           {pending ? '가입하는 중…' : '가입하기'}
-        </button>
+        </Button>
       </form>
 
       <p className={ui.linkRow}>

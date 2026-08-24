@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { useSession } from '../../auth/session-context'
 import { supabase, isNetworkFailure } from '../../lib/supabase'
 import { DissolveCoupleDialog } from '../../components/DissolveCoupleDialog'
@@ -189,9 +191,8 @@ export function ProfileScreen() {
             <label className="srOnly" htmlFor="profile-name">
               내 이름
             </label>
-            <input
+            <Input
               id="profile-name"
-              className={ui.input}
               value={nameInput}
               maxLength={NAME_MAX}
               disabled={nameSaving}
@@ -199,9 +200,8 @@ export function ProfileScreen() {
               onChange={(event) => setNameInput(event.target.value)}
             />
             <div className={ui.buttonRow}>
-              <button
+              <Button
                 type="button"
-                className={ui.button}
                 disabled={nameSaving}
                 onClick={() => {
                   setNameEditing(false)
@@ -209,15 +209,10 @@ export function ProfileScreen() {
                 }}
               >
                 취소
-              </button>
-              <button
-                type="button"
-                className={`${ui.button} ${ui.buttonPrimary}`}
-                disabled={nameSaving}
-                onClick={() => void saveName()}
-              >
+              </Button>
+              <Button type="button" variant="default" disabled={nameSaving} onClick={() => void saveName()}>
                 {nameSaving ? '저장하는 중…' : '저장'}
-              </button>
+              </Button>
             </div>
             {nameError !== null && (
               <p className={ui.error} role="alert">
@@ -252,9 +247,8 @@ export function ProfileScreen() {
                 <label className="srOnly" htmlFor="profile-started-on">
                   사귄 날
                 </label>
-                <input
+                <Input
                   id="profile-started-on"
-                  className={ui.input}
                   type="date"
                   value={dateInput}
                   max={today}
@@ -262,9 +256,8 @@ export function ProfileScreen() {
                   onChange={(event) => setDateInput(event.target.value)}
                 />
                 <div className={ui.buttonRow}>
-                  <button
+                  <Button
                     type="button"
-                    className={ui.button}
                     disabled={dateSaving}
                     onClick={() => {
                       setDateEditing(false)
@@ -272,15 +265,15 @@ export function ProfileScreen() {
                     }}
                   >
                     취소
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
-                    className={`${ui.button} ${ui.buttonPrimary}`}
+                    variant="default"
                     disabled={dateSaving}
                     onClick={() => void saveStartedOn()}
                   >
                     {dateSaving ? '저장하는 중…' : '저장'}
-                  </button>
+                  </Button>
                 </div>
                 {dateError !== null && (
                   <p className={ui.error} role="alert">
@@ -309,9 +302,9 @@ export function ProfileScreen() {
         {visits.kind === 'failed' ? (
           <div className={styles.editRow}>
             <p className={ui.error}>통계를 불러오지 못했어요.</p>
-            <button type="button" className={ui.button} onClick={reloadVisits}>
+            <Button type="button" onClick={reloadVisits}>
               다시 시도
-            </button>
+            </Button>
           </div>
         ) : stats === null ? (
           <div className={styles.statSkeleton} aria-hidden="true" />
@@ -370,19 +363,15 @@ export function ProfileScreen() {
         </div>
       )}
 
-      <button type="button" className={ui.button} onClick={() => void session.signOut()}>
+      <Button type="button" onClick={() => void session.signOut()}>
         로그아웃
-      </button>
+      </Button>
 
       {/* F-26: 파괴적 항목은 목록 최하단에 시각적으로 분리해 배치한다 (오탭 방지). */}
       <hr />
-      <button
-        type="button"
-        className={`${ui.button} ${ui.buttonDanger}`}
-        onClick={() => setDissolveOpen(true)}
-      >
+      <Button type="button" variant="destructive" onClick={() => setDissolveOpen(true)}>
         커플 연결 해제
-      </button>
+      </Button>
 
       {dissolveOpen && <DissolveCoupleDialog onClose={() => setDissolveOpen(false)} />}
     </div>

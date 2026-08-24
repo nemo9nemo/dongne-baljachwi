@@ -3,6 +3,8 @@ import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { Wordmark } from '../../components/Wordmark'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import ui from '../../styles/ui.module.css'
 
 /** F-04: 비밀번호 재설정 메일 요청. */
@@ -56,9 +58,8 @@ export function ForgotPasswordScreen() {
           <label className={ui.label} htmlFor="forgot-email">
             이메일
           </label>
-          <input
+          <Input
             id="forgot-email"
-            className={ui.input}
             type="email"
             value={email}
             autoComplete="email"
@@ -66,13 +67,9 @@ export function ForgotPasswordScreen() {
             onChange={(event) => setEmail(event.target.value)}
           />
         </div>
-        <button
-          type="submit"
-          className={`${ui.button} ${ui.buttonPrimary}`}
-          disabled={email.trim().length === 0 || pending}
-        >
+        <Button type="submit" variant="default" disabled={email.trim().length === 0 || pending}>
           {pending ? '보내는 중…' : '재설정 링크 보내기'}
-        </button>
+        </Button>
       </form>
 
       <p className={ui.linkRow}>

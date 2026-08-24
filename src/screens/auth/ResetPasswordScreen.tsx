@@ -4,6 +4,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useSession } from '../../auth/session-context'
 import { Wordmark } from '../../components/Wordmark'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import ui from '../../styles/ui.module.css'
 
 /** F-03 */
@@ -78,9 +80,8 @@ export function ResetPasswordScreen() {
           <label className={ui.label} htmlFor="reset-password">
             새 비밀번호
           </label>
-          <input
+          <Input
             id="reset-password"
-            className={ui.input}
             type="password"
             value={password}
             autoComplete="new-password"
@@ -92,13 +93,13 @@ export function ResetPasswordScreen() {
             {MIN_PASSWORD_LENGTH}자 이상
           </p>
         </div>
-        <button
+        <Button
           type="submit"
-          className={`${ui.button} ${ui.buttonPrimary}`}
+          variant="default"
           disabled={password.length < MIN_PASSWORD_LENGTH || pending}
         >
           {pending ? '저장하는 중…' : '비밀번호 바꾸기'}
-        </button>
+        </Button>
       </form>
     </div>
   )
