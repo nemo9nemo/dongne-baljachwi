@@ -242,123 +242,132 @@ export function TimelineScreen() {
 
   const selectedChip = chips?.find((chip) => chip.tagNorm === selectedTagNorm) ?? null
 
-  if (loadState === 'loading' && cards.length === 0) {
-    return (
-      <div className={styles.screen} ref={rootRef}>
-        <div className={styles.chipSkeleton} aria-hidden="true" />
-        <div className={styles.cardSkeleton} aria-hidden="true" />
-        <div className={styles.cardSkeleton} aria-hidden="true" />
-        <div className={styles.cardSkeleton} aria-hidden="true" />
-        <p className="srOnly" role="status">
-          불러오는 중
-        </p>
-      </div>
-    )
-  }
+  // 최초 로딩 중(칩·목록 둘 다 아직 없음)인지 여부. 예전에는 이 상태를 별도의 `return`으로
+  // 완전히 다른 트리(h1도, FAB도 없는 트리)로 그렸는데, 그러면 데이터가 도착하는 순간
+  // 화면 최상단 구조 자체가 통째로 바뀌면서 탭 전환 직후 눈에 띄는 레이아웃 시프트가
+  // 생겼다(하단 탭바 "타임라인" 진입 시 덜컹거림). h1·FAB처럼 로딩 여부와 무관한 뼈대는
+  // 항상 같은 자리에 마운트해 두고, 그 사이(칩 행·목록)만 스켈레톤 ↔ 실제 콘텐츠로 바꾼다.
+  const initialLoading = loadState === 'loading' && cards.length === 0
 
   return (
     <div className={styles.screen} ref={rootRef}>
       <h1 className={ui.title}>타임라인</h1>
 
       <p className="srOnly" role="status" aria-live="polite">
-        {announcement}
+        {initialLoading ? '불러오는 중' : announcement}
       </p>
 
-      {!online && <p className={ui.hint}>오프라인 — 마지막으로 불러온 목록을 보여드려요.</p>}
+      {!initialLoading && !online && (
+        <p className={ui.hint}>오프라인 — 마지막으로 불러온 목록을 보여드려요.</p>
+      )}
 
-      {/* F-11~F-17: 태그가 하나도 없으면 칩 영역 자체를 그리지 않는다 */}
-      {chips !== null && chips.length > 0 && (
-        <div className={styles.chipRow} role="group" aria-label="태그 필터">
-          {chips.map((chip) => (
-            <button
-              key={chip.tagNorm}
+      {initialLoading ? (
+        <>
+          <div className={styles.chipSkeleton} aria-hidden="true" />
+          <div className={styles.cardSkeleton} aria-hidden="true" />
+          <div className={styles.cardSkeleton} aria-hidden="true" />
+          <div className={styles.cardSkeleton} aria-hidden="true" />
+        </>
+      ) : (
+        <>
+          {/* F-11~F-17: 태그가 하나도 없으면 칩 영역 자체를 그리지 않는다 */}
+          {chips !== null && chips.length > 0 && (
+            <div className={styles.chipRow} role="group" aria-label="태그 필터">
+              {chips.map((chip) => (
+                <button
+                  key={chip.tagNorm}
+                  type="button"
+                  className={
+                    selectedTagNorm === chip.tagNorm ? `${styles.chip} ${styles.chipOn}` : styles.chip
+                  }
+                  aria-pressed={selectedTagNorm === chip.tagNorm}
+                  onClick={() => toggleTag(chip)}
+                >
+                  #{chip.tag} <span className={styles.chipCount}>{chip.usageCount}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {loadState === 'failed' && (
+            <div className={ui.centerBox}>
+              <p>기록을 불러오지 못했어요.</p>
+              <Button type="button" variant="default" onClick={() => void load(selectedTagNorm)}>
+                다시 시도
+              </Button>
+            </div>
+          )}
+
+          {loadState === 'ready' && cards.length === 0 && selectedTagNorm === null && (
+            <div className={ui.centerBox}>
+              <p>아직 발자취가 없어요.</p>
+              <Button asChild variant="default">
+                <Link to="/records/new">첫 기록 남기기</Link>
+              </Button>
+            </div>
+          )}
+
+          {loadState === 'ready' && cards.length === 0 && selectedTagNorm !== null && (
+            <div className={ui.centerBox}>
+              <p>{selectedChip?.tag ?? rawTag} 태그의 기록이 없어요.</p>
+              <Button type="button" variant="outline" onClick={clearFilter}>
+                필터 해제
+              </Button>
+            </div>
+          )}
+
+          {cards.length > 0 && (
+            <ul className={styles.list}>
+              {cards.map((card, index) => {
+                const showHeader =
+                  index === 0 || monthOf(cards[index - 1]?.visitedOn ?? '') !== monthOf(card.visitedOn)
+                return (
+                  // `RecordCard`가 이미 자기 자신을 <li>로 그린다(04/08 공용 컴포넌트) — 월 헤더를
+                  // 그 안에 감싸면 <li> 안에 <li>가 중첩되는 잘못된 HTML이 된다. Fragment로 형제로 둔다.
+                  <Fragment key={card.id}>
+                    {showHeader && (
+                      <li className={styles.monthHeaderItem}>
+                        <h2 className={styles.monthHeader}>{monthLabel(card.visitedOn)}</h2>
+                      </li>
+                    )}
+                    <RecordCard
+                      card={card}
+                      authorName={authorNameOf(card.authorId)}
+                      stationName={stationNameById.get(card.stationId) ?? '역 정보 없음'}
+                      stationHref={`/stations/${card.stationId}`}
+                    />
+                  </Fragment>
+                )
+              })}
+            </ul>
+          )}
+
+          {hasMore && (
+            <Button
+              ref={sentinelRef}
               type="button"
-              className={
-                selectedTagNorm === chip.tagNorm ? `${styles.chip} ${styles.chipOn}` : styles.chip
-              }
-              aria-pressed={selectedTagNorm === chip.tagNorm}
-              onClick={() => toggleTag(chip)}
+              variant="outline"
+              disabled={loadingMore || !online}
+              onClick={() => void loadMore()}
             >
-              #{chip.tag} <span className={styles.chipCount}>{chip.usageCount}</span>
-            </button>
-          ))}
-        </div>
+              {loadingMore ? '불러오는 중…' : '더 보기'}
+            </Button>
+          )}
+
+          {moreError && (
+            <p className={ui.error} role="alert">
+              더 불러오지 못했어요 ·{' '}
+              <button type="button" className={styles.retryLink} onClick={() => void loadMore()}>
+                다시 시도
+              </button>
+            </p>
+          )}
+        </>
       )}
 
-      {loadState === 'failed' && (
-        <div className={ui.centerBox}>
-          <p>기록을 불러오지 못했어요.</p>
-          <Button type="button" variant="default" onClick={() => void load(selectedTagNorm)}>
-            다시 시도
-          </Button>
-        </div>
-      )}
-
-      {loadState === 'ready' && cards.length === 0 && selectedTagNorm === null && (
-        <div className={ui.centerBox}>
-          <p>아직 발자취가 없어요.</p>
-          <Button asChild variant="default">
-            <Link to="/records/new">첫 기록 남기기</Link>
-          </Button>
-        </div>
-      )}
-
-      {loadState === 'ready' && cards.length === 0 && selectedTagNorm !== null && (
-        <div className={ui.centerBox}>
-          <p>{selectedChip?.tag ?? rawTag} 태그의 기록이 없어요.</p>
-          <Button type="button" variant="outline" onClick={clearFilter}>
-            필터 해제
-          </Button>
-        </div>
-      )}
-
-      {cards.length > 0 && (
-        <ul className={styles.list}>
-          {cards.map((card, index) => {
-            const showHeader = index === 0 || monthOf(cards[index - 1]?.visitedOn ?? '') !== monthOf(card.visitedOn)
-            return (
-              // `RecordCard`가 이미 자기 자신을 <li>로 그린다(04/08 공용 컴포넌트) — 월 헤더를
-              // 그 안에 감싸면 <li> 안에 <li>가 중첩되는 잘못된 HTML이 된다. Fragment로 형제로 둔다.
-              <Fragment key={card.id}>
-                {showHeader && (
-                  <li className={styles.monthHeaderItem}>
-                    <h2 className={styles.monthHeader}>{monthLabel(card.visitedOn)}</h2>
-                  </li>
-                )}
-                <RecordCard
-                  card={card}
-                  authorName={authorNameOf(card.authorId)}
-                  stationName={stationNameById.get(card.stationId) ?? '역 정보 없음'}
-                  stationHref={`/stations/${card.stationId}`}
-                />
-              </Fragment>
-            )
-          })}
-        </ul>
-      )}
-
-      {hasMore && (
-        <Button
-          ref={sentinelRef}
-          type="button"
-          variant="outline"
-          disabled={loadingMore || !online}
-          onClick={() => void loadMore()}
-        >
-          {loadingMore ? '불러오는 중…' : '더 보기'}
-        </Button>
-      )}
-
-      {moreError && (
-        <p className={ui.error} role="alert">
-          더 불러오지 못했어요 ·{' '}
-          <button type="button" className={styles.retryLink} onClick={() => void loadMore()}>
-            다시 시도
-          </button>
-        </p>
-      )}
-
-      {/* F-09: 역이 정해지지 않은 상태에서 기록을 시작하는 유일한 진입점 */}
+      {/* F-09: 역이 정해지지 않은 상태에서 기록을 시작하는 유일한 진입점.
+          로딩 중에도 항상 같은 자리에 둔다 — 데이터가 도착할 때 갑자기 나타나는 요소를
+          하나라도 줄이는 편이 체감 레이아웃 시프트를 줄인다. */}
       <button
         type="button"
         className={styles.fab}

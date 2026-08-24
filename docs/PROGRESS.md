@@ -4,7 +4,7 @@
 > 진행률을 확인하는 용도다. 표 항목을 완료했으면 상태를 바꾸고, 새로 생긴 미결정·작업은
 > 바로 추가한다.
 >
-> 마지막 갱신: 2026-08-24 (shadcn/ui 3라운드 — QA 결함 7건 수정 반영)
+> 마지막 갱신: 2026-08-24 (실사용 피드백 3건: 추천역 칩 색상·기본 폰트 크기·타임라인 레이아웃 시프트 반영)
 
 ## 1. 카테고리별 진행률
 
@@ -121,10 +121,12 @@
 
 | No | 일자 | 내용 |
 |---|---|---|
-| 1 | 2026-08-24 | shadcn/ui 3라운드 적용 (developer-frontend) — QA가 1·2라운드 감사에서 찾아낸 결함 7건(`TimelineScreen`/`StationDetailScreen`/`RecordDetailScreen`/`guards.tsx`(`LoadFailedBox`)/`PhotoField`/`MapViewScreen`/`CoupleLinkedScreen`)의 `ui.button`/`ui.buttonPrimary`를 `<Button>`으로 교체. `Button`에 `ref` prop 지원 신설(무한 스크롤 sentinel·케밥 메뉴 포커스 복귀용, React 19 관용구). 케밥 메뉴 안 "삭제" 항목은 메뉴 옵션 스타일이라 대상 제외 판단. 빌드/tsc/lint 통과, dev 서버 모듈 서빙 확인, `src/screens`·`src/auth` 전역 grep 재확인으로 `ui.button` 계열 잔존 0건 확인 |
-| 2 | 2026-08-21 | shadcn/ui 2라운드 적용 (developer-frontend) — RecordEditorScreen/ProfileScreen/OnboardingScreen/InviteScreen의 `ui.button`/`ui.input` 조합을 `<Button>`/`<Input>`으로 교체, 신규 `Textarea` 프리미티브 추가(record-editor 일기 textarea). 태그/역 검색·이탈방지·사진 파이프라인 로직은 무변경. 빌드/tsc/lint 통과, dev 서버 모듈 서빙 확인 |
-| 3 | 2026-08-21 | 노선도·지도 뷰포트 상태 보존 구현 (F-21/AC-08, F-12/AC-06) — planner 판단 3건 확정 + 코드 반영 |
-| 4 | 2026-08-21 | 지도 "전체 핀 보기" 버튼 신설 (F-17~F-17f) — 판단·구현 완료 |
-| 5 | 2026-08-21 | Resend 레퍼런스 기반 디자인 토큰 재구성 (designer) — shadcn 변수 매핑 완료 |
-| 6 | 2026-08-21 | shadcn/ui 1라운드 적용 (developer-frontend) — Tailwind+shadcn 설치, Button/Input/Dialog 프리미티브, 다이얼로그 3종·인증화면 6개 교체. 빌드/린트/dev서버 렌더 확인 완료 |
-| 7 | 2026-08-20 | 기록 카드 디자인 개편 (디자이너 결함 D-1~D-7 전부 반영) |
+| 1 | 2026-08-24 | 추천 역 칩 노선색 파스텔 배경 + 기본 폰트 스케일 축소 (designer+developer-frontend) — 사용자 실사용 피드백 2건. ① `ProfileScreen`의 "다음에 가볼만한 역" 칩 배경을 `line-map.module.css` F-03 채움 농도와 같은 `color-mix` 방법론으로 파스텔화(기본 12%/hover 20%, `--chip-line-color` 인라인 커스텀 프로퍼티 — `LineMapCanvas` 패턴 재사용). 대비 재계산 완료(`.chipLine` 다크 hover 4.97:1로 여유 0.47 — 신규 노선색 추가 시 재검증 필요, `docs/design/system.md` 기록). 노선 정보 없는 추천은 자동으로 `--color-surface` 폴백. ② `tokens.css` 타이포 스케일 축소(`--font-size-xs` 12px는 접근성 하한이라 유지, `sm` 14→13/`md` 16→15/`lg` 20→18/`xl` 26→22, `code`는 본문 아니라 유지) — 변수 하나만 바꿔 앱 전체에 자동 파급. `npx tsc -b`/`npm run build`/`npm run lint` 통과 |
+| 2 | 2026-08-24 | 타임라인 탭 진입 레이아웃 시프트 결함 수정 (developer-frontend) — 사용자 실사용 버그 리포트. 원인 셋: ① `TimelineScreen`이 최초 로딩 중 h1·FAB조차 없는 완전히 다른 트리를 `return`해, 데이터 도착 순간 화면 뼈대 자체가 갈아끼워짐 → h1·FAB를 항상 같은 자리에 마운트하고 칩 행/목록만 스켈레톤↔실제로 스왑하도록 통합 ② `.chipSkeleton`(36px)이 실제 `.chip`의 `min-height`(`--touch-target`=44px)보다 낮아 칩 도착 시 아래 목록이 밀려 올라감 → 44px로 정정 ③ `.cardSkeleton`(88px)이 사진 포함 카드의 실측 근사치(패딩+정사각 썸네일)보다 낮음 → 112px로 조정(노트 발췌·태그로 인한 카드 간 높이 편차는 이미 로드된 카드끼리도 존재하는 자연스러운 것이라 완전히 없애지 않음) ④ `.fab`의 `position: sticky; left: 100%`가 컨테이너(`.screen`) 폭이 재계산되는 순간 위치가 흔들릴 수 있는 패턴이라 `align-self: flex-end`로 교체(수직 sticky는 유지, AppShell `.tabbar`와 동일한 데스크톱 프레임 대응 이유). 같은 클래스 문제(스켈레톤↔실제 높이 불일치)가 `ProfileScreen`의 `.statSkeleton`(84px)에도 있어 실측치(138px)로 함께 수정. `LineMapScreen`은 스켈레톤이 `position:absolute; inset:0`로 캔버스와 같은 자리를 차지해 원래 문제없음(확인만 함). 무한 스크롤 트리거 조건(`IntersectionObserver` rootMargin 등)은 지시대로 손대지 않음 — 짧은 리스트/큰 뷰포트에서 마운트 직후 "더 보기"가 자동 트리거될 가능성은 남아 있으나 로직 변경 없이는 CSS로 완화할 지점이 마땅치 않아 보류. `tsc --noEmit`/`npm run lint`(exit 0, 기존 경고 4건 무변화)/`npm run build` 통과. 로그인 계정 생성 금지 정책상 실제 인터랙션 재현은 못 함 — 정적 CSS 계산으로 원인 특정 |
+| 3 | 2026-08-24 | shadcn/ui 3라운드 적용 (developer-frontend) — QA가 1·2라운드 감사에서 찾아낸 결함 7건(`TimelineScreen`/`StationDetailScreen`/`RecordDetailScreen`/`guards.tsx`(`LoadFailedBox`)/`PhotoField`/`MapViewScreen`/`CoupleLinkedScreen`)의 `ui.button`/`ui.buttonPrimary`를 `<Button>`으로 교체. `Button`에 `ref` prop 지원 신설(무한 스크롤 sentinel·케밥 메뉴 포커스 복귀용, React 19 관용구). 케밥 메뉴 안 "삭제" 항목은 메뉴 옵션 스타일이라 대상 제외 판단. 빌드/tsc/lint 통과, dev 서버 모듈 서빙 확인, `src/screens`·`src/auth` 전역 grep 재확인으로 `ui.button` 계열 잔존 0건 확인 |
+| 4 | 2026-08-21 | shadcn/ui 2라운드 적용 (developer-frontend) — RecordEditorScreen/ProfileScreen/OnboardingScreen/InviteScreen의 `ui.button`/`ui.input` 조합을 `<Button>`/`<Input>`으로 교체, 신규 `Textarea` 프리미티브 추가(record-editor 일기 textarea). 태그/역 검색·이탈방지·사진 파이프라인 로직은 무변경. 빌드/tsc/lint 통과, dev 서버 모듈 서빙 확인 |
+| 5 | 2026-08-21 | 노선도·지도 뷰포트 상태 보존 구현 (F-21/AC-08, F-12/AC-06) — planner 판단 3건 확정 + 코드 반영 |
+| 6 | 2026-08-21 | 지도 "전체 핀 보기" 버튼 신설 (F-17~F-17f) — 판단·구현 완료 |
+| 7 | 2026-08-21 | Resend 레퍼런스 기반 디자인 토큰 재구성 (designer) — shadcn 변수 매핑 완료 |
+| 8 | 2026-08-21 | shadcn/ui 1라운드 적용 (developer-frontend) — Tailwind+shadcn 설치, Button/Input/Dialog 프리미티브, 다이얼로그 3종·인증화면 6개 교체. 빌드/린트/dev서버 렌더 확인 완료 |
+| 9 | 2026-08-20 | 기록 카드 디자인 개편 (디자이너 결함 D-1~D-7 전부 반영) |

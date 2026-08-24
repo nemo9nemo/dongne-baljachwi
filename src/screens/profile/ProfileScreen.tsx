@@ -350,6 +350,16 @@ export function ProfileScreen() {
                     to={`/records/new?stationId=${rec.stationId}`}
                     className={styles.chip}
                     aria-label={`${rec.name.endsWith('역') ? rec.name : `${rec.name}역`} 기록 작성하기`}
+                    // 파스텔 배경(profile.module.css `.chip`): 노선색을 옅게 섞어 어느 역인지
+                    // 시각적으로도 구분되게 한다. 소속 노선이 없으면 프로퍼티를 안 줘서
+                    // color-mix가 --color-surface로 수렴하게 둔다(LineMapCanvas와 같은 패턴).
+                    style={
+                      rec.lines[0] !== undefined
+                        ? ({
+                            '--chip-line-color': `var(--${rec.lines[0].colorToken}, var(--line-default))`,
+                          } as React.CSSProperties)
+                        : undefined
+                    }
                   >
                     <span className={styles.chipName}>{rec.name}</span>
                     {rec.lines[0] !== undefined && (

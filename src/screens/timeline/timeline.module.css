@@ -15,14 +15,21 @@
   padding: var(--space-6) var(--space-6) var(--space-12);
 }
 
+/* 실제 `.chip`의 높이는 `--touch-target`(44px)이 min-height로 걸려 있다. 스켈레톤이
+   그보다 낮으면(과거 36px) 칩이 도착하는 순간 그 아래 목록이 위로 살짝 밀려 올라간다 —
+   타임라인 탭 진입 시 보고된 "덜컹거림"의 실제 원인 중 하나. 같은 값을 쓴다. */
 .chipSkeleton {
-  height: 36px;
+  height: var(--touch-target);
   background: var(--color-surface-muted);
   border-radius: var(--radius-pill);
 }
 
+/* `RecordCard.module.css`의 카드 1장 기준 근사치: 패딩(space-3 상하 24px) + 썸네일 정사각
+   88px(사진 1:1 비율 카드) 기준으로 잡았다 — 노트 발췌(최대 2줄)나 태그가 실리면 실제 카드가
+   더 커지기도 하지만(그건 이미 로드된 카드끼리도 서로 다른 높이라 자연스러운 편차), 스켈레톤은
+   "사진 있는 카드"를 대표값으로 삼아 처음 진입 순간의 낙차만 줄인다. */
 .cardSkeleton {
-  height: 88px;
+  height: 112px;
   background: var(--color-surface-muted);
   border-radius: var(--radius-md);
 }
@@ -102,11 +109,16 @@
 .fab {
   position: sticky;
   bottom: calc(var(--tabbar-height) + var(--space-4) + env(safe-area-inset-bottom, 0px));
-  left: 100%;
   z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  /* .screen이 세로 flex라 이 버튼(고정 폭 56px)은 기본적으로 왼쪽에 붙는다. 예전에는
+     `left: 100%`로 우측까지 밀어냈는데, 그 퍼센트는 컨테이너 폭(.screen, position: relative)
+     기준으로 계산돼 리스트가 스켈레톤→실제 콘텐츠로 바뀌며 폭이 재계산되는 순간 위치가
+     흔들렸다. align-self: flex-end는 flex 배치 단계에서 바로 정해지므로 그 흔들림이 없다.
+     bottom만 sticky로 두는 이유는 AppShell.module.css .tabbar 주석과 동일(데스크톱 프레임 대응). */
+  align-self: flex-end;
   width: 56px;
   height: 56px;
   margin-top: var(--space-2);
