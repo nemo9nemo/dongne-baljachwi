@@ -14,8 +14,14 @@
  *    새로 추가한 역은 뒤 노선에서 "이미 배치된 역"으로 재사용된다 — 지축처럼 두 노선이
  *    공유하는 물리 역이 자동으로 이어 붙는 이유다.)
  *
+ * 사용법 2: node scripts/seed-line-map.mjs --resolve-crowding
+ *   `pushOutsideLoop`가 반경(법선)만 맞추고 접선(둘레) 방향은 그대로 둬서 생기는 2호선
+ *   루프 경계 밀집(디자이너 진단: `docs/design/line-map-boundary-review.md`)을 2차 패스로
+ *   해소한다. DB 접속이 필요 없다 — 이미 있는 파일의 좌표만 읽고 다시 쓴다.
+ *
  * service_role 키를 쓰는 이유는 verify-line-map.mjs 와 같다 — 로그인 세션 없이 CI/로컬에서
- * 돌리기 위해서다. 이 스크립트는 브라우저 번들에 들어가지 않는다.
+ * 돌리기 위해서다(단, `--resolve-crowding` 모드는 DB를 쓰지 않아 키가 없어도 동작한다).
+ * 이 스크립트는 브라우저 번들에 들어가지 않는다.
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -65,20 +71,23 @@ const EXCLUDE_STATION_CODES = new Set([
   // 해소되면 뺀다"는 이 목록의 용도를 보여주는 사례로 주석만 남겨둔다.
 ]);
 
+// `--resolve-crowding` 모드는 DB가 필요 없다 — 아래 Supabase 필수 체크보다 먼저 갈라진다.
+const resolveCrowdingMode = process.argv.includes('--resolve-crowding');
+
 const url = process.env.VITE_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!url || !serviceKey) {
+if (!resolveCrowdingMode && (!url || !serviceKey)) {
   console.error('VITE_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY 가 필요합니다.');
   process.exit(1);
 }
-const db = createClient(url, serviceKey, { auth: { persistSession: false } });
+const db = resolveCrowdingMode ? null : createClient(/** @type {string} */ (url), /** @type {string} */ (serviceKey), { auth: { persistSession: false } });
 
 const lineArg = process.argv.find((a) => a.startsWith('--line='));
-if (!lineArg) {
-  console.error('사용법: --line=<lineCode>[,<lineCode>...] (예: --line=L-I1103,L-I4106)');
+if (!resolveCrowdingMode && !lineArg) {
+  console.error('사용법: --line=<lineCode>[,<lineCode>...] (예: --line=L-I1103,L-I4106) 또는 --resolve-crowding');
   process.exit(1);
 }
-const targetLineCodes = lineArg.slice('--line='.length).split(',').map((s) => s.trim()).filter((s) => s.length > 0);
+const targetLineCodes = lineArg ? lineArg.slice('--line='.length).split(',').map((s) => s.trim()).filter((s) => s.length > 0) : [];
 
 // ── 복소수 유사변환(회전+등배율+평행이동) 최소자승 적합 ────────────────────────────
 // 왜 복소수인가: a*s+b 형태(s=원점, a=회전+배율, b=평행이동)는 a,b 에 대해 선형이라
@@ -312,6 +321,285 @@ function pushOutsideLoop(pt, ellipse) {
   return { x: ellipse.cx + dx * scale, y: ellipse.cy + dy * scale };
 }
 
+// ── 2차 패스: 루프 경계 밀집 해소 ─────────────────────────────────────────────────
+// 왜 필요한가: `pushOutsideLoop`는 반경(법선) 방향만 맞추고 접선(둘레) 방향은 그대로
+// 둔다. 그 결과 루프 안쪽에서 서로 가까웠던 여러 노선의 역들이 같은 목표 반경으로
+// 방사형으로만 밀려나면서, 스케일만 커진 채 원래의 상대적 근접함이 그대로 남는다.
+// 디자이너가 독립 SVG 하니스로 루프 경계 전체를 진단해 밀집 지점 18곳을 찾았다
+// (`docs/design/line-map-boundary-review.md`) — 국지적 문제가 아니라 구조적 결과라
+// 18곳을 손으로 옮기는 대신 규칙화한다(다음 노선이 추가돼 새 밀집이 생겨도 재실행 대응).
+//
+// 알고리즘(문서 §3 그대로): ① 밀린 역(r≈1+LOOP_PUSH_MARGIN)을 추려 서로 다른 노선 +
+// 거리 40 미만인 쌍을 연결 성분(union-find)으로 묶는다 → 지점(클러스터). ② 지점마다
+// 대표 접선 방향을 구해 각 역을 접선(u)/법선(v) 좌표로 투영, 소속 노선별로 묶어 u
+// 평균으로 정렬한다. ③ 인접한 두 노선 그룹의 u 간격이 목표(30 = 역 지름 22 + 여유 8)
+// 미만이면 부족분을 계산해 접선 방향으로 나눠 미는데, **환승역은 절대 옮기지 않는다**
+// (그 그룹의 "이동 가능 역"이 0개면 반대쪽이 부족분 전량을 흡수). ④ 한 그룹이 양쪽
+// 모두 부족한 상태로 끼어 있으면(앞뒤로 낀 역) 그 그룹은 고정하고 바깥쪽 이웃들이
+// 각자의 부족분을 전량 흡수한다 — 낀 역까지 옮기면 좌우로 반씩 상쇄되어 순이동이
+// 거의 0이 되기 때문이다(문서 §2 지점#1 사례). 그래도 막히면(양쪽 다 못 옮기는 상태)
+// 낀 역 자체를 두 부족분의 평균 방향으로 편도 이동하는 최후 수단을 쓴다.
+const CROWD_MIN_GAP = 30;
+const CROWD_CLUSTER_DIST = 40;
+const CROWD_PUSHED_TOL = 0.03;
+
+/**
+ * @typedef {{ code: string, x: number, y: number, r: number, angle: number, primaryLine: string }} PushedStation
+ */
+
+/**
+ * 현재 `doc` 상태에서 "밀린 역"과 그 연결 성분(밀집 지점)을 찾는다. 순수 조회 함수라
+ * 해소 전/후 양쪽에 재사용해 몇 곳이 실제로 풀렸는지 검증하는 데 쓴다.
+ * @param {GeomDoc} doc
+ * @param {LoopEllipse} ellipse
+ * @returns {{ pushed: PushedStation[], clusters: PushedStation[][] }}
+ */
+function detectCrowding(doc, ellipse) {
+  /** @type {Map<string, string[]>} */
+  const linesByCode = new Map();
+  for (const line of doc.lines) {
+    for (const code of line.stationCodes) {
+      if (!linesByCode.has(code)) linesByCode.set(code, []);
+      /** @type {string[]} */ (linesByCode.get(code)).push(line.lineCode);
+    }
+  }
+  /** @type {Map<string, string>} */
+  const primaryLineByCode = new Map();
+  for (const line of doc.lines) {
+    for (const code of line.stationCodes) {
+      if (!primaryLineByCode.has(code)) primaryLineByCode.set(code, line.lineCode);
+    }
+  }
+
+  const target = 1 + LOOP_PUSH_MARGIN;
+  /** @type {PushedStation[]} */
+  const pushed = [];
+  for (const s of doc.stations) {
+    const lines = linesByCode.get(s.stationCode) ?? [];
+    if (lines.length === 1 && lines[0] === LOOP_LINE_CODE) continue; // 루프에만 속한 역은 대상 아님
+    const dx = s.x - ellipse.cx;
+    const dy = s.y - ellipse.cy;
+    const r = Math.sqrt((dx / ellipse.rx) ** 2 + (dy / ellipse.ry) ** 2);
+    if (Math.abs(r - target) > CROWD_PUSHED_TOL) continue;
+    const line = primaryLineByCode.get(s.stationCode);
+    if (line === undefined) continue;
+    pushed.push({ code: s.stationCode, x: s.x, y: s.y, r, angle: Math.atan2(dy, dx), primaryLine: line });
+  }
+
+  /** @type {Map<string, string>} */
+  const parent = new Map(pushed.map((p) => [p.code, p.code]));
+  /** @param {string} x @returns {string} */
+  function find(x) {
+    let r = x;
+    while (parent.get(r) !== r) r = /** @type {string} */ (parent.get(r));
+    parent.set(x, r);
+    return r;
+  }
+  /** @param {string} a @param {string} b */
+  function union(a, b) {
+    const ra = find(a), rb = find(b);
+    if (ra !== rb) parent.set(ra, rb);
+  }
+  for (let i = 0; i < pushed.length; i += 1) {
+    for (let j = i + 1; j < pushed.length; j += 1) {
+      const a = pushed[i], b = pushed[j];
+      if (a.primaryLine === b.primaryLine) continue;
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (d < CROWD_CLUSTER_DIST) union(a.code, b.code);
+    }
+  }
+  /** @type {Map<string, PushedStation[]>} */
+  const byRoot = new Map();
+  for (const p of pushed) {
+    const root = find(p.code);
+    if (!byRoot.has(root)) byRoot.set(root, []);
+    /** @type {PushedStation[]} */ (byRoot.get(root)).push(p);
+  }
+  const clusters = [...byRoot.values()].filter((g) => g.length >= 2);
+  return { pushed, clusters };
+}
+
+/**
+ * `detectCrowding`이 찾은 지점 하나(연결 성분)를 실제로 해소한다. 호출자가 클러스터
+ * 단위로 반복 호출한다 — 왜 단일 패스로 안 끝나는지는 `resolveCrowding` 주석 참고.
+ * @param {GeomDoc} doc
+ * @param {LoopEllipse} ellipse
+ * @param {PushedStation[]} members
+ * @param {(t: number) => Point} tangentAt
+ * @param {(code: string) => boolean} isTransferCode
+ * @param {Map<string, string>} primaryLineByCode
+ * @param {Map<string, StationEntry>} stationByCode
+ * @returns {{ movedCount: number, unresolvedCount: number }}
+ */
+function resolveCluster(doc, ellipse, members, tangentAt, isTransferCode, primaryLineByCode, stationByCode) {
+  let movedCount = 0;
+  let unresolvedCount = 0;
+
+  const meanAngle = members.reduce((s, m) => s + m.angle, 0) / members.length;
+  const tangent = tangentAt(meanAngle);
+  const centroid = {
+    x: members.reduce((s, m) => s + m.x, 0) / members.length,
+    y: members.reduce((s, m) => s + m.y, 0) / members.length,
+  };
+
+  /** @type {Map<string, { code: string, u: number }[]>} */
+  const byLine = new Map();
+  for (const m of members) {
+    const u = (m.x - centroid.x) * tangent.x + (m.y - centroid.y) * tangent.y;
+    if (!byLine.has(m.primaryLine)) byLine.set(m.primaryLine, []);
+    /** @type {{ code: string, u: number }[]} */ (byLine.get(m.primaryLine)).push({ code: m.code, u });
+  }
+  const groups = [...byLine.entries()]
+    .map(([lineCode, ms]) => ({
+      lineCode,
+      codes: ms.map((m) => m.code),
+      meanU: ms.reduce((s, m) => s + m.u, 0) / ms.length,
+      movable: ms.map((m) => m.code).filter((c) => !isTransferCode(c)),
+    }))
+    .sort((a, b) => a.meanU - b.meanU);
+  if (groups.length < 2) return { movedCount, unresolvedCount };
+
+  const deficits = [];
+  for (let i = 0; i < groups.length - 1; i += 1) {
+    const gap = groups[i + 1].meanU - groups[i].meanU;
+    if (gap < CROWD_MIN_GAP) deficits.push({ i, deficit: CROWD_MIN_GAP - gap });
+  }
+  if (deficits.length === 0) return { movedCount, unresolvedCount };
+
+  const deficientLeft = new Array(groups.length).fill(false);
+  const deficientRight = new Array(groups.length).fill(false);
+  for (const d of deficits) { deficientRight[d.i] = true; deficientLeft[d.i + 1] = true; }
+  // "앞뒤로 낀 역": 이동 가능한 역이 있어도 양쪽 모두 부족하면 일단 고정해 상쇄를 피한다.
+  const pinned = groups.map((g, i) => g.movable.length === 0 || (deficientLeft[i] && deficientRight[i]));
+
+  const deltaU = new Array(groups.length).fill(0);
+  /** @type {{ i: number, deficit: number }[]} */
+  const unresolved = [];
+  for (const { i, deficit } of deficits) {
+    const aMovable = !pinned[i];
+    const bMovable = !pinned[i + 1];
+    if (aMovable && bMovable) { deltaU[i] -= deficit / 2; deltaU[i + 1] += deficit / 2; }
+    else if (aMovable && !bMovable) { deltaU[i] -= deficit; }
+    else if (!aMovable && bMovable) { deltaU[i + 1] += deficit; }
+    else unresolved.push({ i, deficit });
+  }
+  // 최후 수단: 양쪽 다 "고정"으로 판정돼 못 푼 쌍 — 진짜 환승역(이동 불가)이 아니라
+  // 낀 것 때문에 고정됐던 쪽이 있으면 그 역만 편도로 민다(두 부족분이 겹치면 자연히
+  // 합산돼 "평균 방향"에 가까워진다).
+  for (const { i, deficit } of unresolved) {
+    const candidates = [i, i + 1].filter((idx) => groups[idx].movable.length > 0);
+    if (candidates.length === 0) {
+      unresolvedCount += 1;
+      console.warn(
+        `  해소 못 함: ${groups[i].lineCode} ↔ ${groups[i + 1].lineCode} (부족 ${deficit.toFixed(1)}u, 양쪽 다 환승역뿐) — 이 클러스터 밖의 인접 구간을 사람이 봐야 함`,
+      );
+      continue;
+    }
+    const share = deficit / candidates.length;
+    for (const idx of candidates) deltaU[idx] += (idx === i ? -1 : 1) * share;
+  }
+
+  for (let i = 0; i < groups.length; i += 1) {
+    const du = deltaU[i];
+    if (Math.abs(du) < 0.05) continue;
+    const dx = tangent.x * du;
+    const dy = tangent.y * du;
+    for (const code of groups[i].movable) {
+      const st = stationByCode.get(code);
+      if (!st) continue;
+      let nx = st.x + dx;
+      let ny = st.y + dy;
+      // 접선 방향 이동은 타원 위 한 점에서의 선형 근사라, 큰 델타가 누적되면 역이
+      // 살짝 타원 안쪽으로 파고들 수 있다 — 매 이동 뒤 pushOutsideLoop로 반경을
+      // 다시 확인해 루프 관통 회피 효과 자체는 절대 깨지지 않게 한다.
+      const pushedBack = pushOutsideLoop({ x: nx, y: ny }, ellipse);
+      nx = pushedBack.x; ny = pushedBack.y;
+      st.x = round1(nx);
+      st.y = round1(ny);
+      // 이 역은 단일 노선에만 속한다(환승역이면 애초에 movable에서 제외됨) — 그
+      // 노선의 polyline 한 곳만 동기화하면 된다.
+      const owningLine = doc.lines.find((l) => l.lineCode === primaryLineByCode.get(code));
+      const idx = owningLine?.stationCodes.indexOf(code) ?? -1;
+      if (owningLine && idx !== -1) owningLine.polyline[idx] = [st.x, st.y];
+      movedCount += 1;
+    }
+  }
+  return { movedCount, unresolvedCount };
+}
+
+/**
+ * 루프 경계 밀집을 해소한다. **여러 노선이 겹치는 구간에서는 한 번의 접선 이동으로
+ * 안 끝난다** — 인접 쌍 하나를 벌리면 그 그룹이 이번엔 반대쪽의 "이전엔 멀쩡했던"
+ * 다른 노선과 새로 붙는 경우가 실측으로 확인됐다(2026-08-25, 첫 구현 때 1회 패스로
+ * 43→33쌍으로만 줄고 새 근접 쌍이 생기는 것을 발견). 그래서 지점을 다시 찾고 다시
+ * 미는 과정을 **더 풀 지점이 없어질 때까지, 또는 최대 횟수까지** 반복한다 — 힘-완화
+ * (force relaxation) 레이아웃과 같은 방식이다. 매 라운드 새 지점이 아예 안 나오면
+ * (`clusters.length===0`) 그 즉시 멈춘다.
+ * @param {GeomDoc} doc
+ * @returns {{ clusterCount: number, movedCount: number, unresolvedCount: number, rounds: number }}
+ */
+function resolveCrowding(doc) {
+  const ellipseOrNull = findLoopEllipse(doc.lines);
+  if (!ellipseOrNull) {
+    console.log('2호선 루프가 없어 밀집 해소를 건너뜁니다.');
+    return { clusterCount: 0, movedCount: 0, unresolvedCount: 0, rounds: 0 };
+  }
+  // 클로저(tangentAt)에서도 non-null로 보이도록 좁혀진 참조를 별도 상수로 둔다 — TS는
+  // 중첩 함수 안에서까지 바깥 스코프의 null 체크를 역추적해주지 않는다.
+  const ellipse = ellipseOrNull;
+  const MAX_ROUNDS = 12;
+
+  let totalMoved = 0;
+  let totalUnresolved = 0;
+  let lastClusterCount = 0;
+  let round = 0;
+
+  for (; round < MAX_ROUNDS; round += 1) {
+    /** @type {Map<string, string[]>} */
+    const linesByCode = new Map();
+    for (const line of doc.lines) {
+      for (const code of line.stationCodes) {
+        if (!linesByCode.has(code)) linesByCode.set(code, []);
+        /** @type {string[]} */ (linesByCode.get(code)).push(line.lineCode);
+      }
+    }
+    const isTransferCode = (/** @type {string} */ code) => (linesByCode.get(code) ?? []).length > 1;
+    /** @type {Map<string, string>} */
+    const primaryLineByCode = new Map();
+    for (const line of doc.lines) {
+      for (const code of line.stationCodes) {
+        if (!primaryLineByCode.has(code)) primaryLineByCode.set(code, line.lineCode);
+      }
+    }
+    /** @param {number} t @returns {Point} 타원 매개변수 t 에서의 접선 단위벡터 */
+    function tangentAt(t) {
+      const dx = -ellipse.rx * Math.sin(t);
+      const dy = ellipse.ry * Math.cos(t);
+      const len = Math.hypot(dx, dy);
+      return { x: dx / len, y: dy / len };
+    }
+
+    const { clusters } = detectCrowding(doc, ellipse);
+    lastClusterCount = clusters.length;
+    if (clusters.length === 0) break;
+
+    const stationByCode = new Map(doc.stations.map((s) => [s.stationCode, s]));
+    let roundMoved = 0;
+    for (const members of clusters) {
+      const { movedCount, unresolvedCount } = resolveCluster(
+        doc, ellipse, members, tangentAt, isTransferCode, primaryLineByCode, stationByCode,
+      );
+      roundMoved += movedCount;
+      totalMoved += movedCount;
+      totalUnresolved += unresolvedCount;
+    }
+    console.log(`  라운드 ${round + 1}: 지점 ${clusters.length}개, 역 ${roundMoved}개 이동`);
+    if (roundMoved === 0) break; // 더 밀 수 있는 게 없는데 지점만 남으면(전부 unresolved) 무한루프 방지
+  }
+
+  return { clusterCount: lastClusterCount, movedCount: totalMoved, unresolvedCount: totalUnresolved, rounds: round + 1 };
+}
+
 /** @param {GeomDoc} d @returns {string} */
 function formatDoc(d) {
   // 기존 metro-seoul.json은 손으로 쓰기 좋게 컴팩트 스타일(폴리라인 점 한 줄, 역 한 줄)로
@@ -345,9 +633,53 @@ function formatDoc(d) {
   return `${out.join('\n')}\n`;
 }
 
+/**
+ * viewBox 밖(음수 좌표)으로 나간 역이 있으면 전체를 한 번에 평행이동해 원점을 되살린다.
+ * 개별 역만 옮기면 노선 모양이 뒤틀리므로, 반드시 모든 역 + 모든 폴리라인 점을 같은
+ * 오프셋으로 옮겨야 한다. `--line`/`--resolve-crowding` 양쪽 흐름이 공유한다.
+ * @param {GeomDoc} d
+ */
+function normalizeViewBox(d) {
+  let minX = Number.POSITIVE_INFINITY, minY = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY, maxY = Number.NEGATIVE_INFINITY;
+  for (const s of d.stations) {
+    minX = Math.min(minX, s.x); minY = Math.min(minY, s.y);
+    maxX = Math.max(maxX, s.x); maxY = Math.max(maxY, s.y);
+  }
+  const offsetX = minX < MARGIN ? MARGIN - minX : 0;
+  const offsetY = minY < MARGIN ? MARGIN - minY : 0;
+  if (offsetX !== 0 || offsetY !== 0) {
+    console.log(`viewBox 보정: 전체를 (${round1(offsetX)}, ${round1(offsetY)}) 만큼 평행이동`);
+    for (const s of d.stations) { s.x = round1(s.x + offsetX); s.y = round1(s.y + offsetY); }
+    for (const l of d.lines) {
+      l.polyline = l.polyline.map(([x, y]) => [round1(x + offsetX), round1(y + offsetY)]);
+    }
+  }
+  d.viewBox = {
+    width: round1(maxX + offsetX + MARGIN),
+    height: round1(maxY + offsetY + MARGIN),
+  };
+}
+
 // ── 메인 ────────────────────────────────────────────────────────────────────────
 /** @type {GeomDoc} */
 const doc = JSON.parse(readFileSync(GEOMETRY_FILE, 'utf8'));
+
+if (resolveCrowdingMode) {
+  const result = resolveCrowding(doc);
+  normalizeViewBox(doc);
+  writeFileSync(GEOMETRY_FILE, formatDoc(doc));
+  console.log(
+    `밀집 해소 완료: ${result.rounds}라운드 만에 역 ${result.movedCount}개 이동, ` +
+      `잔여 지점 ${result.clusterCount}개, 미해결 ${result.unresolvedCount}건. ` +
+      `저장 완료: ${GEOMETRY_FILE} (viewBox ${doc.viewBox.width}x${doc.viewBox.height})`,
+  );
+  process.exit(0);
+}
+
+// 위에서 exit 하지 않았다면 resolveCrowdingMode 는 false 였고, 그때만 db 가 만들어졌다.
+const dbClient = /** @type {NonNullable<typeof db>} */ (db);
+
 /** @type {Map<string, StationEntry>} */
 const existingByCode = new Map(doc.stations.map((s) => [s.stationCode, s]));
 
@@ -356,7 +688,7 @@ const existingByCode = new Map(doc.stations.map((s) => [s.stationCode, s]));
 // 역과는 무관하게, 실행 시작 시점의 파일 상태 하나로 한 번만 계산한다(파일 안에서
 // 노선을 여러 개 연달아 처리해도 기준이 흔들리지 않도록).
 const anchorCodes = [...existingByCode.keys()];
-const { data: anchorRows, error: anchorErr } = await db
+const { data: anchorRows, error: anchorErr } = await dbClient
   .from('stations')
   .select('code, lat, lng')
   .in('code', anchorCodes);
@@ -395,7 +727,7 @@ for (const lineCode of targetLineCodes) {
     console.error(`이미 파일에 있음(건너뜀): ${lineCode}`);
     continue;
   }
-  const { data: lineRow, error: lineErr } = await db
+  const { data: lineRow, error: lineErr } = await dbClient
     .from('lines')
     .select('id, code, name')
     .eq('code', lineCode)
@@ -406,7 +738,7 @@ for (const lineCode of targetLineCodes) {
     continue;
   }
 
-  const { data: rows, error: slErr } = await db
+  const { data: rows, error: slErr } = await dbClient
     .from('station_lines')
     .select('seq, stations(code, name_short, lat, lng)')
     .eq('line_id', lineRow.id)
@@ -478,28 +810,7 @@ for (const lineCode of targetLineCodes) {
   );
 }
 
-// viewBox 밖(음수 좌표)으로 나간 역이 있으면 전체를 한 번에 평행이동해 원점을 되살린다.
-// 개별 역만 옮기면 노선 모양이 뒤틀리므로, 반드시 모든 역 + 모든 폴리라인 점을 같은
-// 오프셋으로 옮겨야 한다.
-let minX = Number.POSITIVE_INFINITY, minY = Number.POSITIVE_INFINITY;
-let maxX = Number.NEGATIVE_INFINITY, maxY = Number.NEGATIVE_INFINITY;
-for (const s of doc.stations) {
-  minX = Math.min(minX, s.x); minY = Math.min(minY, s.y);
-  maxX = Math.max(maxX, s.x); maxY = Math.max(maxY, s.y);
-}
-const offsetX = minX < MARGIN ? MARGIN - minX : 0;
-const offsetY = minY < MARGIN ? MARGIN - minY : 0;
-if (offsetX !== 0 || offsetY !== 0) {
-  console.log(`viewBox 보정: 전체를 (${round1(offsetX)}, ${round1(offsetY)}) 만큼 평행이동`);
-  for (const s of doc.stations) { s.x = round1(s.x + offsetX); s.y = round1(s.y + offsetY); }
-  for (const l of doc.lines) {
-    l.polyline = l.polyline.map(([x, y]) => [round1(x + offsetX), round1(y + offsetY)]);
-  }
-}
-doc.viewBox = {
-  width: round1(maxX + offsetX + MARGIN),
-  height: round1(maxY + offsetY + MARGIN),
-};
+normalizeViewBox(doc);
 
 writeFileSync(GEOMETRY_FILE, formatDoc(doc));
 console.log(`저장 완료: ${GEOMETRY_FILE} (viewBox ${doc.viewBox.width}x${doc.viewBox.height})`);
