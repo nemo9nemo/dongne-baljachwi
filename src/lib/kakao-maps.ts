@@ -35,7 +35,8 @@ export type KakaoMarkerClusterer = {
   clear: () => void
 }
 
-type KakaoMapsNamespace = {
+/** `window.kakao.maps` 네임스페이스. 지도 인스턴스를 조작하는 헬퍼가 인자로 받는다 */
+export type KakaoMapsNamespace = {
   load: (callback: () => void) => void
   LatLng: new (lat: number, lng: number) => KakaoLatLng
   LatLngBounds: new () => KakaoLatLngBounds

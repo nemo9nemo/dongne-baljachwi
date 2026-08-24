@@ -2,7 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { formatVisitedOn } from '../../lib/format-date'
 import { loadKakaoMapsSdk } from '../../lib/kakao-maps'
-import type { KakaoCustomOverlay, KakaoMap, KakaoMarkerClusterer } from '../../lib/kakao-maps'
+import type {
+  KakaoCustomOverlay,
+  KakaoMap,
+  KakaoMapsNamespace,
+  KakaoMarkerClusterer,
+} from '../../lib/kakao-maps'
 import { useLineMapData } from './line-map-data'
 import lineMapStyles from './line-map.module.css'
 import styles from './map-view.module.css'
@@ -45,6 +50,36 @@ const CLUSTER_MIN_LEVEL = 6
 type Pin = { stationId: string; name: string; lat: number; lng: number; visitCount: number; lastVisitedOn: string }
 
 type SdkState = 'loading' | 'ready' | 'failed'
+
+/**
+ * F-06: 주어진 핀 전부가 화면에 들어오도록 지도 뷰포트를 맞춘다.
+ *
+ * 초기 진입(F-06)·방문 집계 갱신·"전체 핀 보기" 버튼(F-17) 세 곳이 **같은 계산**을 써야
+ * 한다. AC-18은 리셋 결과가 AC-01(초기 진입)과 같을 것을 요구하므로, 계산이 갈라지면
+ * 그대로 결함이 된다.
+ *
+ * 여기에는 F-12 복원 분기도, 기록 0건 폴백(F-07)도 넣지 않는다 — 그건 마운트 시점에만
+ * 판단하는 것이고, 리셋 버튼이 필요한 것은 "현재 핀으로 뷰포트를 계산해 적용하는" 부분뿐이다.
+ *
+ * @param pins 빈 배열이면 아무것도 하지 않는다 (맞출 대상이 없다 — F-17b가 버튼 자체를 숨기므로
+ *   버튼 경로로는 도달하지 않지만, 마커 갱신 경로에서는 도달할 수 있다)
+ */
+function fitPinsIntoView(kakao: KakaoMapsNamespace, map: KakaoMap, pins: readonly Pin[]): void {
+  const first = pins[0]
+  if (first === undefined) return
+
+  // F-06 / AC-20: 핀이 1개면 bounds가 넓이 0이라 카카오맵이 최대 배율까지 확대해버린다.
+  // 그래서 배율을 고정하고 센터링만 한다.
+  if (pins.length === 1) {
+    map.setLevel(SINGLE_PIN_LEVEL)
+    map.setCenter(new kakao.LatLng(first.lat, first.lng))
+    return
+  }
+
+  const bounds = new kakao.LatLngBounds()
+  for (const pin of pins) bounds.extend(new kakao.LatLng(pin.lat, pin.lng))
+  map.setBounds(bounds)
+}
 
 export function MapViewScreen() {
   const navigate = useNavigate()
@@ -115,6 +150,10 @@ export function MapViewScreen() {
                 : SINGLE_PIN_LEVEL,
         })
         mapRef.current = map
+        // F-06: 핀이 2개 이상이면 전체 bounds로 넓힌다. Map 생성자는 center/level만 받아
+        // bounds를 생성 옵션으로 줄 수 없으므로 이 후속 조정만은 불가피하다 — 대신 생성
+        // center를 첫 핀으로 잡아둔 덕에 조정 전 프레임도 이미 핀 근처라 화면이 튀지 않는다.
+        if (saved === null) fitPinsIntoView(kakao, map, pins)
         clustererRef.current = new kakao.MarkerClusterer({
           map,
           averageCenter: true,
@@ -168,10 +207,8 @@ export function MapViewScreen() {
     clusterer.clear()
     if (pins.length === 0) return
 
-    const bounds = new kakao.maps.LatLngBounds()
     const markers = pins.map((pin) => {
       const position = new kakao.maps.LatLng(pin.lat, pin.lng)
-      bounds.extend(position)
       const marker = new kakao.maps.Marker({ position })
       kakao.maps.event.addListener(marker, 'click', () => {
         overlayRef.current?.setMap(null)
@@ -184,14 +221,11 @@ export function MapViewScreen() {
     })
     clusterer.addMarkers(markers)
 
-    // F-06: 핀 1개면 이미 SINGLE_PIN_LEVEL로 센터링돼 있으니 bounds로 다시 맞추지 않는다.
-    // F-12 > F-06 (AC-16): 복원된 마운트에서는 아예 맞추지 않는다. 이 effect 는 방문 집계가
-    // 갱신될 때도 도므로, 조건을 "첫 실행"으로 두면 나중 갱신에 사용자가 잡아둔 화면이 튄다.
-    //
-    // 07 §9 미결정: 복원된 뷰포트에 핀이 하나도 없으면(핀에서 멀리 떨어진 곳을 보다 나갔다
-    // 돌아온 경우) 빈 지도가 그대로 복원되고, 노선도의 F-22 같은 "전체 핀 보기" 탈출구가
-    // 지도에는 없다. 의도적으로 처리하지 않은 케이스 — 버튼을 둘지 결정되면 여기에 붙인다.
-    if (pins.length > 1 && !restoredRef.current) map.setBounds(bounds)
+    // F-12 > F-06 (AC-16): 복원된 마운트에서는 자동으로 맞추지 않는다. 이 effect 는 방문
+    // 집계가 갱신될 때도 도므로, 조건을 "첫 실행"으로 두면 나중 갱신에 사용자가 잡아둔
+    // 화면이 튄다. 복원된 뷰포트에 핀이 하나도 없어도 자동 복귀하지 않는 것이 명세 동작이며
+    // (AC-19), 되돌리는 시점은 사용자가 "전체 핀 보기"(F-17)로 정한다.
+    if (!restoredRef.current) fitPinsIntoView(kakao.maps, map, pins)
   }, [pins, sdkState, navigate])
 
   const showEmpty = sdkState === 'ready' && pins.length === 0
@@ -237,6 +271,35 @@ export function MapViewScreen() {
           <div className={lineMapStyles.skeleton} aria-hidden="true" />
         )}
         <div ref={containerRef} className={styles.mapDiv} />
+
+        {/*
+         * F-17 / AC-18: 길을 잃었을 때의 탈출구. 노선도 F-22와 같은 모서리·같은 계열 심볼을
+         * 쓰려고 노선도의 zoomControls/zoomButton 클래스를 그대로 재사용한다(F-17e — 토글로
+         * 오갈 때 같은 기능이 다른 자리에 있으면 안 된다).
+         * F-17a: 뷰포트가 핀을 담고 있는지 판정하지 않고 상시 노출한다(팬 중 버튼이 나타났다
+         * 사라지는 것을 막는다). F-17b: 핀 0건이면 되돌아갈 대상이 없어 렌더하지 않는다.
+         * F-17c: 리셋 결과의 보존은 별도 코드가 필요 없다 — 실제 지도 인스턴스의 center/level을
+         * 바꾸므로 언마운트 시 저장 effect가 그대로 캡처한다.
+         * F-17d: 열려 있는 정보창(overlayRef)은 일부러 닫지 않는다. 오버레이는 핀 좌표에
+         * 고정돼 있어 뷰포트가 바뀌어도 가리키는 대상이 그대로다.
+         */}
+        {sdkState === 'ready' && pins.length > 0 && (
+          <div className={lineMapStyles.zoomControls}>
+            <button
+              type="button"
+              className={lineMapStyles.zoomButton}
+              aria-label="전체 핀 보기"
+              onClick={() => {
+                const map = mapRef.current
+                const kakao = window.kakao
+                if (map === null || kakao === undefined) return
+                fitPinsIntoView(kakao.maps, map, pins)
+              }}
+            >
+              ⤢
+            </button>
+          </div>
+        )}
 
         {showEmpty && (
           <div className={styles.emptyOverlay}>
