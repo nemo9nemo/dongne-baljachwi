@@ -1,6 +1,7 @@
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useSession } from '../../auth/session-context'
 import { readStateString } from '../../lib/router-state'
+import { Button } from '@/components/ui/button'
 import ui from '../../styles/ui.module.css'
 
 /**
@@ -29,13 +30,9 @@ export function CoupleLinkedScreen() {
           지금까지의 기록이 모두 함께 보여요.
         </p>
       </header>
-      <button
-        type="button"
-        className={`${ui.button} ${ui.buttonPrimary}`}
-        onClick={() => navigate('/lines', { replace: true })}
-      >
+      <Button type="button" variant="default" onClick={() => navigate('/lines', { replace: true })}>
         시작하기
-      </button>
+      </Button>
     </div>
   )
 }

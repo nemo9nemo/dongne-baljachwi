@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useSession } from './session-context'
+import { Button } from '@/components/ui/button'
 import ui from '../styles/ui.module.css'
 
 /**
@@ -32,13 +33,9 @@ function LoadFailedBox() {
     <div className={ui.centerBox}>
       <p>정보를 불러오지 못했어요.</p>
       <p className={ui.subtitle}>네트워크 연결을 확인해주세요.</p>
-      <button
-        type="button"
-        className={`${ui.button} ${ui.buttonPrimary}`}
-        onClick={() => void session.reload()}
-      >
+      <Button type="button" variant="default" onClick={() => void session.reload()}>
         다시 시도
-      </button>
+      </Button>
     </div>
   )
 }

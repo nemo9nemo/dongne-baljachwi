@@ -13,6 +13,7 @@ import type { ViewerPhoto } from './PhotoViewer'
 import { RecordImageDialog } from './RecordImageDialog'
 import type { CardInput } from './record-image-render'
 import { removePhotoObjects, signPhotoUrls } from './photo-pipeline'
+import { Button } from '@/components/ui/button'
 import styles from './record-detail.module.css'
 import ui from '../../styles/ui.module.css'
 
@@ -252,13 +253,9 @@ export function RecordDetailScreen() {
     return (
       <div className={ui.centerBox}>
         <p>기록을 불러오지 못했어요.</p>
-        <button
-          type="button"
-          className={`${ui.button} ${ui.buttonPrimary}`}
-          onClick={() => void load()}
-        >
+        <Button type="button" variant="default" onClick={() => void load()}>
           다시 시도
-        </button>
+        </Button>
       </div>
     )
   }
@@ -268,9 +265,9 @@ export function RecordDetailScreen() {
       <div className={ui.centerBox}>
         {/* §2.3: "권한 없음"이라고 말하지 않는다 — 존재 여부가 새어 나간다 */}
         <p>기록을 찾을 수 없어요.</p>
-        <Link to="/timeline" className={`${ui.button} ${ui.buttonPrimary}`}>
-          타임라인으로
-        </Link>
+        <Button asChild variant="default">
+          <Link to="/timeline">타임라인으로</Link>
+        </Button>
       </div>
     )
   }
@@ -324,17 +321,17 @@ export function RecordDetailScreen() {
         </div>
 
         <div className={styles.menuWrap} ref={menuWrapRef}>
-          <button
+          <Button
             ref={menuButtonRef}
             type="button"
-            className={ui.button}
+            variant="outline"
             aria-haspopup="menu"
             aria-expanded={menuOpen}
             disabled={!online}
             onClick={() => setMenuOpen((prev) => !prev)}
           >
             ⋯
-          </button>
+          </Button>
           {menuOpen && (
             <div className={styles.menu} role="menu">
               <button

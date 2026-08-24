@@ -4,7 +4,7 @@
 > 진행률을 확인하는 용도다. 표 항목을 완료했으면 상태를 바꾸고, 새로 생긴 미결정·작업은
 > 바로 추가한다.
 >
-> 마지막 갱신: 2026-08-21 (shadcn/ui 2라운드 반영)
+> 마지막 갱신: 2026-08-24 (shadcn/ui 3라운드 — QA 결함 7건 수정 반영)
 
 ## 1. 카테고리별 진행률
 
@@ -13,9 +13,9 @@
 
 | No | 카테고리 | 진행률 | 비고 |
 |---|---|---|---|
-| 1 | 프론트엔드 | 87% | P0/P1 화면 7개 + 인증 전부 구현 완료. shadcn/ui 마이그레이션 완료(1·2라운드) |
+| 1 | 프론트엔드 | 88% | P0/P1 화면 7개 + 인증 전부 구현 완료. shadcn/ui 마이그레이션 3라운드로 `src/screens`·`src/auth` 전 화면 `ui.button`/`ui.buttonPrimary` 잔존 0건 확인(grep 재검증 완료) |
 | 2 | 백엔드 | 90% | 스키마·RLS·역 마스터 배치 스크립트 구현 완료. 정책 미정 다수는 표4 참고 |
-| 3 | 디자인 | 80% | 토큰 재구성 완료. shadcn/ui 1·2라운드(기초·다이얼로그 3종·인증화면 6개·대형화면 4개) 적용 완료 |
+| 3 | 디자인 | 82% | 토큰 재구성 완료. shadcn/ui 1·2·3라운드(기초·다이얼로그 3종·인증화면 6개·대형화면 4개·QA 결함 7화면) 적용 완료. 전 화면 커버리지 재확인됨(3라운드는 QA가 1·2라운드 감사에서 누락을 찾아낸 결과) |
 | 4 | 문서/기획 | 80% | 스펙 11개·ADR 3개 작성 완료. 미결정 항목 다수는 표4 참고 |
 | 5 | 데이터(노선도 좌표) | 8% | MVP 652역 중 50역만 도식 좌표 보유 |
 | 6 | QA/검증 | 0% | QA 서브에이전트 미실행 |
@@ -37,7 +37,7 @@
 | No | 항목 | 내용 | 관련 문서 | 상태 | 비고 |
 |---|---|---|---|---|---|
 | 1 | 노선도 좌표 확장 | 현재 3개 노선(본선/성수지선/신정지선) 50역만 도식 좌표 있음. MVP 범위 652역 중 602역 미표시 | `docs/specs/03-line-map.md` P9, `docs/decisions/003-*.md` | 미착수 | `npm run verify:line-map` 경고로 확인 |
-| 2 | shadcn/ui 툴링 설치 + 화면 적용 (2라운드) | RecordEditorScreen·ProfileScreen·OnboardingScreen·InviteScreen에 Button/Input(+신규 Textarea) 적용 | `docs/design/redesign-resend-reference.md` §9.8 | 완료 | 1라운드(기초 설정, Dialog 3종, 인증화면 6개) + 2라운드(대형 화면 4개, Textarea 프리미티브 신설) 완료. `StationPicker`/`TagField`/`AppShell` 탭바/노선도 `<select>`/커스텀 `.linkButton`(텍스트 링크형 버튼)은 여전히 커스텀 — 이유는 §9.6·§9.8 참고. 브라우저 실제 렌더 검증은 tsc/build/lint + dev 서버 모듈 서빙(200) 확인까지만 함(로그인 필요 화면이라 실제 인터랙션은 미확인) |
+| 2 | shadcn/ui 툴링 설치 + 화면 적용 (1~3라운드) | 전 화면 `ui.button`/`ui.buttonPrimary` → `<Button>` 교체 | `docs/design/redesign-resend-reference.md` §9~§9.9 | 완료 | 1라운드(기초 설정, Dialog 3종, 인증화면 6개) + 2라운드(대형 화면 4개, Textarea 프리미티브 신설)에서 "완료"로 표시했으나, QA 감사(3라운드 트리거)가 7개 화면(`TimelineScreen`/`StationDetailScreen`/`RecordDetailScreen`/`guards.tsx`/`PhotoField`/`MapViewScreen`/`CoupleLinkedScreen`)이 감사 대상 목록 자체에서 빠져 있던 걸 찾아냈다 — 1·2라운드의 "완료" 표시가 과대평가였다. 3라운드(2026-08-24)로 그 7개를 마저 교체하고 `grep -rln "ui\.button\|ui\.buttonPrimary" src/screens src/auth`로 재확인해 실제 잔존 0건(남은 매치는 전부 `ui.buttonRow` 레이아웃 클래스)을 확인했다. `StationPicker`/`TagField`/`AppShell` 탭바/노선도 `<select>`/커스텀 `.linkButton`(텍스트 링크형 버튼)/지도 캔버스 위 커스텀 컨트롤은 의도적으로 제외됨 — 이유는 §9.6·§9.8·§9.9 참고. 브라우저 실제 렌더 검증은 tsc/build/lint + dev 서버 모듈 서빙(200) 확인까지만 함(로그인 필요 화면이라 실제 인터랙션은 미확인, 3라운드도 동일) |
 | 3 | QA 전수 검증 | 01/04/05/06/07/08/09/10 구현 화면 전체 | — | 미착수 | |
 | 4 | 카카오맵 도메인 등록 확인 | `.env.local`에 키는 있으나 실제 도메인 등록 여부 미확인 | `docs/specs/07-map-view.md` P9 | 미확인 | |
 | 5 | Supabase Storage CORS 확인 | 이미지 저장 기능의 실 프로젝트 CORS 설정 상태 미확인 | `docs/specs/10-record-card-image.md` P9 | 미확인 | |
@@ -121,9 +121,10 @@
 
 | No | 일자 | 내용 |
 |---|---|---|
-| 1 | 2026-08-21 | shadcn/ui 2라운드 적용 (developer-frontend) — RecordEditorScreen/ProfileScreen/OnboardingScreen/InviteScreen의 `ui.button`/`ui.input` 조합을 `<Button>`/`<Input>`으로 교체, 신규 `Textarea` 프리미티브 추가(record-editor 일기 textarea). 태그/역 검색·이탈방지·사진 파이프라인 로직은 무변경. 빌드/tsc/lint 통과, dev 서버 모듈 서빙 확인 |
-| 2 | 2026-08-21 | 노선도·지도 뷰포트 상태 보존 구현 (F-21/AC-08, F-12/AC-06) — planner 판단 3건 확정 + 코드 반영 |
-| 3 | 2026-08-21 | 지도 "전체 핀 보기" 버튼 신설 (F-17~F-17f) — 판단·구현 완료 |
-| 4 | 2026-08-21 | Resend 레퍼런스 기반 디자인 토큰 재구성 (designer) — shadcn 변수 매핑 완료 |
-| 5 | 2026-08-21 | shadcn/ui 1라운드 적용 (developer-frontend) — Tailwind+shadcn 설치, Button/Input/Dialog 프리미티브, 다이얼로그 3종·인증화면 6개 교체. 빌드/린트/dev서버 렌더 확인 완료 |
-| 6 | 2026-08-20 | 기록 카드 디자인 개편 (디자이너 결함 D-1~D-7 전부 반영) |
+| 1 | 2026-08-24 | shadcn/ui 3라운드 적용 (developer-frontend) — QA가 1·2라운드 감사에서 찾아낸 결함 7건(`TimelineScreen`/`StationDetailScreen`/`RecordDetailScreen`/`guards.tsx`(`LoadFailedBox`)/`PhotoField`/`MapViewScreen`/`CoupleLinkedScreen`)의 `ui.button`/`ui.buttonPrimary`를 `<Button>`으로 교체. `Button`에 `ref` prop 지원 신설(무한 스크롤 sentinel·케밥 메뉴 포커스 복귀용, React 19 관용구). 케밥 메뉴 안 "삭제" 항목은 메뉴 옵션 스타일이라 대상 제외 판단. 빌드/tsc/lint 통과, dev 서버 모듈 서빙 확인, `src/screens`·`src/auth` 전역 grep 재확인으로 `ui.button` 계열 잔존 0건 확인 |
+| 2 | 2026-08-21 | shadcn/ui 2라운드 적용 (developer-frontend) — RecordEditorScreen/ProfileScreen/OnboardingScreen/InviteScreen의 `ui.button`/`ui.input` 조합을 `<Button>`/`<Input>`으로 교체, 신규 `Textarea` 프리미티브 추가(record-editor 일기 textarea). 태그/역 검색·이탈방지·사진 파이프라인 로직은 무변경. 빌드/tsc/lint 통과, dev 서버 모듈 서빙 확인 |
+| 3 | 2026-08-21 | 노선도·지도 뷰포트 상태 보존 구현 (F-21/AC-08, F-12/AC-06) — planner 판단 3건 확정 + 코드 반영 |
+| 4 | 2026-08-21 | 지도 "전체 핀 보기" 버튼 신설 (F-17~F-17f) — 판단·구현 완료 |
+| 5 | 2026-08-21 | Resend 레퍼런스 기반 디자인 토큰 재구성 (designer) — shadcn 변수 매핑 완료 |
+| 6 | 2026-08-21 | shadcn/ui 1라운드 적용 (developer-frontend) — Tailwind+shadcn 설치, Button/Input/Dialog 프리미티브, 다이얼로그 3종·인증화면 6개 교체. 빌드/린트/dev서버 렌더 확인 완료 |
+| 7 | 2026-08-20 | 기록 카드 디자인 개편 (디자이너 결함 D-1~D-7 전부 반영) |

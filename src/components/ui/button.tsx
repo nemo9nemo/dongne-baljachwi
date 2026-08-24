@@ -57,11 +57,15 @@ export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
   VariantProps<typeof buttonVariants> & {
     /** Radix `Slot`으로 렌더한다 — 링크 등 다른 요소에 버튼 스타일만 입힐 때 쓴다 */
     asChild?: boolean
+    // React 19부터 함수 컴포넌트가 forwardRef 없이 ref를 일반 prop으로 받을 수 있다.
+    // IntersectionObserver 타깃(무한 스크롤 "더 보기")·포커스 복귀 대상(케밥 메뉴 트리거)처럼
+    // DOM 노드 참조가 필요한 호출부가 있어 명시적으로 열어 둔다.
+    ref?: React.Ref<HTMLButtonElement>
   }
 
-function Button({ className, variant, asChild = false, ...props }: ButtonProps) {
+function Button({ className, variant, asChild = false, ref, ...props }: ButtonProps) {
   const Comp = asChild ? Slot : 'button'
-  return <Comp className={cn(buttonVariants({ variant, className }))} {...props} />
+  return <Comp ref={ref} className={cn(buttonVariants({ variant, className }))} {...props} />
 }
 
 export { Button, buttonVariants }

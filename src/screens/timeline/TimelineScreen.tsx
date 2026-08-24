@@ -8,6 +8,7 @@ import { fetchRecordCardPage } from '../../lib/record-card-query'
 import type { CardCursor, RecordCard as RecordCardData } from '../../lib/record-card-query'
 import { normalizeTag, toTagNorm } from '../../lib/tags'
 import { RecordCard } from '../../components/RecordCard'
+import { Button } from '@/components/ui/button'
 import styles from './timeline.module.css'
 import ui from '../../styles/ui.module.css'
 
@@ -287,31 +288,27 @@ export function TimelineScreen() {
       {loadState === 'failed' && (
         <div className={ui.centerBox}>
           <p>기록을 불러오지 못했어요.</p>
-          <button
-            type="button"
-            className={`${ui.button} ${ui.buttonPrimary}`}
-            onClick={() => void load(selectedTagNorm)}
-          >
+          <Button type="button" variant="default" onClick={() => void load(selectedTagNorm)}>
             다시 시도
-          </button>
+          </Button>
         </div>
       )}
 
       {loadState === 'ready' && cards.length === 0 && selectedTagNorm === null && (
         <div className={ui.centerBox}>
           <p>아직 발자취가 없어요.</p>
-          <Link to="/records/new" className={`${ui.button} ${ui.buttonPrimary}`}>
-            첫 기록 남기기
-          </Link>
+          <Button asChild variant="default">
+            <Link to="/records/new">첫 기록 남기기</Link>
+          </Button>
         </div>
       )}
 
       {loadState === 'ready' && cards.length === 0 && selectedTagNorm !== null && (
         <div className={ui.centerBox}>
           <p>{selectedChip?.tag ?? rawTag} 태그의 기록이 없어요.</p>
-          <button type="button" className={ui.button} onClick={clearFilter}>
+          <Button type="button" variant="outline" onClick={clearFilter}>
             필터 해제
-          </button>
+          </Button>
         </div>
       )}
 
@@ -341,15 +338,15 @@ export function TimelineScreen() {
       )}
 
       {hasMore && (
-        <button
+        <Button
           ref={sentinelRef}
           type="button"
-          className={ui.button}
+          variant="outline"
           disabled={loadingMore || !online}
           onClick={() => void loadMore()}
         >
           {loadingMore ? '불러오는 중…' : '더 보기'}
-        </button>
+        </Button>
       )}
 
       {moreError && (

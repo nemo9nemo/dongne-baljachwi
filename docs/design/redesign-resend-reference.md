@@ -353,3 +353,81 @@ Badge/Select/Tabs/Combobox 등은 이번에도 설치하지 않았다 — 이번
   후에만 보이는 화면이라, 실제 로그인 세션으로 들어가 인터랙션까지 눈으로 확인하지는
   못했다(Round 1과 같은 한계) — 다음 단계(QA 또는 이 작업의 orchestrator)가 실 로그인
   세션으로 스크린샷 검증을 해야 한다.
+
+## 9.9 developer-frontend 구현 기록 (2026-08-24, Round 3 — QA 결함 수정)
+
+QA가 1·2라운드 완료도를 감사해 `ui.button`/`ui.buttonPrimary`가 그대로 남아 있는 화면 7개
+(결함 7건, Major 3 / Minor 4)를 찾았다 — `TimelineScreen`/`StationDetailScreen`/
+`RecordDetailScreen`/`guards.tsx`(`LoadFailedBox`)/`PhotoField`/`MapViewScreen`/
+`CoupleLinkedScreen`. §9.6·§9.8이 "다음 라운드"로 넘긴 항목이 아니라 **애초에 감사 대상에서
+빠졌던 화면들**이다 — 인증 6개·다이얼로그 3종(Round 1), 대형 화면 4개(Round 2) 목록에
+이 7개가 포함돼 있지 않았다. 원칙은 Round 1·2와 동일: 프레젠테이션 레이어만, 레이아웃
+CSS Module 클래스(`ui.centerBox`/`styles.addBar`/`ui.buttonRow` 등)는 그대로 두고
+`<button className={ui.button/.buttonPrimary}>` 조합만 `<Button variant="...">`로 교체했다.
+
+### 새로 만든 것: `Button`에 `ref` prop 지원 추가
+
+이번 7개 중 3곳(`TimelineScreen`/`StationDetailScreen`의 무한 스크롤 "더 보기" sentinel,
+`RecordDetailScreen`의 케밥 메뉴 트리거)이 버튼 DOM 노드에 직접 `ref`가 필요했다
+(`IntersectionObserver` 관찰 대상, Esc로 메뉴를 닫을 때 포커스 복귀 대상). Round 1의
+`button.tsx`는 `ButtonProps`에 `ref`를 선언하지 않아 `tsc`가 즉시 거부했다
+(`Property 'ref' does not exist on type ...`). React 19(설치된 `react`/`@types/react`
+버전 확인함)부터는 함수 컴포넌트가 `forwardRef` 없이 `ref`를 일반 prop으로 받을 수 있어,
+`ButtonProps`에 `ref?: React.Ref<HTMLButtonElement>`를 추가하고 구조분해해 `Comp`(버튼 또는
+`asChild`일 때 `Slot`)에 그대로 전달하는 것으로 해결했다 — `forwardRef` 래퍼를 새로 씌우지
+않았다(React 19 관용구 그대로, 새 추상화 레이어 아님).
+
+### 화면별 변경
+
+- **`TimelineScreen.tsx`**: 로드 실패 재시도(`variant="default"`), 빈 상태 "첫 기록
+  남기기"(`Link`를 감싸는 `Button asChild variant="default"`), 태그 필터 빈 상태 "필터
+  해제"(`variant="outline"`), 무한 스크롤 "더 보기"(`variant="outline"`, `ref={sentinelRef}`)
+  4곳 교체. FAB(`styles.fab`, `+` 버튼)는 원형 플로팅 버튼 전용 스타일이라 `ui.button` 계열이
+  아니고 대상 밖이다(QA 결함 목록에도 없음).
+- **`StationDetailScreen.tsx`**: 로드 실패·존재하지 않는 역(`Link`+`Button asChild`
+  2곳), 목록 로드 실패 재시도, 빈 상태 "첫 기록 남기기", 무한 스크롤 "더 보기", 하단 고정
+  `addBar`의 "이 역에 기록 추가" 6곳 교체. `addBar`는 이 화면에서 가장 눈에 띄는 CTA라
+  `variant="default"`(채움)를 그대로 유지했고, 감싸는 `styles.addBar`(하단 고정 레이아웃)는
+  손대지 않았다.
+- **`RecordDetailScreen.tsx`**: 로드 실패 재시도, "기록 없음" CTA(`Link`+`Button asChild`),
+  케밥 메뉴 트리거(`⋯`, `ref={menuButtonRef}`, `aria-haspopup`/`aria-expanded` 그대로 유지)
+  3곳 교체. **판단 지점** — 드롭다운 메뉴 안의 "삭제" 항목(`role="menuitem"`,
+  `styles.menuItemDanger`)은 대상에서 제외했다: `ui.button`/`ui.buttonDanger` 계열이 아니라
+  `styles.menuItem`이라는 완전히 별도의 메뉴 항목 스타일(리스트박스 옵션 형태, hover만 배경
+  변경)이고, shadcn `Button`을 얹으면 프레임(테두리·패딩·높이)이 생겨 "메뉴 옵션처럼 보이는
+  줄"이라는 의도한 형태가 깨진다 — QA 지시가 "삭제 관련 버튼이 있다면 `destructive` 확인"이라고
+  했지만, 이 삭제는 실제 파괴적 동작을 실행하는 버튼이 아니라 `ConfirmDialog`(이미 Round 1에서
+  `danger` prop → `variant="destructive"`로 마이그레이션됨)를 여는 메뉴 항목이다. 실제 파괴적
+  동작 확인·실행은 `ConfirmDialog`의 `destructive` 버튼이 담당하므로 이중으로 danger 스타일을
+  입힐 필요가 없다고 판단했다.
+- **`guards.tsx`**: `LoadFailedBox`(`RequireCouple`/`RequireNoCouple` 양쪽에서 뜨는 전역
+  컴포넌트)의 "다시 시도" 버튼 1곳 교체.
+- **`PhotoField.tsx`**: "사진 추가" 버튼(`variant="outline"`, 파일 입력 트리거) 1곳 교체.
+  사진 낱장의 이동(◀/▶)·삭제(×) 버튼(`styles.photoButton`)은 `ui.button` 계열이 아닌 작은
+  아이콘 전용 스타일이라 대상 밖이다.
+- **`MapViewScreen.tsx`**: 핀 0건 빈 상태 오버레이의 "노선도로 가기"(`Link`+`Button asChild
+  variant="default"`) 1곳 교체. 캔버스 위 "전체 핀 보기"(`lineMapStyles.zoomButton`)는 지시대로
+  건드리지 않았다 — `system.md` §5의 지도/노선도 위 불투명 서피스 규칙 때문에 의도적으로
+  커스텀 스타일이다(§5 표에도 이미 명시돼 있음).
+- **`CoupleLinkedScreen.tsx`**: "시작하기" 버튼(`variant="default"`) 1곳 교체. `InviteScreen`
+  (Round 2에서 이미 마이그레이션)과 흐름이 이어지도록 같은 프리미티브를 썼다.
+
+### 검증
+
+- `npx tsc -b` — `button.tsx`에 `ref` prop을 추가하기 전에는 3개 파일에서 `TS2322`(ref
+  prop 없음) 에러가 났다. 추가 후 통과(0 에러).
+- `npm run build` — 통과. `dist/assets/index-*.js` 693.79KB(gzip 204.75KB), `index-*.css`
+  311.84KB(gzip 93.58KB) — Round 2 대비 사실상 변화 없음(새 의존성 없이 같은 프리미티브
+  재사용). 500KB 초과 청크 경고는 기존과 동일(코드 스플리팅은 이번 범위 밖).
+- `npm run lint`(oxlint) — 통과(exit 0). 새 경고 0건. 기존 경고 4건
+  (`AppShell.tsx`/`TimelineScreen.tsx`/`MapViewScreen.tsx`의 `exhaustive-deps` 3건 +
+  `button.tsx`의 `only-export-components` 1건)은 이번 변경과 무관하게 이전부터 있던 것이다.
+- `npm run dev`(포트 5173, 이미 떠 있던 서버)로 수정한 7개 파일 + `components/ui/button.tsx`를
+  각각 직접 요청해 전부 HTTP 200을 확인했다. 7개 화면 모두 로그인(또는 커플 연결) 후에만
+  보이는 화면이라 실제 로그인 세션으로 들어가 인터랙션까지 눈으로 확인하지는 못했다
+  (Round 1·2와 같은 한계) — 다음 단계가 실 세션으로 스크린샷 검증을 해야 한다.
+- `grep -rln "ui\.button\|ui\.buttonPrimary" src/screens src/auth` 재확인 — 남은 매치는
+  `ProfileScreen.tsx`/`ConfirmDialog.tsx`/`RecordEditorScreen.tsx`/`RecordImageDialog.tsx`
+  4개뿐이고, 전부 `ui.buttonRow`(버튼을 감싸는 레이아웃 wrapper 클래스)라 `ui.button`/
+  `ui.buttonPrimary`(컨트롤 자체)와 무관하다 — `src/screens`·`src/auth` 전 화면에서 raw
+  버튼 마이그레이션이 실제로 끝났다.

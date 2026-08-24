@@ -9,6 +9,7 @@ import type {
   KakaoMarkerClusterer,
 } from '../../lib/kakao-maps'
 import { useLineMapData } from './line-map-data'
+import { Button } from '@/components/ui/button'
 import lineMapStyles from './line-map.module.css'
 import styles from './map-view.module.css'
 import ui from '../../styles/ui.module.css'
@@ -304,9 +305,9 @@ export function MapViewScreen() {
         {showEmpty && (
           <div className={styles.emptyOverlay}>
             <p>기록을 남기면 여기에 표시돼요.</p>
-            <Link to="/lines" className={`${ui.button} ${ui.buttonPrimary}`}>
-              노선도로 가기
-            </Link>
+            <Button asChild variant="default">
+              <Link to="/lines">노선도로 가기</Link>
+            </Button>
           </div>
         )}
       </div>

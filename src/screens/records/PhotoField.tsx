@@ -9,6 +9,7 @@ import {
 } from './photo-pipeline'
 import type { PreparedPhoto } from './photo-pipeline'
 import type { PhotoContentType } from '../../lib/database.types'
+import { Button } from '@/components/ui/button'
 import styles from './record-editor.module.css'
 import ui from '../../styles/ui.module.css'
 
@@ -251,14 +252,14 @@ export function PhotoField({ photos, onChange, disabled, progress }: Props) {
         disabled={disabled || full}
         onChange={(event) => void handleFiles(event)}
       />
-      <button
+      <Button
         type="button"
-        className={ui.button}
+        variant="outline"
         disabled={disabled || full || preparing > 0}
         onClick={() => inputRef.current?.click()}
       >
         {preparing > 0 ? '사진 준비 중…' : '사진 추가'}
-      </button>
+      </Button>
       {full && <p className={ui.hint}>사진은 최대 {MAX_PHOTOS}장까지</p>}
 
       {progress !== null && (

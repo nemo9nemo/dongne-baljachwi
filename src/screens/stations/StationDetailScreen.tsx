@@ -8,6 +8,7 @@ import { RecordCard } from '../../components/RecordCard'
 import { useSession } from '../../auth/session-context'
 import { useLineMapData } from '../lines/line-map-data'
 import { formatVisitedOn } from '../../lib/format-date'
+import { Button } from '@/components/ui/button'
 import styles from './station-detail.module.css'
 import ui from '../../styles/ui.module.css'
 
@@ -169,9 +170,9 @@ export function StationDetailScreen() {
     return (
       <div className={ui.centerBox}>
         <p>역 정보를 불러오지 못했어요.</p>
-        <Link to="/lines" className={`${ui.button} ${ui.buttonPrimary}`}>
-          노선도로 가기
-        </Link>
+        <Button asChild variant="default">
+          <Link to="/lines">노선도로 가기</Link>
+        </Button>
       </div>
     )
   }
@@ -182,9 +183,9 @@ export function StationDetailScreen() {
         {/* F-02.2: 존재하지 않는 역 ID. is_active=false는 여기 해당하지 않는다 — 마스터에
             있으면(폐역이어도) 정상 표시한다. */}
         <p>존재하지 않는 역입니다.</p>
-        <Link to="/lines" className={`${ui.button} ${ui.buttonPrimary}`}>
-          노선도로 돌아가기
-        </Link>
+        <Button asChild variant="default">
+          <Link to="/lines">노선도로 돌아가기</Link>
+        </Button>
       </div>
     )
   }
@@ -220,9 +221,9 @@ export function StationDetailScreen() {
       {listState === 'failed' && (
         <div className={ui.centerBox}>
           <p>기록을 불러오지 못했어요.</p>
-          <button type="button" className={`${ui.button} ${ui.buttonPrimary}`} onClick={() => void loadList()}>
+          <Button type="button" variant="default" onClick={() => void loadList()}>
             다시 시도
-          </button>
+          </Button>
         </div>
       )}
 
@@ -236,9 +237,9 @@ export function StationDetailScreen() {
       {showEmptyState && (
         <div className={ui.centerBox}>
           <p>아직 이 역에는 발자취가 없어요.</p>
-          <Link to={`/records/new?stationId=${station.id}`} className={`${ui.button} ${ui.buttonPrimary}`}>
-            첫 기록 남기기
-          </Link>
+          <Button asChild variant="default">
+            <Link to={`/records/new?stationId=${station.id}`}>첫 기록 남기기</Link>
+          </Button>
         </div>
       )}
 
@@ -251,15 +252,15 @@ export function StationDetailScreen() {
       )}
 
       {hasMore && (
-        <button
+        <Button
           ref={sentinelRef}
           type="button"
-          className={ui.button}
+          variant="outline"
           disabled={loadingMore}
           onClick={() => void loadMore()}
         >
           {loadingMore ? '불러오는 중…' : '더 보기'}
-        </button>
+        </Button>
       )}
 
       {moreError && (
@@ -274,13 +275,9 @@ export function StationDetailScreen() {
       {/* F-07: 빈 상태에서는 하단 고정 버튼과 중복되므로 숨긴다 */}
       {!showEmptyState && (
         <div className={styles.addBar}>
-          <button
-            type="button"
-            className={`${ui.button} ${ui.buttonPrimary}`}
-            onClick={() => navigate(`/records/new?stationId=${station.id}`)}
-          >
+          <Button type="button" variant="default" onClick={() => navigate(`/records/new?stationId=${station.id}`)}>
             이 역에 기록 추가
-          </button>
+          </Button>
         </div>
       )}
     </div>
