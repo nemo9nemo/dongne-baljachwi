@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "stations:load": "node --env-file-if-exists=.env.local scripts/load-station-master.mjs",
+    "line-map:seed": "node --env-file-if-exists=.env.local scripts/seed-line-map.mjs",
     "verify:line-map": "node --env-file-if-exists=.env.local scripts/verify-line-map.mjs",
     "test:db": "node supabase/tests/run.mjs"
   },

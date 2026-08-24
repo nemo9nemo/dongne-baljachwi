@@ -4,7 +4,7 @@
 > 진행률을 확인하는 용도다. 표 항목을 완료했으면 상태를 바꾸고, 새로 생긴 미결정·작업은
 > 바로 추가한다.
 >
-> 마지막 갱신: 2026-08-24 (실사용 피드백 3건: 추천역 칩 색상·기본 폰트 크기·타임라인 레이아웃 시프트 반영)
+> 마지막 갱신: 2026-08-24 (노선도 좌표 1차 파일럿 실행 완료 — 3호선+일산선 44역, 실측치 반영)
 
 ## 1. 카테고리별 진행률
 
@@ -17,7 +17,7 @@
 | 2 | 백엔드 | 90% | 스키마·RLS·역 마스터 배치 스크립트 구현 완료. 정책 미정 다수는 표4 참고 |
 | 3 | 디자인 | 82% | 토큰 재구성 완료. shadcn/ui 1·2·3라운드(기초·다이얼로그 3종·인증화면 6개·대형화면 4개·QA 결함 7화면) 적용 완료. 전 화면 커버리지 재확인됨(3라운드는 QA가 1·2라운드 감사에서 누락을 찾아낸 결과) |
 | 4 | 문서/기획 | 80% | 스펙 11개·ADR 3개 작성 완료. 미결정 항목 다수는 표4 참고 |
-| 5 | 데이터(노선도 좌표) | 8% | MVP 652역 중 50역만 도식 좌표 보유 |
+| 5 | 데이터(노선도 좌표) | 14% | MVP 652역 중 92역 도식 좌표 보유(50역 기존 + 3호선·일산선 파일럿 42역, 2026-08-24). 나머지 560역은 §9 방법 D로 확대 예정 |
 | 6 | QA/검증 | 0% | QA 서브에이전트 미실행 |
 | — | 전체 | 약 65% | 카테고리 단순 평균이 아닌 체감 가중치 기반 추정치 |
 
@@ -25,7 +25,7 @@
 
 | No | 항목 | 상태 | 비고 |
 |---|---|---|---|
-| 1 | 노선도 도식 좌표 커버리지 확장 | 미착수 | 3개 노선/50역 → MVP 652역 |
+| 1 | 노선도 도식 좌표 커버리지 확장 | 파일럿 완료, 확대 여부 판단 대기 | 5개 노선/92역 → MVP 652역. 1차 파일럿(3호선+일산선 44역) 실행 완료, 실측치는 `03-line-map.md` §9 참고(2026-08-24) |
 | 2 | shadcn/ui 기반 디자인 재구성 | 진행중 | Resend 레퍼런스 기반 |
 | 3 | QA 전체 화면 검증 | 미착수 | QA 서브에이전트 한 번도 미실행 |
 | 4 | 실 연동 확인 | 미확인 | 카카오맵 도메인, Supabase Storage CORS |
@@ -36,7 +36,7 @@
 
 | No | 항목 | 내용 | 관련 문서 | 상태 | 비고 |
 |---|---|---|---|---|---|
-| 1 | 노선도 좌표 확장 | 현재 3개 노선(본선/성수지선/신정지선) 50역만 도식 좌표 있음. MVP 범위 652역 중 602역 미표시 | `docs/specs/03-line-map.md` P9, `docs/decisions/003-*.md` | 미착수 | `npm run verify:line-map` 경고로 확인 |
+| 1 | 노선도 좌표 확장 | 5개 노선(2호선 본선/성수지선/신정지선 + 3호선 + 일산선) 92역 도식 좌표 보유. MVP 범위 652역 중 560역 미표시 | `docs/specs/03-line-map.md` §9, `docs/decisions/003-*.md` | 파일럿 완료, 확대 여부 판단 대기 | `scripts/seed-line-map.mjs`(`npm run line-map:seed -- --line=<코드>[,<코드>...]`) 작성 완료. 3호선(`L-I1103`, 34역)+일산선(`L-I4106`, 11역, 지축 중복 1역 제외 44역)을 대상으로 자동 배치→`verify:line-map`→육안 검토(SVG 렌더)→수작업 보정→재검증 1사이클 실행. **실측 결과**: 신규 배치 42역 중 32역(76%)은 스크립트 결과를 그대로 채택, 10역(을지로3가↔교대 환승 회랑 구간: 충무로·동대입구·약수·금호·옥수·압구정·신사·잠원·고속터미널·종로3가)만 수작업 보정 — 원인은 좌표 오차가 아니라 "2호선 루프 내부를 가로지르는" 상대배치 문제로, 개별 좌표 미세조정이 아니라 해당 구간 전체를 루프 바깥으로 밀어내는 판단이 필요했음(스크립트가 대신할 수 없는 종류의 판단). 환승 앵커 3개(교대·을지로3가·지축)는 보정 0건(기존 좌표 그대로 재사용, 접합부 자체는 자동으로 맞음). 소요시간: 생성→1차 시각확인까지 약 2분35초, 발견된 문제 수작업 보정→재검증까지 약 2분(스크립트 자체 1회성 포맷 버그 수정 포함, 순수 보정만은 더 짧음). 스크립트 작성(1회성, 이후 노선엔 재소요 없음)은 별도로 대략 40~60분 추정(정밀 타이머 없음). **부수 발견**: `station_lines.seq`가 일산선(`L-I4106`)에서 실제 지리 순서와 어긋남을 실측 확인(원흥이 지축보다 앞 seq로 되어 있었으나 실제로는 지축이 노선 끝 접속점) — `02-station-master.md` §9 "seq 출처 미정" 항목에 실증 사례로 추가 필요. **판정**: §9 파일럿 판정 기준(수작업 대비 눈에 띄게 빠른가)에 비춰 76%를 그대로 채택할 수 있었던 점은 긍정적이나, 표본이 파일럿 1건뿐이라 다음 노선(4·7호선, 환승 밀집도 더 높음)에서 재확인 필요. **다음 단계**: 오케스트레이터 확인 후 4·7호선 확대 여부 결정 |
 | 2 | shadcn/ui 툴링 설치 + 화면 적용 (1~3라운드) | 전 화면 `ui.button`/`ui.buttonPrimary` → `<Button>` 교체 | `docs/design/redesign-resend-reference.md` §9~§9.9 | 완료 | 1라운드(기초 설정, Dialog 3종, 인증화면 6개) + 2라운드(대형 화면 4개, Textarea 프리미티브 신설)에서 "완료"로 표시했으나, QA 감사(3라운드 트리거)가 7개 화면(`TimelineScreen`/`StationDetailScreen`/`RecordDetailScreen`/`guards.tsx`/`PhotoField`/`MapViewScreen`/`CoupleLinkedScreen`)이 감사 대상 목록 자체에서 빠져 있던 걸 찾아냈다 — 1·2라운드의 "완료" 표시가 과대평가였다. 3라운드(2026-08-24)로 그 7개를 마저 교체하고 `grep -rln "ui\.button\|ui\.buttonPrimary" src/screens src/auth`로 재확인해 실제 잔존 0건(남은 매치는 전부 `ui.buttonRow` 레이아웃 클래스)을 확인했다. `StationPicker`/`TagField`/`AppShell` 탭바/노선도 `<select>`/커스텀 `.linkButton`(텍스트 링크형 버튼)/지도 캔버스 위 커스텀 컨트롤은 의도적으로 제외됨 — 이유는 §9.6·§9.8·§9.9 참고. 브라우저 실제 렌더 검증은 tsc/build/lint + dev 서버 모듈 서빙(200) 확인까지만 함(로그인 필요 화면이라 실제 인터랙션은 미확인, 3라운드도 동일) |
 | 3 | QA 전수 검증 | 01/04/05/06/07/08/09/10 구현 화면 전체 | — | 미착수 | |
 | 4 | 카카오맵 도메인 등록 확인 | `.env.local`에 키는 있으나 실제 도메인 등록 여부 미확인 | `docs/specs/07-map-view.md` P9 | 미확인 | |
@@ -59,9 +59,9 @@
 | 8 | 02 역마스터 | 노선 내 역 순서(seq) 출처 | 미정 | |
 | 9 | 02 역마스터 | 그룹핑 임계값 500m 적정성 | 미정 | |
 | 10 | 02 역마스터 | MVP 범위 정확한 경계(수도권 정의) | 미정 | |
-| 11 | 02 역마스터 | 신규 개통역 반영 주기·운영 주체 | 미정 | |
+| 11 | 02 역마스터 | 신규 개통역 반영 주기·운영 주체 | 완료 | 2026-08-24 결정 — 고정 주기 대신 트리거 조건(개통 인지 시 수동), `stations:load`+노선도 좌표 재생성을 하나의 운영 이벤트로 묶음 |
 | 12 | 03 노선도 | 뷰포트 보존 범위·우선순위 3건 | 완료 | 2026-08-21 결정 |
-| 13 | 03 노선도 | 1차 배치 노선 범위 확정 + 좌표 제작 | 미착수 | 표3 No.1과 동일 항목 |
+| 13 | 03 노선도 | 1차 배치 노선 범위 확정 + 좌표 제작 | 방법·범위 확정, 제작 착수 대기 | 2026-08-24 TCO 재검토로 방법(D: 시드 스크립트+수작업 보정) 및 파일럿(3호선)·확대 순서 확정. 표3 No.1과 동일 항목, 실제 좌표 제작은 아직 미착수 |
 | 14 | 03 노선도 | "전체" 필터 시 흐림 없이 전부 선명 처리 적정성 | 미정 | |
 | 15 | 03 노선도 | 역 검색 UI 위치(접근성 대체 경로) | 미정 | |
 | 16 | 03 노선도 | 줌 상한 8배 적정성 | 미정 | |
@@ -103,7 +103,7 @@
 |---|---|---|---|---|
 | 1 | 기념일 알림 (N일/N주년 강조) | P2 | 보류 | 스펙 범위 밖. `started_on` 데이터는 준비됨 |
 | 2 | 외부 공유 (SNS 등) | P2 | 대체완료 | 이미지 저장 기능(10번 스펙)으로 대체 |
-| 3 | 노선도 좌표 API/오픈소스 소싱 | 조사완료 | 검토중 | 위키미디어 SVG 파싱 또는 LOOM 자동생성 파이프라인 후보. 실행 여부 미결정 |
+| 3 | 노선도 좌표 API/오픈소스 소싱 | 조사완료 | 결정완료(미채택) | 위키미디어 SVG 파싱(일반 정차역 점 요소 없어 자동 추출 불가 — 수작업 보정 시 참고 이미지로만 격하 활용)과 LOOM+GTFS 자동생성(GTFS 확보 미완료, 품질 미보장) 둘 다 TCO 재검토(2026-08-24, `03-line-map.md` §9)에서도 미채택 재확인. 채택된 방법은 자체 시드 스크립트(표3 No.1 참고) |
 | 4 | 지도 위 추가 컨트롤(줌 버튼 등) | 낮음 | 보류 | 카카오맵 기본 조작으로 충분. 확장 여지만 문서화(`07-map-view.md` P7) |
 
 ## 6. 개선사항 (기술 부채·성능·코드품질)
@@ -121,12 +121,14 @@
 
 | No | 일자 | 내용 |
 |---|---|---|
-| 1 | 2026-08-24 | 추천 역 칩 노선색 파스텔 배경 + 기본 폰트 스케일 축소 (designer+developer-frontend) — 사용자 실사용 피드백 2건. ① `ProfileScreen`의 "다음에 가볼만한 역" 칩 배경을 `line-map.module.css` F-03 채움 농도와 같은 `color-mix` 방법론으로 파스텔화(기본 12%/hover 20%, `--chip-line-color` 인라인 커스텀 프로퍼티 — `LineMapCanvas` 패턴 재사용). 대비 재계산 완료(`.chipLine` 다크 hover 4.97:1로 여유 0.47 — 신규 노선색 추가 시 재검증 필요, `docs/design/system.md` 기록). 노선 정보 없는 추천은 자동으로 `--color-surface` 폴백. ② `tokens.css` 타이포 스케일 축소(`--font-size-xs` 12px는 접근성 하한이라 유지, `sm` 14→13/`md` 16→15/`lg` 20→18/`xl` 26→22, `code`는 본문 아니라 유지) — 변수 하나만 바꿔 앱 전체에 자동 파급. `npx tsc -b`/`npm run build`/`npm run lint` 통과 |
-| 2 | 2026-08-24 | 타임라인 탭 진입 레이아웃 시프트 결함 수정 (developer-frontend) — 사용자 실사용 버그 리포트. 원인 셋: ① `TimelineScreen`이 최초 로딩 중 h1·FAB조차 없는 완전히 다른 트리를 `return`해, 데이터 도착 순간 화면 뼈대 자체가 갈아끼워짐 → h1·FAB를 항상 같은 자리에 마운트하고 칩 행/목록만 스켈레톤↔실제로 스왑하도록 통합 ② `.chipSkeleton`(36px)이 실제 `.chip`의 `min-height`(`--touch-target`=44px)보다 낮아 칩 도착 시 아래 목록이 밀려 올라감 → 44px로 정정 ③ `.cardSkeleton`(88px)이 사진 포함 카드의 실측 근사치(패딩+정사각 썸네일)보다 낮음 → 112px로 조정(노트 발췌·태그로 인한 카드 간 높이 편차는 이미 로드된 카드끼리도 존재하는 자연스러운 것이라 완전히 없애지 않음) ④ `.fab`의 `position: sticky; left: 100%`가 컨테이너(`.screen`) 폭이 재계산되는 순간 위치가 흔들릴 수 있는 패턴이라 `align-self: flex-end`로 교체(수직 sticky는 유지, AppShell `.tabbar`와 동일한 데스크톱 프레임 대응 이유). 같은 클래스 문제(스켈레톤↔실제 높이 불일치)가 `ProfileScreen`의 `.statSkeleton`(84px)에도 있어 실측치(138px)로 함께 수정. `LineMapScreen`은 스켈레톤이 `position:absolute; inset:0`로 캔버스와 같은 자리를 차지해 원래 문제없음(확인만 함). 무한 스크롤 트리거 조건(`IntersectionObserver` rootMargin 등)은 지시대로 손대지 않음 — 짧은 리스트/큰 뷰포트에서 마운트 직후 "더 보기"가 자동 트리거될 가능성은 남아 있으나 로직 변경 없이는 CSS로 완화할 지점이 마땅치 않아 보류. `tsc --noEmit`/`npm run lint`(exit 0, 기존 경고 4건 무변화)/`npm run build` 통과. 로그인 계정 생성 금지 정책상 실제 인터랙션 재현은 못 함 — 정적 CSS 계산으로 원인 특정 |
-| 3 | 2026-08-24 | shadcn/ui 3라운드 적용 (developer-frontend) — QA가 1·2라운드 감사에서 찾아낸 결함 7건(`TimelineScreen`/`StationDetailScreen`/`RecordDetailScreen`/`guards.tsx`(`LoadFailedBox`)/`PhotoField`/`MapViewScreen`/`CoupleLinkedScreen`)의 `ui.button`/`ui.buttonPrimary`를 `<Button>`으로 교체. `Button`에 `ref` prop 지원 신설(무한 스크롤 sentinel·케밥 메뉴 포커스 복귀용, React 19 관용구). 케밥 메뉴 안 "삭제" 항목은 메뉴 옵션 스타일이라 대상 제외 판단. 빌드/tsc/lint 통과, dev 서버 모듈 서빙 확인, `src/screens`·`src/auth` 전역 grep 재확인으로 `ui.button` 계열 잔존 0건 확인 |
-| 4 | 2026-08-21 | shadcn/ui 2라운드 적용 (developer-frontend) — RecordEditorScreen/ProfileScreen/OnboardingScreen/InviteScreen의 `ui.button`/`ui.input` 조합을 `<Button>`/`<Input>`으로 교체, 신규 `Textarea` 프리미티브 추가(record-editor 일기 textarea). 태그/역 검색·이탈방지·사진 파이프라인 로직은 무변경. 빌드/tsc/lint 통과, dev 서버 모듈 서빙 확인 |
-| 5 | 2026-08-21 | 노선도·지도 뷰포트 상태 보존 구현 (F-21/AC-08, F-12/AC-06) — planner 판단 3건 확정 + 코드 반영 |
-| 6 | 2026-08-21 | 지도 "전체 핀 보기" 버튼 신설 (F-17~F-17f) — 판단·구현 완료 |
-| 7 | 2026-08-21 | Resend 레퍼런스 기반 디자인 토큰 재구성 (designer) — shadcn 변수 매핑 완료 |
-| 8 | 2026-08-21 | shadcn/ui 1라운드 적용 (developer-frontend) — Tailwind+shadcn 설치, Button/Input/Dialog 프리미티브, 다이얼로그 3종·인증화면 6개 교체. 빌드/린트/dev서버 렌더 확인 완료 |
-| 9 | 2026-08-20 | 기록 카드 디자인 개편 (디자이너 결함 D-1~D-7 전부 반영) |
+| 1 | 2026-08-24 | 노선도 좌표 1차 파일럿 실행 (developer-frontend) — `03-line-map.md` §9 방법 D 실행. `scripts/seed-line-map.mjs` 신설(DB 위경도+`station_lines`를 읽어 복소수 최소자승 유사변환으로 "이미 배치된 역들이 어떤 각도·축척으로 그려졌는지" 역산한 뒤 신규 역에 동일 변환 적용 — 회전·등배율·평행이동을 복소수 선형회귀 하나로 풀어 SVD 없이 구현. 노선 내 역 순서는 `station_lines.seq`를 신뢰하지 않고 실좌표 최소신장트리+DFS로 재구성). 3호선(`L-I1103`)+일산선(`L-I4106`) 44역 대상 실행 → `verify:line-map` 통과 → SVG 렌더+헤드리스 Edge 스크린샷으로 육안 검토 → 을지로3가↔교대 환승 회랑 10역이 2호선 루프 내부를 가로지르는 문제 발견·수작업 보정(좌표 미세조정이 아니라 구간 전체를 루프 바깥으로 재배치하는 판단) → 재검증. 결과: 92역 도식 좌표 보유(기존 50 + 신규 42), 신규 42역 중 32역(76%)은 스크립트 결과 그대로 채택. 부수 발견: `station_lines.seq`가 일산선에서 실제 지리 순서와 어긋나는 사례 실측(`02-station-master.md` §9 "seq 출처" 미결 항목에 실증 근거로 추가 필요). `npx tsc -b`(scripts 포함 checkJs)/`npm run lint`/`npm run build`/`npm run verify:line-map` 전부 통과. 상세 실측 수치는 표3 No.1 참고. 4·7호선 확대 여부는 오케스트레이터 확인 대기 |
+| 2 | 2026-08-24 | 노선도 좌표 조달 방법 TCO 재검토 (planner) — 2026-08-12 "순수 수작업" 결정을 초기 제작 비용뿐 아니라 유지보수 비용(신규 개통역 대응)까지 포함해 재검토. 위키미디어 SVG(자동 추출 불가 확인, 참고 이미지로만 격하)·LOOM+GTFS(GTFS 확보 미완료·품질 미보장, 미채택 재확인) 조사 결과를 근거로 "자체 시드 스크립트(DB 위경도+`seq` 투영으로 초기 골격 생성) + 수작업 보정" 하이브리드로 확정 — 반전이 아니라 보강. 신규 개통역 반영을 `stations:load` 재적재와 시드 스크립트 재실행을 묶은 단일 운영 이벤트로 정의(`02-station-master.md` §9 동시 결정). 1차 파일럿(3호선 44역, 2호선과의 환승 정합성 검증 겸함) 및 확대 순서(1~9호선 → 광역철도)를 실행 계획으로 수립. 코드 변경 없음 — 문서만 갱신(`docs/specs/03-line-map.md`, `docs/specs/02-station-master.md`, `docs/PROGRESS.md`), 실제 스크립트 작성·파일럿 실행은 developer-frontend가 이어받음 |
+| 3 | 2026-08-24 | 추천 역 칩 노선색 파스텔 배경 + 기본 폰트 스케일 축소 (designer+developer-frontend) — 사용자 실사용 피드백 2건. ① `ProfileScreen`의 "다음에 가볼만한 역" 칩 배경을 `line-map.module.css` F-03 채움 농도와 같은 `color-mix` 방법론으로 파스텔화(기본 12%/hover 20%, `--chip-line-color` 인라인 커스텀 프로퍼티 — `LineMapCanvas` 패턴 재사용). 대비 재계산 완료(`.chipLine` 다크 hover 4.97:1로 여유 0.47 — 신규 노선색 추가 시 재검증 필요, `docs/design/system.md` 기록). 노선 정보 없는 추천은 자동으로 `--color-surface` 폴백. ② `tokens.css` 타이포 스케일 축소(`--font-size-xs` 12px는 접근성 하한이라 유지, `sm` 14→13/`md` 16→15/`lg` 20→18/`xl` 26→22, `code`는 본문 아니라 유지) — 변수 하나만 바꿔 앱 전체에 자동 파급. `npx tsc -b`/`npm run build`/`npm run lint` 통과 |
+| 4 | 2026-08-24 | 타임라인 탭 진입 레이아웃 시프트 결함 수정 (developer-frontend) — 사용자 실사용 버그 리포트. 원인 셋: ① `TimelineScreen`이 최초 로딩 중 h1·FAB조차 없는 완전히 다른 트리를 `return`해, 데이터 도착 순간 화면 뼈대 자체가 갈아끼워짐 → h1·FAB를 항상 같은 자리에 마운트하고 칩 행/목록만 스켈레톤↔실제로 스왑하도록 통합 ② `.chipSkeleton`(36px)이 실제 `.chip`의 `min-height`(`--touch-target`=44px)보다 낮아 칩 도착 시 아래 목록이 밀려 올라감 → 44px로 정정 ③ `.cardSkeleton`(88px)이 사진 포함 카드의 실측 근사치(패딩+정사각 썸네일)보다 낮음 → 112px로 조정(노트 발췌·태그로 인한 카드 간 높이 편차는 이미 로드된 카드끼리도 존재하는 자연스러운 것이라 완전히 없애지 않음) ④ `.fab`의 `position: sticky; left: 100%`가 컨테이너(`.screen`) 폭이 재계산되는 순간 위치가 흔들릴 수 있는 패턴이라 `align-self: flex-end`로 교체(수직 sticky는 유지, AppShell `.tabbar`와 동일한 데스크톱 프레임 대응 이유). 같은 클래스 문제(스켈레톤↔실제 높이 불일치)가 `ProfileScreen`의 `.statSkeleton`(84px)에도 있어 실측치(138px)로 함께 수정. `LineMapScreen`은 스켈레톤이 `position:absolute; inset:0`로 캔버스와 같은 자리를 차지해 원래 문제없음(확인만 함). 무한 스크롤 트리거 조건(`IntersectionObserver` rootMargin 등)은 지시대로 손대지 않음 — 짧은 리스트/큰 뷰포트에서 마운트 직후 "더 보기"가 자동 트리거될 가능성은 남아 있으나 로직 변경 없이는 CSS로 완화할 지점이 마땅치 않아 보류. `tsc --noEmit`/`npm run lint`(exit 0, 기존 경고 4건 무변화)/`npm run build` 통과. 로그인 계정 생성 금지 정책상 실제 인터랙션 재현은 못 함 — 정적 CSS 계산으로 원인 특정 |
+| 5 | 2026-08-24 | shadcn/ui 3라운드 적용 (developer-frontend) — QA가 1·2라운드 감사에서 찾아낸 결함 7건(`TimelineScreen`/`StationDetailScreen`/`RecordDetailScreen`/`guards.tsx`(`LoadFailedBox`)/`PhotoField`/`MapViewScreen`/`CoupleLinkedScreen`)의 `ui.button`/`ui.buttonPrimary`를 `<Button>`으로 교체. `Button`에 `ref` prop 지원 신설(무한 스크롤 sentinel·케밥 메뉴 포커스 복귀용, React 19 관용구). 케밥 메뉴 안 "삭제" 항목은 메뉴 옵션 스타일이라 대상 제외 판단. 빌드/tsc/lint 통과, dev 서버 모듈 서빙 확인, `src/screens`·`src/auth` 전역 grep 재확인으로 `ui.button` 계열 잔존 0건 확인 |
+| 6 | 2026-08-21 | shadcn/ui 2라운드 적용 (developer-frontend) — RecordEditorScreen/ProfileScreen/OnboardingScreen/InviteScreen의 `ui.button`/`ui.input` 조합을 `<Button>`/`<Input>`으로 교체, 신규 `Textarea` 프리미티브 추가(record-editor 일기 textarea). 태그/역 검색·이탈방지·사진 파이프라인 로직은 무변경. 빌드/tsc/lint 통과, dev 서버 모듈 서빙 확인 |
+| 7 | 2026-08-21 | 노선도·지도 뷰포트 상태 보존 구현 (F-21/AC-08, F-12/AC-06) — planner 판단 3건 확정 + 코드 반영 |
+| 8 | 2026-08-21 | 지도 "전체 핀 보기" 버튼 신설 (F-17~F-17f) — 판단·구현 완료 |
+| 9 | 2026-08-21 | Resend 레퍼런스 기반 디자인 토큰 재구성 (designer) — shadcn 변수 매핑 완료 |
+| 10 | 2026-08-21 | shadcn/ui 1라운드 적용 (developer-frontend) — Tailwind+shadcn 설치, Button/Input/Dialog 프리미티브, 다이얼로그 3종·인증화면 6개 교체. 빌드/린트/dev서버 렌더 확인 완료 |
+| 11 | 2026-08-20 | 기록 카드 디자인 개편 (디자이너 결함 D-1~D-7 전부 반영) |
