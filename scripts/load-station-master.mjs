@@ -21,6 +21,7 @@ import { createTagoSource } from './station-master/sources/tago.mjs';
 import { createStandardFileSource } from './station-master/sources/standard-file.mjs';
 import { groupStations } from './station-master/grouping.mjs';
 import { applyLineOrdering, applyMvpScope, lineDisplayMeta } from './station-master/line-policy.mjs';
+import { applyKnownCorrections } from './station-master/known-corrections.mjs';
 
 /** @typedef {import('./station-master/types.mjs').MasterSnapshot} MasterSnapshot */
 
@@ -162,8 +163,15 @@ async function main() {
   log('');
 
   // ── 수집 ────────────────────────────────────────────────────────────────
-  const { rows, sourceUpdatedOn, raw } = await source.fetchRows();
-  log(`수집 완료: 원천 ${rows.length}행 (기준일 ${sourceUpdatedOn ?? '미상'})`);
+  const { rows: fetchedRows, sourceUpdatedOn, raw } = await source.fetchRows();
+  log(`수집 완료: 원천 ${fetchedRows.length}행 (기준일 ${sourceUpdatedOn ?? '미상'})`);
+
+  // 02 §9(2026-08-24 발견, 2026-08-25 원인 규명): 원본 표준데이터 자체에 잘못된 좌표가
+  // 있는 행이 있다(예: 양원역이 경북 좌표를 가리킴). 원본 파일을 고칠 방법이 없으므로
+  // (매년 새로 받는 외부 파일, 저장소에 체크인하지 않음) 그룹핑 전에 알려진 오류를 정정한다.
+  // TAGO 원천으로 바뀌어도 같은 물리 역이면 같은 교정이 필요할 수 있어 어댑터가 아니라
+  // 여기(공통 파이프라인)에서 적용한다.
+  const rows = applyKnownCorrections(fetchedRows, log);
 
   // ── 정규화 · 그룹핑 ─────────────────────────────────────────────────────
   // F-04: 수동 교정은 DB 에 있다. Supabase 미설정(로컬 검증)에서는 빈 규칙으로 돈다.

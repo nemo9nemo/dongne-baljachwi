@@ -117,7 +117,13 @@ async function readTable(filePath) {
       // 변수 지정자로 import 한다. 리터럴이면 tsc 가 모듈을 해석하려 들어, xlsx 를 설치하지
       // 않은 기본 상태에서 타입 체크가 깨진다. 이 의존성은 선택 사항이다.
       const specifier = 'xlsx';
-      xlsx = /** @type {XlsxModule} */ (await import(specifier));
+      const mod = /** @type {{ default?: XlsxModule } & Partial<XlsxModule>} */ (await import(specifier));
+      // xlsx 는 CJS 패키지다. Node 의 CJS→ESM 상호운용은 `mod.default` 에 module.exports 전체를
+      // 담고, 최상위 named export 는 cjs-module-lexer 의 정적 분석으로 "찾아낸" 일부일 뿐이라
+      // 완전하지 않다 — 실측으로 `utils` 는 최상위에 잡히는데 `readFile` 은 빠지는 것을 확인했다
+      // (2026-08-25, 양원역 좌표 버그 조사 중 원본 XLSX를 직접 읽어보다 발견). `mod.default`
+      // 를 우선 쓰면 이 파편화를 피할 수 있다.
+      xlsx = /** @type {XlsxModule} */ (mod.default ?? mod);
     } catch {
       throw new Error(
         `XLSX 를 읽으려면 xlsx 패키지가 필요하다: npm i -D xlsx\n` +
