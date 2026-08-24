@@ -40,6 +40,26 @@ const MARGIN = 80;
  * 실제로 앵커 없는 상황(완전히 새 지역의 첫 노선)이 오면 사람이 결과를 보고 다시 조정해야 한다. */
 const DEFAULT_SCALE = 6700;
 
+// 좌표 작업에서 잠정 제외하는 역 — DB `in_mvp_scope` 는 건드리지 않는다(데이터 소유
+// 경계 밖, `02-station-master.md` §9 "MVP 범위의 정확한 경계"는 여전히 미정). 이 목록은
+// 좌표 정적 파일 쪽에서만 적용되는 별개의 필터다.
+//
+// 왜 필요한가: 1호선(L-I4101)/경원선(L-I4102) 파일럿에서 성환·직산·두정(충남)·연천(경기
+// 최북단)까지 실좌표로 배치했더니, 모든 노선이 공유하는 단일 viewBox 종횡비가 1:1.1대에서
+// 1:3까지 벌어졌다(2026-08-24 실측, `docs/PROGRESS.md` 표3 No.1). CLAUDE.md가 "수도권
+// 지하철 기준"을 전제하는데 이 역들은 그 범위 밖이라는 게 상식적 판단이라 제외를 기본값으로
+// 삼는다 — 좌표가 없는 역은 `03-line-map.md` §2.2/§5 에 따라 노선도 대신 하단 안내 목록에
+// 뜨므로 기능은 깨지지 않는다. 새로 이런 사례(수도권 core를 크게 벗어나 종횡비를 심하게
+// 왜곡시키는 역)를 만나면 여기 추가하고 실행 로그로 남긴다.
+const EXCLUDE_STATION_CODES = new Set([
+  'S-I4101-1725', // 성환역 (충남 천안)
+  'S-I4101-1726', // 직산역 (충남 천안)
+  'S-I4101-1727', // 두정역 (충남 천안)
+  'S-I4102-1919', // 연천역 (경기 최북단, 연천군)
+  'S-I4102-1918', // 전곡역 (연천역과 같은 연천군 — 연천역만 빼면 종횡비 왜곡의 원인이 그대로 남아 함께 제외)
+  'S-I4102-1917', // 청산역 (위와 동일 사유)
+]);
+
 const url = process.env.VITE_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!url || !serviceKey) {
@@ -390,9 +410,17 @@ for (const lineCode of targetLineCodes) {
 
   // 임베드 조인 결과는 supabase-js 가 배열로 추론하지만 실제로는 1:1 이라 객체다
   // (verify-line-map.mjs 의 같은 패턴 참고).
-  const raw = /** @type {{ stations: GeoStation }[]} */ (/** @type {unknown} */ (rows)).map(
+  const fetched = /** @type {{ stations: GeoStation }[]} */ (/** @type {unknown} */ (rows)).map(
     (r) => r.stations,
   );
+  const raw = fetched.filter((s) => !EXCLUDE_STATION_CODES.has(s.code));
+  const excluded = fetched.length - raw.length;
+  if (excluded > 0) {
+    console.log(
+      `${lineCode}: 원거리 역 ${excluded}개 좌표 작업에서 제외 — ` +
+        fetched.filter((s) => EXCLUDE_STATION_CODES.has(s.code)).map((s) => `${s.name_short}(${s.code})`).join(', '),
+    );
+  }
   const ordered = reconstructPathOrder(raw);
 
   let pushedCount = 0;
