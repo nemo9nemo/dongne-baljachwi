@@ -379,6 +379,67 @@
 > 백엔드/기획 쪽에서 별도로 결정할 사안이다. **이 결정 자체는 여전히 미정으로 남긴다.**
 > 좌표가 없는 역은 `03-line-map.md` §2.2/§5에 따라 노선도에 그려지지 않고 하단 안내 목록으로
 > 노출되므로, 이 잠정 조치로 기능이 깨지지는 않는다.
+>
+> ✅ **실행 완료 (2026-08-25, developer-backend) — DB 정정 + 아키텍처 정정.** 위 결정을 DB에
+> 반영하려다가 **결정문 자체가 스키마 현실과 어긋난다는 걸 발견했다.** `in_mvp_scope`는
+> `stations`가 아니라 **`lines`의 컬럼**이고(F-10, `apply_station_master()`), 배치
+> (`scripts/station-master/line-policy.mjs`)가 "노선이 수도권 역을 하나라도 포함하면
+> `true`"라는 **OR 집계**로 계산한다. 1호선(`L-I4101`)·경춘선(`L-I41K2`)처럼 한 노선이
+> 수도권과 그 바깥을 동시에 지나면, 노선 단위 불리언 하나로는 "그 노선 안의 일부 역만
+> 스코프에서 뺀다"를 표현할 수 없다 — `lines.in_mvp_scope`를 `false`로 뒤집으면 1호선의
+> 정상 수도권 역 44개, 경춘선의 14개까지 통째로 커버리지·추천에서 사라지는 더 큰 회귀가
+> 난다. 즉 "성환·직산·두정만 `false`로 바꿔라"는 지시를 문자 그대로 만족시킬 기존 컬럼이
+> 없었다.
+>
+> **전수 스캔 결과(2026-08-25, `station_lines`+`lines`+`stations` 전수 조인)**: 성환·직산·
+> 두정(1호선, 충남) 외에 **경춘선의 강원도 6역**(굴봉산·백양리·강촌·김유정·남춘천·춘천)도
+> 같은 유형의 누수였다 — 총 9역, 2개 노선. 실 프로젝트 조회로 확인(전체 944 역 중
+> `region_code ∈ {11,28,41}` 641역 vs 기존 노선 단위 OR 집계 652역, 차이 11 — 9역은 확정
+> 누수, 나머지 2역은 아래 참고).
+>
+> **조치**: `stations.in_mvp_scope` 컬럼을 새로 추가했다(`region_code in ('11','28','41')`로
+> `apply_station_master()`가 직접 계산, 배치 페이로드에 실어 보내지 않음 — "서울/인천/경기"
+> 판정 기준을 SQL 한 곳에만 둔다). `lines.in_mvp_scope`는 자기 정의(F-10, 노선 단위 OR
+> 집계) 그대로 두고 손대지 않았다 — 그 자체로는 틀린 값이 아니다. `station_master_public`
+> 뷰에 새 컬럼을 노출했다. 마이그레이션:
+> `20260825100000_station_mvp_scope.sql`(`npm run test:db` 163/163 통과, 신규 5건 포함).
+>
+> **부수 발견**: 전수 스캔 중 별내선(8호선 연장) 동구릉역·장자호수공원역이 `region_code='00'`
+> (`needs_review=true`)로 적재돼 있어 위 641 집계에서 함께 `false`로 떨어지는 걸 발견했다.
+> 좌표(37.610556,127.135056 / 37.587222,127.13793)를 실측 대조한 결과 각각 경기도 구리시
+> 인창동·남양주시 다산동으로 확인됨(원본 좌표는 정확 — 주소 앞머리에 시/도명이 없는 형태라
+> `regionCodeFromAddress()`가 못 뽑은 것뿐, 양원역과 달리 원본 데이터 오류가 아니라 이
+> 배치의 파싱 한계). 이 2건만 `region_code`를 `41`로 정정했다(같은 유형의 미확인 `00` 행
+> ~86건은 이번 조사 범위 밖으로 그대로 둠 — 양원역 마이그레이션 때 이미 "알려진 한계"로
+> 기록됨). 재적재해도 되살아나지 않도록
+> `scripts/station-master/known-corrections.mjs`에 반영(양원역과 같은 메커니즘, `regionCode`
+> 필드까지 지원하도록 일반화).
+>
+> **실 프로젝트 반영 상태 — 부분적임, 명확히 구분**:
+> - DML(데이터 변경)은 이 세션에서 PostgREST로 즉시 적용했다: 동구릉·장자호수공원
+>   `region_code` 정정(`00`→`41`) + `master_version` 2→3.
+> - **DDL(스키마 변경: `stations.in_mvp_scope` 컬럼 추가, `station_master_public` 뷰·
+>   `apply_station_master()` 함수 교체)은 이 환경에서 실행할 수 없었다** — 이전 세션들과
+>   달리 이번엔 순수 DML이 아니라 스키마 변경이 필요한데, 이 환경에는 Supabase CLI·`psql`·
+>   DB 직접 연결 정보(비밀번호)·Management API 토큰이 전혀 없다(PostgREST는 DML만 가능,
+>   DDL 실행 경로가 없음 — `.env.local`도 anon/service_role 키뿐이다). 마이그레이션 파일은
+>   작성·로컬(PGlite) 검증까지 완료됐고, **사람이 Supabase 대시보드 SQL Editor 또는
+>   `supabase db push`로 직접 적용해야** `stations.in_mvp_scope`가 실제로 생긴다. 적용
+>   전까지는 `lines.in_mvp_scope`(기존 동작)만 서비스에 반영된 상태 그대로다.
+>
+> ⚠ **계약 변경 필요 — developer-frontend 후속 작업, 보고 대상**: 위 DDL이 적용돼도 그
+> 자체로는 아무 화면도 바뀌지 않는다. `src/screens/profile/ProfileScreen.tsx`(F-09 분모)와
+> `src/lib/station-recommendation.ts`(F-14 후보 집합)가 여전히 `lines.in_mvp_scope`만 보기
+> 때문이다. 두 소비처가 `station_master_public.in_mvp_scope`(새 컬럼)를 함께/대신 보도록
+> 바꿔야 실제 커버리지 %·추천 결과에 반영된다. `station-master.ts`의 `StationRow` 타입에도
+> `in_mvp_scope: boolean` 추가가 필요하다(같은 파일이 이미 `region_code`는 프론트에 내려주고
+> 있어 필드 하나 추가라 큰 변경은 아니다).
+>
+> ⚠ **스펙 문구 정정 필요 — planner 확인 대상**: `09-couple-profile.md` F-09
+> ("커버리지 분모는 `lines.in_mvp_scope = true`에 속한 `is_active = true` 역의 distinct
+> 개수")는 이제 실제 정책과 어긋난다. 이 세션에서 스펙 문구 자체는 고치지 않았다 — 계약은
+> 혼자 바꾸지 않는다(`CLAUDE.md`). planner가 F-09를 "`stations.in_mvp_scope = true AND
+> is_active = true` 역의 distinct 개수"로 갱신할지 확인 필요.
 
 > ✅ **해결됨 (2026-08-25, developer-backend) — 양원역(`S-I4108-1204`) 좌표 오류.**
 > 아래는 발견 당시(2026-08-24) 기록을 보존하고, 그 아래 "해결" 문단에 원인 규명·조치·검증
@@ -475,3 +536,4 @@
 - 2026-08-24 §9에 데이터 버그 항목 신설 — 양원역(`S-I4108-1204`)의 `lat/lng`이 실제 위치(경기 가평)가 아니라 경상북도 포항/영덕 인근 좌표로 잘못 적재돼 있음을 노선도 좌표 파일럿 중 발견. `region_code`('11', 서울)도 위경도와 자기모순. DB는 건드리지 않고 좌표 작업에서만 잠정 제외, 원인 조사·배치 재실행은 미완료로 남김.
 - 2026-08-25 §9 양원역 버그 **해결됨**으로 갱신(developer-backend). 원인 규명: 원본 표준데이터 실물 파일을 확보해 직접 열어본 결과 원본 파일 자체의 좌표 오기재로 확인(파싱/적재 배치 버그 아님). `stations`/원본 XLSX 전수 스캔으로 추가 이상치 없음을 확인(서생역은 오탐으로 판정). 실 DB 즉시 정정 + `scripts/station-master/known-corrections.mjs` 신설로 재적재 시 재발 방지 + 부수 발견한 `standard-file.mjs` XLSX 동적 import 버그(`xlsx.readFile is not a function`)도 함께 수정. `npm run test:db` 158/158 통과. 상세는 §9 해당 항목, 마이그레이션 `20260825090000_fix_yangwon_station_coordinates.sql` 참고.
 - 2026-08-25 §9 미결정 3건 확정(planner) — seq 출처는 원천 역번호 그대로 유지(배치 재계산 안 함, F-11 비고에 원칙 반영), 그룹핑 임계값 500m는 실측 근거 없어 유지, MVP 범위는 `region_code` 기준 "서울+인천+경기" 행정구역으로 확정(충남 3역은 `in_mvp_scope=false`로 정정 필요 — DB 마이그레이션은 이번 범위 밖, 경기 연천군 3역은 스코프 유지하되 좌표 파일 제외는 그대로). `09-couple-profile.md`의 커버리지 분모 항목과 연동.
+- 2026-08-25 §9 "MVP 범위의 정확한 경계" **실행 완료**로 갱신(developer-backend). DB 정정을 시도하며 `in_mvp_scope`가 `stations`가 아니라 `lines`의 노선 단위 OR 집계 컬럼이라는 것을 발견 — 노선 단위 불리언으로는 "혼합 노선(1호선·경춘선)의 일부 역만 제외"를 표현할 수 없어, `stations.in_mvp_scope` 컬럼을 신설(`region_code` 기반, `apply_station_master()`가 직접 계산)하는 것으로 해결했다. 전수 스캔으로 성환·직산·두정(1호선, 충남) 외에 경춘선 강원도 6역(굴봉산·백양리·강촌·김유정·남춘천·춘천)도 같은 누수였음을 추가로 확인(총 9역). 부수 발견으로 별내선 동구릉·장자호수공원의 `region_code='00'`(주소 파싱 실패)를 좌표 실측으로 `41`(경기)로 정정, `known-corrections.mjs`에 재발 방지 반영. 마이그레이션 `20260825100000_station_mvp_scope.sql` 작성·`npm run test:db` 163/163 통과(신규 5건 포함). **실 프로젝트에는 DML(region_code 정정 2건 + master_version 2→3)만 적용됨** — DDL(컬럼·뷰·함수 변경)은 이 환경에 Supabase CLI/psql/DB 접속정보가 없어 적용 불가, 사람이 SQL Editor 또는 `supabase db push`로 별도 적용 필요. developer-frontend 계약 변경 필요(F-09/F-14 소비처가 새 컬럼을 봐야 실제 반영됨), planner에게 `09-couple-profile.md` F-09 문구 정정 확인 요청.

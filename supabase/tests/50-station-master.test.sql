@@ -189,4 +189,90 @@ select test.eq('배치는 교정 규칙을 조회할 수 있다',
 select test.eq('배치는 기존 마스터를 조회할 수 있다 (재적재 전 비교)',
   (select count(*)::text from public.stations), '3');
 
+-- ── stations.in_mvp_scope: region_code 로 이 함수가 직접 계산한다 ──────────────────────
+-- 근거: 02 §9 "MVP 범위의 정확한 경계" (2026-08-25 결정), 20260825100000_station_mvp_scope.sql.
+-- 페이로드에는 in_mvp_scope 를 아예 넣지 않는다 — lines 와 달리 stations 는 이 필드를
+-- 신뢰하지 않고 region_code 로만 재계산해야 한다. 위 카운트 어서션들 뒤(파일 맨 끝)에 둬서
+-- 여기서 새로 넣는 역·노선이 앞선 "정확히 N건" 류 어서션에 영향을 주지 않게 한다.
+-- L-1002 도 그대로 함께 보내 앞서 만든 노선이 이 호출로 비활성화되지 않게 한다(AC-06 경로
+-- 오염 방지 — 이 테스트의 관심사가 아니다).
+
+select set_config('test.r', public.apply_station_master($j$
+{
+  "source": "tago",
+  "source_updated_on": "2026-08-03",
+  "lines": [
+    {"code": "L-1001", "name": "1호선", "operator": "코레일", "sort_order": 1,
+     "color_token": "line-1", "in_mvp_scope": true},
+    {"code": "L-1002", "name": "2호선", "operator": "서울교통공사", "sort_order": 2,
+     "color_token": "line-2", "in_mvp_scope": true}
+  ],
+  "stations": [
+    {"code": "S-0004", "name": "서울역", "name_short": "서울역", "name_key": "서울역",
+     "lat": 37.556, "lng": 126.972, "region_code": "11", "needs_review": false},
+    {"code": "S-0005", "name": "춘천역", "name_short": "춘천역", "name_key": "춘천역",
+     "lat": 37.881, "lng": 127.720, "region_code": "51", "needs_review": false},
+    {"code": "S-0006", "name": "미상역", "name_short": "미상역", "name_key": "미상역",
+     "lat": 37.5, "lng": 127.0, "region_code": "00", "needs_review": true}
+  ],
+  "station_lines": [
+    {"station_code": "S-0004", "line_code": "L-1001", "station_no": "1", "seq": 1,
+     "lat": 37.556, "lng": 126.972},
+    {"station_code": "S-0005", "line_code": "L-1001", "station_no": "2", "seq": 2,
+     "lat": 37.881, "lng": 127.720},
+    {"station_code": "S-0006", "line_code": "L-1001", "station_no": "3", "seq": 3,
+     "lat": 37.5, "lng": 127.0}
+  ]
+}
+$j$::jsonb)::text, false);
+
+commit;   -- 위와 같은 이유(임시 테이블 정리)
+
+select test.eq('02 §9: 서울(region_code=11)은 in_mvp_scope=true',
+  (select in_mvp_scope::text from public.stations where code = 'S-0004'), 'true');
+select test.eq('02 §9: 강원(region_code=51)은 소속 노선이 in_mvp_scope 여도 역 단위로 false',
+  (select in_mvp_scope::text from public.stations where code = 'S-0005'), 'false');
+select test.eq('02 §9: region_code 미상(00)도 "확인된 역내"가 아니므로 false',
+  (select in_mvp_scope::text from public.stations where code = 'S-0006'), 'false');
+
+select test.eq('station_master_public 뷰가 in_mvp_scope 를 그대로 노출한다',
+  (select in_mvp_scope::text from public.station_master_public where code = 'S-0005'), 'false');
+
+-- 재실행해도 region_code 가 그대로면 in_mvp_scope 도 그대로다 (AC-02 멱등성이 새 컬럼에도
+-- 적용됨을 확인) — 이번엔 line 도 그대로라 변경 0건이어야 한다.
+select set_config('test.r2', public.apply_station_master($j$
+{
+  "source": "tago",
+  "source_updated_on": "2026-08-03",
+  "lines": [
+    {"code": "L-1001", "name": "1호선", "operator": "코레일", "sort_order": 1,
+     "color_token": "line-1", "in_mvp_scope": true},
+    {"code": "L-1002", "name": "2호선", "operator": "서울교통공사", "sort_order": 2,
+     "color_token": "line-2", "in_mvp_scope": true}
+  ],
+  "stations": [
+    {"code": "S-0004", "name": "서울역", "name_short": "서울역", "name_key": "서울역",
+     "lat": 37.556, "lng": 126.972, "region_code": "11", "needs_review": false},
+    {"code": "S-0005", "name": "춘천역", "name_short": "춘천역", "name_key": "춘천역",
+     "lat": 37.881, "lng": 127.720, "region_code": "51", "needs_review": false},
+    {"code": "S-0006", "name": "미상역", "name_short": "미상역", "name_key": "미상역",
+     "lat": 37.5, "lng": 127.0, "region_code": "00", "needs_review": true}
+  ],
+  "station_lines": [
+    {"station_code": "S-0004", "line_code": "L-1001", "station_no": "1", "seq": 1,
+     "lat": 37.556, "lng": 126.972},
+    {"station_code": "S-0005", "line_code": "L-1001", "station_no": "2", "seq": 2,
+     "lat": 37.881, "lng": 127.720},
+    {"station_code": "S-0006", "line_code": "L-1001", "station_no": "3", "seq": 3,
+     "lat": 37.5, "lng": 127.0}
+  ]
+}
+$j$::jsonb)::text, false);
+
+commit;
+
+select test.eq('AC-02: in_mvp_scope 도 재실행 시 역 변경 0건에 포함된다',
+  (current_setting('test.r2')::jsonb ->> 'stations_inserted') || '/' ||
+  (current_setting('test.r2')::jsonb ->> 'stations_updated'), '0/0');
+
 reset role;
