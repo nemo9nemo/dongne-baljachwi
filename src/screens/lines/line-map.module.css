@@ -91,6 +91,11 @@
 
 .canvasWrap {
   position: relative;
+  /* 캔버스 영역의 z-index를 이 상자 안에 가둔다. 지도 보기에서는 카카오맵 SDK가 만든
+     레이어(핀 정보창 등)가 여기 들어오는데, 그 값들이 앱 크롬(탭바·토스트)이나
+     다이얼로그와 같은 평면에서 경쟁하면 안 된다. 안쪽 순서는 --z-canvas/--z-canvas-control
+     두 단계로만 정리한다. */
+  isolation: isolate;
   flex: 1;
   min-height: 220px;
 }
@@ -227,10 +232,14 @@
   stroke: none;
 }
 
+/* 노선도 줌 컨트롤(F-22)이자 지도 보기의 "전체 핀 보기"(F-17). 캔버스 위에 얹히므로
+   항상 캔버스보다 위 단계다 — 지도에서는 핀 정보창에 가려지면 탈출구 역할 자체가
+   무너진다(§6 No.3). */
 .zoomControls {
   position: absolute;
   right: var(--space-3);
   bottom: var(--space-3);
+  z-index: var(--z-canvas-control);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);

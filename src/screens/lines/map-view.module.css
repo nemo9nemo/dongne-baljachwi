@@ -4,9 +4,19 @@
  * 읽힌다(§1). 여기는 카카오맵 전용 요소만 둔다.
  */
 
+/*
+ * z-index를 굳이 0으로 명시하는 이유(§6 No.3 결함 수정): 이 안은 **카카오맵 SDK가 만드는
+ * 남의 DOM**이고, 그쪽은 타일/오버레이 레이어에 자기 마음대로 z-index를 매긴다
+ * (핀 정보창 CustomOverlay도 zIndex 옵션을 받는다). `z-index: auto`로 두면 이 div는
+ * 스택 문맥을 만들지 않아 그 내부 z-index들이 **바깥 형제와 직접 경쟁한다** — 정보창이
+ * 옆의 "전체 핀 보기" 버튼(.zoomControls) 위로 올라올 수 있는 통로가 바로 이것이다.
+ * 0을 주면(위치 지정 + z-index 지정 → 스택 문맥 생성) SDK가 안에서 무슨 값을 쓰든
+ * 전부 이 레이어 안에 갇히고, 바깥에서는 --z-canvas 하나로만 취급된다.
+ */
 .mapDiv {
   position: absolute;
   inset: 0;
+  z-index: var(--z-canvas);
   width: 100%;
   height: 100%;
 }
@@ -15,7 +25,9 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  z-index: 1;
+  /* 지도(캔버스) 위에 얹히는 안내다 — 컨트롤과 같은 레이어를 쓴다. 핀 0건일 때만 뜨고
+     "전체 핀 보기" 버튼은 핀 1건 이상일 때만 떠서 둘이 동시에 보이는 경우는 없다. */
+  z-index: var(--z-canvas-control);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
