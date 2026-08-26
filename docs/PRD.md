@@ -157,6 +157,13 @@ Enter로 태그를 추가/삭제하는 단순한 입력 방식. 기록 카드에
 | [08-timeline.md](specs/08-timeline.md) | §4 타임라인, §5.3 태그 필터 | P1 |
 | [09-couple-profile.md](specs/09-couple-profile.md) | §4 프로필, §3 커플 프로필, §5.5 안 가본 역 추천 | P0 / P1 |
 | [10-record-card-image.md](specs/10-record-card-image.md) | §5.4 기록 카드 이미지 저장 | P1 |
+| [11-offline-photo-cache.md](specs/11-offline-photo-cache.md) | §1·§2 "지하철로 이동하며 데이트" 전제의 오프라인 사진 표시 (화면 없음, 공통 이미지 경로) | P1 |
+| [12-record-entry-flow.md](specs/12-record-entry-flow.md) | §5.2 입력 마찰 최소화, §2 "다음 데이트 참고" — `05`의 주변 흐름 확장 | P1 |
+| [13-timeline-time-jump.md](specs/13-timeline-time-jump.md) | §2 "기념일에 그동안의 데이트를 돌아본다" — `08`의 시점 이동 확장 | P2 |
+
+> 11~13은 PRD §3의 기능 표에 항목으로 존재하지 않는다. **새 기능이 아니라 기존 P0/P1
+> 기능이 장기간 누적됐을 때 드러나는 사용성 결함을 메우는 스펙**이며, 근거는 각 문서
+> 머리말이 인용한 PRD §1·§2·§5.2다. 노션 원문(§1~§8)에는 반영하지 않는다.
 
 **이번 스펙 범위에서 제외한 항목** — §3에서 P2로 명시된 것들이다.
 - 기념일 알림 (P2): `started_on` 데이터는 준비되어 있으나 알림·강조 기능은 만들지 않는다.
