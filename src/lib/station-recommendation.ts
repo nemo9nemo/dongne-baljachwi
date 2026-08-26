@@ -73,14 +73,14 @@ export function recommendStations(options: Options): RecommendedStation[] {
 
   const stationById = new Map(options.stations.map((s) => [s.id, s]))
   const lineById = new Map(options.lines.map((l) => [l.id, l]))
-  // F-14: 후보/분모는 in_mvp_scope 이면서 is_active 인 노선만 본다.
-  const mvpLineIds = new Set(options.lines.filter((l) => l.in_mvp_scope && l.is_active).map((l) => l.id))
 
   const linksByStation = new Map<string, StationLineLink[]>()
   for (const link of options.stationLines) {
-    if (!mvpLineIds.has(link.line_id)) continue
     const station = stationById.get(link.station_id)
-    if (station === undefined || !station.is_active) continue
+    // F-14(02 §9 2026-08-25 정정): 후보는 station.in_mvp_scope && is_active 인 역만 본다.
+    // 노선 단위 lines.in_mvp_scope(OR 집계)로 걸렀던 이전 방식은 1호선·경춘선 같은 혼합
+    // 노선에서 역외 역(충남 3역·강원 경춘선 6역)까지 후보로 새어 들어갔다.
+    if (station === undefined || !station.is_active || !station.in_mvp_scope) continue
     const list = linksByStation.get(link.station_id)
     if (list === undefined) linksByStation.set(link.station_id, [{ lineId: link.line_id, seq: link.seq }])
     else list.push({ lineId: link.line_id, seq: link.seq })

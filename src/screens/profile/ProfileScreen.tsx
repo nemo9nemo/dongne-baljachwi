@@ -76,19 +76,12 @@ export function ProfileScreen() {
     const totalRecords = visits.rows.reduce((sum, row) => sum + row.visit_count, 0)
     const visitedStationCount = visits.rows.length
 
-    // F-08/F-09: 분모는 in_mvp_scope && is_active 노선에 속한 is_active 역의 distinct 개수.
-    const mvpLineIds = new Set(
-      master.master.lines.filter((line) => line.in_mvp_scope && line.is_active).map((line) => line.id),
-    )
-    const stationById = new Map(master.master.stations.map((s) => [s.id, s]))
-    const mvpStationIds = new Set(
-      lineLinks
-        .filter((link) => mvpLineIds.has(link.line_id))
-        .map((link) => link.station_id)
-        .filter((id) => stationById.get(id)?.is_active === true),
-    )
-    return { totalRecords, visitedStationCount, denominator: mvpStationIds.size }
-  }, [visits, master, lineLinks])
+    // F-08/F-09(02 §9 2026-08-25 정정): 분모는 stations.in_mvp_scope && is_active 역의
+    // distinct 개수다. 노선 단위 lines.in_mvp_scope(OR 집계)는 1호선·경춘선처럼 수도권
+    // 안팎을 동시에 지나는 혼합 노선의 역외 역을 못 걸러내 역 단위 컬럼으로 직접 판정한다.
+    const mvpStationCount = master.master.stations.filter((s) => s.in_mvp_scope && s.is_active).length
+    return { totalRecords, visitedStationCount, denominator: mvpStationCount }
+  }, [visits, master])
 
   // ── 추천 (F-13~F-21) ────────────────────────────────────────────────
   const visitedStationIds = useMemo(

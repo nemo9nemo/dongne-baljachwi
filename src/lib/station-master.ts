@@ -36,6 +36,10 @@ export type StationRow = {
   region_code: string
   is_transfer: boolean
   is_active: boolean
+  /** 02 §9(2026-08-25): region_code(서울/인천/경기) 기준 역 단위 MVP 스코프.
+   * `lines.in_mvp_scope`(노선 단위 OR 집계)와 달리 1호선·경춘선 같은 혼합 노선의 역외 역을
+   * 걸러낼 수 있다. 09 F-09 커버리지 분모·F-14 추천 후보는 이 컬럼을 써야 한다. */
+  in_mvp_scope: boolean
 }
 
 export type StationMaster = {
@@ -49,8 +53,9 @@ export type StationMaster = {
 
 const CACHE_KEY = `${STORAGE_PREFIX}station-master`
 /** 캐시 레이아웃이 바뀌면 올린다. 옛 캐시를 파싱하다 죽지 않게 하는 용도.
- * 3 = station_lines에 `seq` 추가 (09 안 가본 역 추천). */
-const CACHE_SCHEMA = 3
+ * 3 = station_lines에 `seq` 추가 (09 안 가본 역 추천).
+ * 4 = stations에 in_mvp_scope 추가. */
+const CACHE_SCHEMA = 4
 
 type CachedMaster = { schema: number; version: number; lines: LineRow[]; stations: StationRow[] }
 
@@ -115,7 +120,7 @@ export async function loadStationMaster(): Promise<StationMaster> {
   for (let from = 0; ; from += PAGE) {
     const page = await supabase
       .from('station_master_public')
-      .select('id, code, name, name_short, lat, lng, region_code, is_transfer, is_active')
+      .select('id, code, name, name_short, lat, lng, region_code, is_transfer, is_active, in_mvp_scope')
       .order('code')
       .range(from, from + PAGE - 1)
     if (page.error !== null) throw page.error

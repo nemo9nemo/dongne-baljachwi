@@ -273,6 +273,9 @@ export type Database = {
           region_code: string
           is_transfer: boolean
           is_active: boolean
+          /** 02 §9(2026-08-25): region_code(서울/인천/경기) 기준 역 단위 MVP 스코프.
+           * `20260825100000_station_mvp_scope.sql`로 실 프로젝트에 적용 완료. */
+          in_mvp_scope: boolean
         }
         Relationships: []
       }

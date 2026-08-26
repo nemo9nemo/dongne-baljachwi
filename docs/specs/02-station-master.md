@@ -415,31 +415,24 @@
 > `scripts/station-master/known-corrections.mjs`에 반영(양원역과 같은 메커니즘, `regionCode`
 > 필드까지 지원하도록 일반화).
 >
-> **실 프로젝트 반영 상태 — 부분적임, 명확히 구분**:
+> **실 프로젝트 반영 상태 — 완료 (2026-08-26)**:
 > - DML(데이터 변경)은 이 세션에서 PostgREST로 즉시 적용했다: 동구릉·장자호수공원
 >   `region_code` 정정(`00`→`41`) + `master_version` 2→3.
-> - **DDL(스키마 변경: `stations.in_mvp_scope` 컬럼 추가, `station_master_public` 뷰·
->   `apply_station_master()` 함수 교체)은 이 환경에서 실행할 수 없었다** — 이전 세션들과
->   달리 이번엔 순수 DML이 아니라 스키마 변경이 필요한데, 이 환경에는 Supabase CLI·`psql`·
->   DB 직접 연결 정보(비밀번호)·Management API 토큰이 전혀 없다(PostgREST는 DML만 가능,
->   DDL 실행 경로가 없음 — `.env.local`도 anon/service_role 키뿐이다). 마이그레이션 파일은
->   작성·로컬(PGlite) 검증까지 완료됐고, **사람이 Supabase 대시보드 SQL Editor 또는
->   `supabase db push`로 직접 적용해야** `stations.in_mvp_scope`가 실제로 생긴다. 적용
->   전까지는 `lines.in_mvp_scope`(기존 동작)만 서비스에 반영된 상태 그대로다.
+> - DDL(스키마 변경: `stations.in_mvp_scope` 컬럼 추가, `station_master_public` 뷰·
+>   `apply_station_master()` 함수 교체)은 developer-backend 세션 환경에 Supabase CLI·`psql`·
+>   DB 직접 연결 정보가 없어 그 자리에서 적용할 수 없었으나, **사용자가 2026-08-26
+>   `supabase db push`(또는 SQL Editor)로 실 프로젝트에 직접 적용 완료**했다. 조회로
+>   `station_master_public.in_mvp_scope`가 실제로 노출되고 `in_mvp_scope=true`인 역이
+>   644 → 643개(총 944개 중, 정확히 9역 감소)로 확인됨 — 기대치와 일치.
+> - ✅ **developer-frontend 후속 작업도 완료**: `station-master.ts`(`StationRow`에
+>   `in_mvp_scope` 추가, 쿼리 컬럼 추가, `CACHE_SCHEMA` 3→4), `ProfileScreen.tsx`(F-09
+>   분모), `station-recommendation.ts`(F-14 후보 집합) 세 곳이 모두 `stations.in_mvp_scope`
+>   를 직접 보도록 전환됐다. `lines.in_mvp_scope`를 쓰는 노선 단위 판정(F-10, 노선 셀렉트박스
+>   등)은 그대로 둔다 — 자기 정의상 유효.
 >
-> ⚠ **계약 변경 필요 — developer-frontend 후속 작업, 보고 대상**: 위 DDL이 적용돼도 그
-> 자체로는 아무 화면도 바뀌지 않는다. `src/screens/profile/ProfileScreen.tsx`(F-09 분모)와
-> `src/lib/station-recommendation.ts`(F-14 후보 집합)가 여전히 `lines.in_mvp_scope`만 보기
-> 때문이다. 두 소비처가 `station_master_public.in_mvp_scope`(새 컬럼)를 함께/대신 보도록
-> 바꿔야 실제 커버리지 %·추천 결과에 반영된다. `station-master.ts`의 `StationRow` 타입에도
-> `in_mvp_scope: boolean` 추가가 필요하다(같은 파일이 이미 `region_code`는 프론트에 내려주고
-> 있어 필드 하나 추가라 큰 변경은 아니다).
->
-> ⚠ **스펙 문구 정정 필요 — planner 확인 대상**: `09-couple-profile.md` F-09
-> ("커버리지 분모는 `lines.in_mvp_scope = true`에 속한 `is_active = true` 역의 distinct
-> 개수")는 이제 실제 정책과 어긋난다. 이 세션에서 스펙 문구 자체는 고치지 않았다 — 계약은
-> 혼자 바꾸지 않는다(`CLAUDE.md`). planner가 F-09를 "`stations.in_mvp_scope = true AND
-> is_active = true` 역의 distinct 개수"로 갱신할지 확인 필요.
+> ✅ **스펙 문구 정정 완료**: `09-couple-profile.md` F-09가 2026-08-25 planner 세션에서
+> "커버리지 분모는 `stations.in_mvp_scope = true`에 속한 `is_active = true` 역의 distinct
+> 개수"로 이미 갱신됐다. developer-frontend 구현이 그 문구를 그대로 따랐다.
 
 > ✅ **해결됨 (2026-08-25, developer-backend) — 양원역(`S-I4108-1204`) 좌표 오류.**
 > 아래는 발견 당시(2026-08-24) 기록을 보존하고, 그 아래 "해결" 문단에 원인 규명·조치·검증
@@ -537,3 +530,4 @@
 - 2026-08-25 §9 양원역 버그 **해결됨**으로 갱신(developer-backend). 원인 규명: 원본 표준데이터 실물 파일을 확보해 직접 열어본 결과 원본 파일 자체의 좌표 오기재로 확인(파싱/적재 배치 버그 아님). `stations`/원본 XLSX 전수 스캔으로 추가 이상치 없음을 확인(서생역은 오탐으로 판정). 실 DB 즉시 정정 + `scripts/station-master/known-corrections.mjs` 신설로 재적재 시 재발 방지 + 부수 발견한 `standard-file.mjs` XLSX 동적 import 버그(`xlsx.readFile is not a function`)도 함께 수정. `npm run test:db` 158/158 통과. 상세는 §9 해당 항목, 마이그레이션 `20260825090000_fix_yangwon_station_coordinates.sql` 참고.
 - 2026-08-25 §9 미결정 3건 확정(planner) — seq 출처는 원천 역번호 그대로 유지(배치 재계산 안 함, F-11 비고에 원칙 반영), 그룹핑 임계값 500m는 실측 근거 없어 유지, MVP 범위는 `region_code` 기준 "서울+인천+경기" 행정구역으로 확정(충남 3역은 `in_mvp_scope=false`로 정정 필요 — DB 마이그레이션은 이번 범위 밖, 경기 연천군 3역은 스코프 유지하되 좌표 파일 제외는 그대로). `09-couple-profile.md`의 커버리지 분모 항목과 연동.
 - 2026-08-25 §9 "MVP 범위의 정확한 경계" **실행 완료**로 갱신(developer-backend). DB 정정을 시도하며 `in_mvp_scope`가 `stations`가 아니라 `lines`의 노선 단위 OR 집계 컬럼이라는 것을 발견 — 노선 단위 불리언으로는 "혼합 노선(1호선·경춘선)의 일부 역만 제외"를 표현할 수 없어, `stations.in_mvp_scope` 컬럼을 신설(`region_code` 기반, `apply_station_master()`가 직접 계산)하는 것으로 해결했다. 전수 스캔으로 성환·직산·두정(1호선, 충남) 외에 경춘선 강원도 6역(굴봉산·백양리·강촌·김유정·남춘천·춘천)도 같은 누수였음을 추가로 확인(총 9역). 부수 발견으로 별내선 동구릉·장자호수공원의 `region_code='00'`(주소 파싱 실패)를 좌표 실측으로 `41`(경기)로 정정, `known-corrections.mjs`에 재발 방지 반영. 마이그레이션 `20260825100000_station_mvp_scope.sql` 작성·`npm run test:db` 163/163 통과(신규 5건 포함). **실 프로젝트에는 DML(region_code 정정 2건 + master_version 2→3)만 적용됨** — DDL(컬럼·뷰·함수 변경)은 이 환경에 Supabase CLI/psql/DB 접속정보가 없어 적용 불가, 사람이 SQL Editor 또는 `supabase db push`로 별도 적용 필요. developer-frontend 계약 변경 필요(F-09/F-14 소비처가 새 컬럼을 봐야 실제 반영됨), planner에게 `09-couple-profile.md` F-09 문구 정정 확인 요청.
+- 2026-08-26 §9 "MVP 범위의 정확한 경계" **DDL 적용 + developer-frontend 소비처 전환 완료**. 사용자가 마이그레이션 `20260825100000_station_mvp_scope.sql`을 실 프로젝트에 직접 적용, `in_mvp_scope=true` 역이 644→643개(9역 감소, 기대치 일치)로 확인됨. developer-frontend가 `station-master.ts`(`StationRow.in_mvp_scope`, 쿼리 컬럼, `CACHE_SCHEMA` 3→4)·`ProfileScreen.tsx`(F-09 분모)·`station-recommendation.ts`(F-14 후보 집합) 세 소비처를 전부 `stations.in_mvp_scope` 기준으로 전환. `npx tsc -b`/`oxlint`/`npm run build` 통과, 합성 데이터 스크립트로 역 단위 필터가 혼합 노선의 역외 역을 정확히 제외함을 재확인.
