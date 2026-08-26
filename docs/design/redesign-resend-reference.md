@@ -431,3 +431,33 @@ CSS Module 클래스(`ui.centerBox`/`styles.addBar`/`ui.buttonRow` 등)는 그�
   4개뿐이고, 전부 `ui.buttonRow`(버튼을 감싸는 레이아웃 wrapper 클래스)라 `ui.button`/
   `ui.buttonPrimary`(컨트롤 자체)와 무관하다 — `src/screens`·`src/auth` 전 화면에서 raw
   버튼 마이그레이션이 실제로 끝났다.
+
+## 9.10 마이그레이션 잔여 CSS 정리 (2026-08-26, designer)
+
+Round 1~3으로 버튼/입력이 프리미티브로 옮겨간 뒤 **아무도 참조하지 않는 셀렉터**가 남았다
+(`PROGRESS.md` §6 No.4). 눈으로 훑지 않고 스크립트로 전수 조사했다: 각 `*.tsx`의
+`import x from './*.module.css'` **별칭을 추출**해 `x.클래스`·`x['클래스']` 사용만 집계하고,
+CSS 쪽 클래스 목록과 대조했다(`styles.foo` 문자열 grep은 `station.name` 같은 일반 프로퍼티
+접근을 오탐한다 — 별칭 기준이어야 정확하다). 반대 방향(TSX가 참조하는데 CSS에 없는 클래스)도
+같이 돌려 0건임을 확인했다 — 즉 집계 누락이 없다는 뜻이다.
+
+**삭제한 것(4개 클래스 / 2개 파일)**
+
+| 파일 | 삭제 | 대체된 곳 |
+|---|---|---|
+| `src/styles/ui.module.css` | `.button`(+`:hover`/`:active`/`:disabled`), `.buttonPrimary`(+3), `.buttonDanger`(+1), 그리고 `prefers-reduced-motion` 블록의 버튼 관련 규칙 | `components/ui/button.tsx`의 `outline`/`default`/`destructive` variant(모션 감소 처리 `motion-reduce:*` 포함) |
+| `src/screens/records/record-editor.module.css` | `.textarea` | `components/ui/textarea.tsx`(같은 `min-height: 140px`) |
+
+**남긴 것(지우면 안 되는 것)** — 조사에서 "버튼처럼 보이지만 살아 있는" 것들:
+
+- `ui.buttonRow`(+`> *`): 버튼이 아니라 버튼 줄 **레이아웃**. 5개 화면이 쓴다.
+- `ui.input`(+`:hover`/`:focus`/`:disabled`/`[aria-invalid]`/`::placeholder`): `StationPicker`·
+  `TagField`가 여전히 쓴다 — 두 위젯은 §9.6 판단대로 shadcn 교체 대상에서 의도적으로 빠졌다.
+- `ui.codeInput`, `ui.card`, `ui.centerBox`, `ui.notice` 등 나머지 21개 클래스: 전부 참조 있음.
+- `line-map.module.css`(30개)·`AppShell.module.css`(8개)·`RecordCard.module.css`(13개) 등
+  나머지 CSS Module 11개 파일: **참조 0건 클래스 0개**. §9.6·§9.8·§9.9가 의도적으로 제외한
+  컴포넌트(AppShell 탭바·노선도 캔버스·PhotoField)의 클래스는 전부 살아 있었다.
+
+확신이 없어 남겨둔 후보는 없다. 클래스 단위 밖(요소 셀렉터·미디어쿼리 내부 규칙)은 이번
+정리 범위에서 제외했다 — 예: `record-editor.module.css`의 `.screen :is(input, textarea)`는
+`Textarea` 프리미티브로 렌더된 요소에도 그대로 적용돼야 하는 살아 있는 규칙이다.

@@ -189,84 +189,10 @@
   border-radius: var(--radius-md);
 }
 
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--control-height);
-  padding: var(--space-3) var(--space-5);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text);
-  text-align: center;
-  cursor: pointer;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
-  transition:
-    background-color 140ms ease,
-    border-color 140ms ease,
-    box-shadow 140ms ease,
-    transform 140ms ease;
-}
-
-.button:hover:not(:disabled) {
-  background: var(--color-surface-muted);
-}
-
-.button:active:not(:disabled) {
-  transform: translateY(1px);
-}
-
-/* 미니멀 방향이라 색을 더 쓰는 대신 높이로 primary를 구분한다.
-   테두리를 지우고 그림자를 얹으면 같은 로즈여도 "떠 있는 버튼"으로 읽힌다. */
-.buttonPrimary {
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text-inverse);
-  background: var(--color-primary);
-  border-color: transparent;
-  box-shadow: var(--shadow-button);
-}
-
-.buttonPrimary:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-  border-color: transparent;
-  box-shadow: var(--shadow-button-hover);
-  transform: translateY(-1px);
-}
-
-.buttonPrimary:active:not(:disabled) {
-  box-shadow: var(--shadow-button);
-  transform: translateY(1px);
-}
-
-.buttonDanger {
-  color: var(--color-danger);
-  border-color: var(--color-danger);
-}
-
-.buttonDanger:hover:not(:disabled) {
-  color: var(--color-text-inverse);
-  background: var(--color-danger-hover);
-  border-color: var(--color-danger-hover);
-}
-
-/* 변형 규칙보다 뒤에 둔다 — disabled가 primary/danger의 채움을 덮어야 하기 때문.
-   opacity로 흐리게 하지 않는 이유: 로즈 50%에 흰 글자는 대비가 무너진다.
-   대신 채움을 걷어내고 글자를 muted로 내려 "읽히지만 비활성"으로 만든다. */
-.button:disabled {
-  color: var(--color-text-muted);
-  cursor: not-allowed;
-  background: var(--color-surface-muted);
-  border-color: var(--color-border-strong);
-  box-shadow: none;
-  transform: none;
-}
-
-/* 비활성 상태에서도 primary 자리라는 건 남긴다 (아주 옅은 브랜드 틴트). */
-.buttonPrimary:disabled {
-  background: var(--color-primary-soft);
-}
-
+/* 버튼 자체(.button/.buttonPrimary/.buttonDanger)는 여기 없다 — shadcn 마이그레이션에서
+   `src/components/ui/button.tsx`(variant: default/outline/destructive)로 옮겨졌고,
+   화면 코드는 전부 `<Button>`을 쓴다. 상태별 규칙(hover/active/disabled)과 감소된 모션
+   처리도 그쪽에 있다. 여기 남은 .buttonRow는 버튼이 아니라 **버튼 줄 레이아웃**이다. */
 .buttonRow {
   display: flex;
   gap: var(--space-3);
@@ -340,16 +266,10 @@
   text-align: center;
 }
 
-/* 이동·부양은 장식이다. 전정 장애 사용자에게는 빼고, 색 변화만 남긴다. */
+/* 이동·부양은 장식이다. 전정 장애 사용자에게는 빼고, 색 변화만 남긴다.
+   (버튼 쪽 같은 처리는 components/ui/button.tsx로 함께 이관됐다) */
 @media (prefers-reduced-motion: reduce) {
-  .input,
-  .button {
+  .input {
     transition-duration: 1ms;
-  }
-
-  .button:active:not(:disabled),
-  .buttonPrimary:hover:not(:disabled),
-  .buttonPrimary:active:not(:disabled) {
-    transform: none;
   }
 }

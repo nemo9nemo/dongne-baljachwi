@@ -348,11 +348,8 @@
 
 /* ── 일기 · 저장 ─────────────────────────────────────────────────────── */
 
-.textarea {
-  min-height: 140px;
-  line-height: var(--line-height-normal);
-  resize: vertical;
-}
+/* 일기 입력칸(.textarea)은 shadcn `Textarea` 프리미티브(src/components/ui/textarea.tsx)로
+   옮겨졌다 — min-height 140px 등 값은 그쪽이 그대로 들고 있다. */
 
 /*
  * 저장 바. 스크롤 컨테이너(모바일=뷰포트, 데스크톱=앱 프레임) 바닥에 붙되
