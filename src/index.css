@@ -59,7 +59,18 @@ select {
 a {
   color: var(--color-primary);
   /* 밑줄을 지우지 않는다 — 색만으로 링크임을 알리면 색각 이상 사용자가 구분하지 못한다.
-     대신 글자에서 띄워 촘촘해 보이지 않게 한다. */
+     이 팔레트에서는 그게 "구분이 약하다" 수준이 아니라 **아예 불가능**하다:
+     --color-primary와 --color-text가 둘 다 검정(다크는 둘 다 흰색)이라(tokens.css §시맨틱)
+     밑줄이 없으면 본문 문장 안의 링크가 주변 글자와 완전히 같은 픽셀이 된다.
+     `text-decoration-line`을 **명시적으로 다시 선언**해야 한다 — Tailwind preflight의
+     `a { text-decoration: inherit }`가 이 규칙 앞에 있어서, 선언하지 않으면 브라우저 기본
+     밑줄이 아니라 부모의 `none`을 물려받는다(QA 결함 §5, WCAG 1.4.1).
+     shorthand 대신 `-line`만 쓰는 이유: 아래 offset이나 개별 화면이 정한 두께·색을
+     이 한 줄이 되돌리지 않게 하기 위해서다.
+     밑줄이 필요 없는 링크(카드 전체·탭·칩·버튼 모양 링크)는 각자 클래스에서
+     `text-decoration: none`으로 끈다 — 그쪽은 형태 자체가 이미 클릭 대상임을 알린다. */
+  text-decoration-line: underline;
+  /* 글자에서 띄워 촘촘해 보이지 않게 한다. */
   text-underline-offset: 3px;
 }
 

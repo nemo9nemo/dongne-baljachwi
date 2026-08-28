@@ -193,8 +193,17 @@
 
 세 단계 사이의 정수 값을 임의로 쓰지 않는다. 새 레이어가 필요하면 여기 이름을 붙여 추가한다.
 
-**스케일 밖의 `z-index: 1`이 몇 군데 남아 있는 건 의도다**(탭바·토스트·저장 바·타임라인 sticky
-헤더 등). 그건 "형제 사이의 순서"일 뿐 전역 레이어가 아니다. 이 스케일은 **내가 통제하지 못하는
+**스케일 밖의 `z-index: 1`이 몇 군데 남아 있는 건 의도다.** 2026-08-28 기준 전수(7곳):
+
+| 위치 | 무엇 |
+|---|---|
+| `AppShell.module.css` `.tabbar` / `.toast` | 하단 탭바(sticky), 화면 전환 토스트 |
+| `timeline.module.css` `.fab` | 새 기록 FAB(sticky, `+`) — **타임라인에 sticky 헤더는 없다**. `.monthHeader`는 그냥 흐름 안의 목록 헤더다 |
+| `record-editor.module.css` `.saveBar` | 하단 고정 저장 바 |
+| `station-detail.module.css` `.addBar` | 하단 고정 "이 역에 기록 추가" |
+| `record-detail.module.css` `.viewerClose` / `.viewerNav` | 전체화면 사진 뷰어 **안쪽** 닫기·이전/다음 버튼(뷰어 자체는 `--z-dialog`) |
+
+그건 "형제 사이의 순서"일 뿐 전역 레이어가 아니다. 이 스케일은 **내가 통제하지 못하는
 DOM 위에 얹히는 것**에만 쓴다 — 카카오맵 SDK는 타일/오버레이 레이어에 자기 z-index(정보창
 래퍼 실측 3, 그 부모 1)를 매기고, 그 조상 중 하나라도 `z-index: auto`면 그 값들이 **바깥 형제와
 직접 경쟁한다.** 지도 "전체 핀 보기" 버튼이 정보창에 가려지던 결함(`PROGRESS.md` §6 No.3)의
@@ -221,7 +230,18 @@ DOM 위에 얹히는 것**에만 쓴다 — 카카오맵 SDK는 타일/오버레
   - 입력 비활성 = 색 + **파선 테두리**
   - 버튼 비활성 = 채움 제거 + muted 글자 (opacity로 흐리지 않는다 — 반투명 검정/흰색 위
     글자는 대비가 무너진다)
-- 링크는 밑줄을 유지한다(`index.css`의 `a`). 색만으로 링크임을 알리지 않는다.
+- **링크는 밑줄을 유지한다**(`index.css`의 `a`). 이 팔레트에서 `--color-primary`는
+  `--color-text`와 **값이 같으므로**(라이트 둘 다 검정, 다크 둘 다 흰색), 문장 안의 링크는
+  밑줄이 없으면 주변 글자와 완전히 동일해진다 — 색은 단서가 될 수 없다.
+  `text-decoration-line: underline`을 `a`에 **명시적으로** 선언한다. Tailwind preflight가
+  `a { text-decoration: inherit }`를 깔기 때문에, 선언을 생략하면 브라우저 기본 밑줄이
+  아니라 부모의 `none`을 물려받아 전역에서 밑줄이 사라진다(2026-08-28 QA 결함 §5).
+  - 밑줄을 끄는 예외는 **형태 자체가 클릭 대상임을 알리는 링크**뿐이고, 각자 클래스에서
+    `text-decoration: none`을 명시한다: 카드 전체 링크(`RecordCard .card`), 탭바
+    (`AppShell .tab`), 추천 칩(`profile .chip`), 노선도/지도 토글(`line-map .toggleLink`),
+    버튼 모양 링크(`components/ui/button.tsx`의 `no-underline` — `asChild`로 `<a>`를 쌀 때).
+  - 같은 색 문제 때문에 **밑줄 하나로 부족한 두 컨텍스트**는 굵기·밑줄 두께를 더 준다:
+    `ui.module.css`의 `.errorBanner a`(굵기 700 + 2px), `.card p > a`(굵기 500 + 2px).
 - 이동·부양 효과(`transform`)는 `prefers-reduced-motion: reduce`에서 전부 끈다.
   색 변화만 남으므로 상태 구분은 유지된다.
 - 지도/노선도 위에 얹히는 컨트롤은 반투명 금지. `--color-surface`(불투명)를 쓴다.

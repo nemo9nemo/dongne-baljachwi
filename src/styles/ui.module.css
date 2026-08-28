@@ -175,10 +175,25 @@
   border-radius: var(--radius-md);
 }
 
-/* 배너 안 링크를 --color-primary로 두면 danger-soft 위에서 4.2:1로 미달한다.
-   danger는 같은 바탕에서 4.7:1이라 통과한다. */
+/*
+ * 배너 안 링크. 색은 danger로 맞춘다 — 흑백 개편 이후 primary와 danger는 같은 검정(다크는
+ * 흰색)이라 대비 수치는 어느 쪽이든 동일하지만(danger-soft 위 라이트 19.3:1 / 다크 15.1:1),
+ * "배너 색 체계 안에서 논다"는 의도를 이름으로 남긴다. (예전 로즈 팔레트 시절 4.2:1/4.7:1
+ * 주석은 폐기 — 그 값은 지금 팔레트에 존재하지 않는 색 기준이었다.)
+ *
+ * 문제는 대비가 아니라 **링크와 배너 본문이 같은 색**이라는 점이다. 전역 밑줄(index.css)이
+ * 1차 단서지만, 짧은 문장 안에 링크가 두 개(로그인 / 비밀번호를 재설정) 섞여 있는
+ * SignUpScreen 배너에서는 그것만으로 약하다. 그래서 이 컨텍스트에서만 굵기(700)와
+ * 밑줄 두께(2px)를 올려 비색채 단서를 셋으로 만든다 — WCAG 1.4.1.
+ * 두께를 2px로 잡은 건 13px 본문에서 1px(from-font)이 배너 테두리와 뭉개지지 않게 하는
+ * 최소치다. offset 3px는 전역과 같아 국문 받침과 겹치지 않는다.
+ */
 .errorBanner a {
+  font-weight: var(--font-weight-bold);
   color: var(--color-danger);
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 .notice {
@@ -235,6 +250,28 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
+}
+
+/*
+ * 카드 본문 문장 **안에 섞인** 인라인 링크(오늘 유일한 사용처: 프로필 F-27
+ * "상대 초대 대기 중 · 초대 코드 보기").
+ *
+ * 이 팔레트에서 --color-primary는 --color-text와 값이 같다(라이트 둘 다 --black,
+ * 다크 둘 다 --white — tokens.css §시맨틱). 즉 문장 중간 링크는 색 차이가 0이고,
+ * 대비비를 아무리 계산해도(카드 서피스 위 라이트 21:1 / 다크 17.9:1) 그건 "읽힌다"는
+ * 뜻이지 "링크로 보인다"는 뜻이 아니다. 그래서 비색채 단서로만 구분한다:
+ * 전역 밑줄(index.css) + 여기서 더하는 두께 2px·굵기 500.
+ *
+ * 토큰을 건드려 primary를 다른 색으로 떼어내는 방법도 있었지만 그러면 전 화면의 링크·
+ * 버튼 채움색이 같이 움직인다(흑백 개편의 전제 자체가 바뀐다). 범위를 이 컨텍스트로
+ * 좁히는 쪽을 택했다.
+ *
+ * `p > a`로 직계 자식만 잡는 이유: 카드 안 버튼 모양 링크(`Button asChild`)까지 굵어지지
+ * 않게 하려는 것이다. 그쪽은 <p>가 아니라 레이아웃 <div> 안에 있다.
+ */
+.card p > a {
+  font-weight: var(--font-weight-medium);
+  text-decoration-thickness: 2px;
 }
 
 /* 초대 코드: 전화로 불러줄 수 있게 크게, 그리고 0/O 구분이 되는 고정폭으로 (01 §6) */

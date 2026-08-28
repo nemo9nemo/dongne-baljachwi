@@ -14,7 +14,9 @@ import { cn } from '@/lib/utils'
  */
 const buttonVariants = cva(
   [
-    'inline-flex min-h-control items-center justify-center rounded-md px-5 text-center font-medium',
+    // `no-underline`: asChild로 <a>를 감쌀 때(빈 상태 CTA 등) index.css의 전역 링크 밑줄이
+    // 버튼 라벨에 그어지는 걸 막는다. 버튼은 형태 자체가 클릭 대상임을 알리므로 밑줄이 필요 없다.
+    'inline-flex min-h-control items-center justify-center rounded-md px-5 text-center font-medium no-underline',
     'transition-[background-color,border-color,box-shadow,transform] duration-150 ease-out',
     'disabled:pointer-events-none disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none',
     'motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:translate-y-0',
