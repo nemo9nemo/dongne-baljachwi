@@ -1,11 +1,13 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useNavigationType, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useNavigationType, useSearchParams } from 'react-router-dom'
 import { useSession } from '../../auth/session-context'
 import { supabase } from '../../lib/supabase'
 import { loadStationMaster } from '../../lib/station-master'
 import type { StationMaster } from '../../lib/station-master'
 import { fetchRecordCardPage } from '../../lib/record-card-query'
 import type { CardCursor, RecordCard as RecordCardData } from '../../lib/record-card-query'
+import { readStateFlag } from '../../lib/router-state'
+import { findScrollParent, screenCache, scopeToCouple } from '../../lib/screen-cache'
 import { normalizeTag, toTagNorm } from '../../lib/tags'
 import { RecordCard } from '../../components/RecordCard'
 import { Button } from '@/components/ui/button'
@@ -30,33 +32,16 @@ import ui from '../../styles/ui.module.css'
 
 type Chip = { tag: string; tagNorm: string; usageCount: number }
 
-/** 가장 가까운 실제 스크롤 컨테이너를 찾는다. 모바일은 window, 데스크톱은 `.frame`이
- *  스크롤을 담당한다(`styles/app-frame.module.css`) — 하드코딩된 셀렉터 대신 계산한다. */
-function findScrollParent(el: HTMLElement | null): HTMLElement | null {
-  let node = el?.parentElement ?? null
-  while (node !== null) {
-    const overflowY = getComputedStyle(node).overflowY
-    if (overflowY === 'auto' || overflowY === 'scroll') return node
-    node = node.parentElement
-  }
-  return null
-}
-
-/** POP(뒤로가기) 복귀 시 목록·스크롤을 되살리기 위한 화면 밖 캐시. 탭 필터가 바뀌면 무효화된다.
- *  모듈 스코프 변수라 화면이 언마운트돼도 세션 동안 살아 있다(F-10). */
-let restoreCache: {
-  tagNorm: string | null
-  cards: RecordCardData[]
-  cursor: CardCursor | null
-  hasMore: boolean
-  scrollTop: number
-} | null = null
-
 export function TimelineScreen() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const navigationType = useNavigationType()
+  const location = useLocation()
   const session = useSession()
+
+  const coupleId = session.couple?.id ?? null
+  // POP 복귀 캐시(F-10)는 화면 밖에 산다 — 읽기 전에 소유 커플을 맞춘다(01 AC-15).
+  scopeToCouple(coupleId)
 
   const rawTag = searchParams.get('tag')
   // F-19: tag_norm 기준 매칭. URL에는 06이 표시용 tag를 그대로 실어 보내므로 여기서 정규화한다.
@@ -130,16 +115,17 @@ export function TimelineScreen() {
     // POP(뒤로가기)이고 같은 필터의 캐시가 있으면 새로 받지 않고 그대로 되살린다(F-10).
     // `navigationType`을 의도적으로 의존성에서 뺀다 — 이 화면은 라우트 전용이라 마운트마다
     // 한 번만 의미가 있고, 넣으면 "필터만 바뀐" 재실행에서도 오래된 POP 판정이 새로 걸린다.
-    if (
-      navigationType === 'POP' &&
-      restoreCache !== null &&
-      restoreCache.tagNorm === selectedTagNorm
-    ) {
-      setCards(restoreCache.cards)
-      setCursor(restoreCache.cursor)
-      setHasMore(restoreCache.hasMore)
+    //
+    // `restoreList`: 06이 삭제 후 `replace`로 돌려보낸 경우다. POP이 아니지만 캐시는 방금
+    // 그 카드를 뺀 최신 상태라 되살리는 게 맞다(AC-14 — 스크롤도 함께 유지된다).
+    const restoreAllowed = navigationType === 'POP' || readStateFlag(location.state, 'restoreList')
+    const cached = screenCache.timeline
+    if (restoreAllowed && cached !== null && cached.tagNorm === selectedTagNorm) {
+      setCards(cached.cards)
+      setCursor(cached.cursor)
+      setHasMore(cached.hasMore)
       setLoadState('ready')
-      const savedTop = restoreCache.scrollTop
+      const savedTop = cached.scrollTop
       // 목록이 그려진 뒤에야 스크롤 컨테이너가 그만큼 커진다.
       requestAnimationFrame(() => {
         const parent = scrollParentRef.current
@@ -150,7 +136,8 @@ export function TimelineScreen() {
     }
     void load(selectedTagNorm)
     // `load`는 useCallback(deps: [])로 참조가 고정돼 있어 넣어도 재실행 트리거가 되지 않는다.
-  }, [selectedTagNorm, load])
+    // `coupleId`는 커플이 바뀌었을 때(캐시가 비워졌을 때) 다시 받게 하려고 넣는다.
+  }, [selectedTagNorm, load, coupleId])
 
   useEffect(() => {
     scrollParentRef.current = findScrollParent(rootRef.current)
@@ -158,14 +145,20 @@ export function TimelineScreen() {
 
   // 상태가 바뀔 때마다 캐시를 최신으로 유지한다. 실제 스크롤 위치는 언마운트 시점에 채운다.
   useEffect(() => {
-    restoreCache = { tagNorm: selectedTagNorm, cards, cursor, hasMore, scrollTop: restoreCache?.scrollTop ?? 0 }
+    screenCache.timeline = {
+      tagNorm: selectedTagNorm,
+      cards,
+      cursor,
+      hasMore,
+      scrollTop: screenCache.timeline?.scrollTop ?? 0,
+    }
   }, [selectedTagNorm, cards, cursor, hasMore])
 
   useEffect(() => {
     return () => {
-      if (restoreCache === null) return
+      if (screenCache.timeline === null) return
       const parent = scrollParentRef.current
-      restoreCache.scrollTop = parent !== null ? parent.scrollTop : window.scrollY
+      screenCache.timeline.scrollTop = parent !== null ? parent.scrollTop : window.scrollY
     }
   }, [])
 
@@ -241,6 +234,9 @@ export function TimelineScreen() {
   }
 
   const selectedChip = chips?.find((chip) => chip.tagNorm === selectedTagNorm) ?? null
+
+  // 06이 삭제 후 돌아올 곳(AC-09). 태그 필터가 걸린 목록으로 진입했으면 그 필터까지 되살린다.
+  const backTo = rawTag === null ? '/timeline' : `/timeline?tag=${encodeURIComponent(rawTag)}`
 
   // 최초 로딩 중(칩·목록 둘 다 아직 없음)인지 여부. 예전에는 이 상태를 별도의 `return`으로
   // 완전히 다른 트리(h1도, FAB도 없는 트리)로 그렸는데, 그러면 데이터가 도착하는 순간
@@ -335,6 +331,7 @@ export function TimelineScreen() {
                       authorName={authorNameOf(card.authorId)}
                       stationName={stationNameById.get(card.stationId) ?? '역 정보 없음'}
                       stationHref={`/stations/${card.stationId}`}
+                      backTo={backTo}
                     />
                   </Fragment>
                 )

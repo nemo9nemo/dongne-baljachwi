@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { clearAppStorage } from '../lib/app-storage'
+import { scopeToCouple } from '../lib/screen-cache'
 import { SessionContext } from './session-context'
 import type { CoupleMember, CoupleSummary, SessionValue } from './session-context'
 
@@ -146,10 +147,21 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     void load()
   }, [auth.status, load])
 
+  // AC-14/AC-15: 커플이 바뀌면(로그아웃, 다른 계정 로그인, 연결 해제 후 재결합) 화면 밖
+  // 모듈 캐시가 이전 커플 데이터를 그대로 들고 있다. 각 화면도 읽기 전에 같은 검사를 하지만,
+  // 캐시를 읽는 화면이 마운트되지 않은 경로(해제 → 온보딩 등)에서도 확실히 비우도록 여기서
+  // 한 번 더 건다.
+  useEffect(() => {
+    scopeToCouple(coupleState.couple?.id ?? null)
+  }, [coupleState.couple?.id])
+
   const signOut = useCallback(async () => {
     await supabase.auth.signOut()
     // F-25 / AC-15: 세션 종료만으로는 앱이 캐시한 값이 남는다. 접두사 단위로 전부 지운다.
     clearAppStorage()
+    // 저장소뿐 아니라 메모리(모듈 스코프) 캐시도 지운다 — 로그아웃은 페이지를 리로드하지
+    // 않으므로 모듈 변수는 그대로 살아 있다.
+    scopeToCouple(null)
     setCoupleState(EMPTY_COUPLE)
   }, [])
 

@@ -1,11 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+// 이 파일은 document 레벨 리스너(전역 `KeyboardEvent`)와 React 합성 이벤트를 둘 다 쓴다.
+// 이름 그대로 import하면 전역 타입을 가려서 document.addEventListener 쪽이 깨진다.
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useSession } from '../../auth/session-context'
 import { supabase } from '../../lib/supabase'
 import { loadStationLines, loadStationMaster } from '../../lib/station-master'
 import type { StationMaster } from '../../lib/station-master'
-import { MOODS, WEATHERS } from '../../lib/mood-weather'
+import { MOODS, WEATHERS, isMood, isWeather } from '../../lib/mood-weather'
 import { formatVisitedOn } from '../../lib/format-date'
+import { dropRecordFromCaches } from '../../lib/screen-cache'
+import { readStateString } from '../../lib/router-state'
 import type { Mood, Weather } from '../../lib/database.types'
 import { ConfirmDialog } from './ConfirmDialog'
 import { PhotoViewer } from './PhotoViewer'
@@ -23,13 +28,33 @@ import ui from '../../styles/ui.module.css'
  * 목록 카드에서 잘렸던 것(일기 2줄, 사진 1장)을 전부 펼쳐 보여주는 화면이자, 기록에 대한
  * 모든 파괴적 동작(수정·삭제)의 유일한 관문이다 (§1).
  *
- * 이번 라운드에 없는 것:
- * - 목록에서 진입할 때 카드 값으로 먼저 그리는 최적화(§6 첫 픽셀) — 04(역 상세)/08(타임라인)이
- *   아직 자리표시자라 그 카드 자체가 없다.
- * - 삭제 후 "이전 화면"이 아직 없어 `/timeline`으로 고정 이동한다(F-17 잠정 대응).
+ * **진입 출처(`location.state.from`)** 를 목록(04/08)에서 받아 세 곳에 쓴다 (§9 2026-08-25):
+ * 삭제 후 복귀(F-17/AC-09), "기록을 찾을 수 없어요"의 이동 대상(§2.3), 역명 링크 노출
+ * 여부(F-02 — 역 상세에서 왔으면 이미 있던 화면으로 되돌아가는 링크라 숨긴다).
+ * 출처가 없으면(직접 URL 접근) 타임라인이 폴백이다.
  */
 
 type DetailPhoto = { id: string; storagePath: string; width: number; height: number; url: string | null }
+
+/**
+ * 목록 카드가 넘겨준 요약. 상세 조회가 끝나기 전 헤더를 그리는 데만 쓴다 (§6 첫 픽셀, AC-15).
+ * `location.state`는 타입이 없는 외부 값이라 경계에서 좁힌다.
+ */
+type CardPreview = { stationName: string; visitedOn: string; mood: Mood | null; weather: Weather | null }
+
+function readCardPreview(state: unknown): CardPreview | null {
+  if (typeof state !== 'object' || state === null) return null
+  const raw = (state as Record<string, unknown>).card
+  if (typeof raw !== 'object' || raw === null) return null
+  const card = raw as Record<string, unknown>
+  if (typeof card.stationName !== 'string' || typeof card.visitedOn !== 'string') return null
+  return {
+    stationName: card.stationName,
+    visitedOn: card.visitedOn,
+    mood: isMood(card.mood) ? card.mood : null,
+    weather: isWeather(card.weather) ? card.weather : null,
+  }
+}
 
 type RecordDetail = {
   id: string
@@ -49,7 +74,13 @@ type LoadState = 'loading' | 'ready' | 'not-found' | 'failed'
 export function RecordDetailScreen() {
   const { recordId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const session = useSession()
+
+  // §9: 진입 출처. 목록에서 왔으면 그 목록으로, 모르면 타임라인으로 돌아간다.
+  const backTo = readStateString(location.state, 'from') ?? '/timeline'
+  const cameFromStation = backTo.startsWith('/stations/')
+  const preview = readCardPreview(location.state)
 
   const [loadState, setLoadState] = useState<LoadState>('loading')
   const [data, setData] = useState<RecordDetail | null>(null)
@@ -65,6 +96,7 @@ export function RecordDetailScreen() {
 
   const menuWrapRef = useRef<HTMLDivElement>(null)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const load = useCallback(async () => {
     if (recordId === undefined) return
@@ -164,6 +196,24 @@ export function RecordDetailScreen() {
     }
   }, [menuOpen])
 
+  // §6: 메뉴를 열면 첫 항목으로 포커스가 들어간다. 그러지 않으면 키보드 사용자는 메뉴가
+  // 열린 것도 모른 채 Tab을 계속 눌러야 한다(포커스가 트리거에 남는다).
+  useEffect(() => {
+    if (!menuOpen) return
+    menuRef.current?.querySelector('button')?.focus()
+  }, [menuOpen])
+
+  /** 메뉴 항목 간 위/아래 이동 (WAI-ARIA menu 패턴). 항목마다 ref를 두지 않고 DOM에서 찾는다 */
+  function moveMenuFocus(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
+    event.preventDefault()
+    const items = [...event.currentTarget.querySelectorAll<HTMLButtonElement>('button')]
+    const current = items.indexOf(document.activeElement as HTMLButtonElement)
+    if (current === -1) return
+    const next = (current + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length
+    items[next]?.focus()
+  }
+
   const station = useMemo(() => {
     if (master === null || data === null) return null
     return master.stations.find((item) => item.id === data.stationId) ?? null
@@ -229,18 +279,57 @@ export function RecordDetailScreen() {
     }
 
     if ((res.data ?? []).length === 0) {
-      navigate('/timeline', { replace: true, state: { toast: '이미 삭제된 기록이에요' } })
+      // AC-13: 상대가 먼저 지웠다. 내 화면의 목록 캐시에도 남아 있으므로 같이 털어낸다.
+      dropRecordFromCaches(data.id)
+      navigate(backTo, {
+        replace: true,
+        state: { toast: '이미 삭제된 기록이에요', restoreList: true },
+      })
       return
     }
 
     // F-16: Storage 삭제 실패는 사용자에게 노출하지 않는다. 고아 객체는 배치가 정리한다.
     void removePhotoObjects(photoPaths)
-    navigate('/timeline', { replace: true, state: { toast: '기록을 삭제했어요' } })
+    // AC-09/AC-10/AC-19: 목록·방문 집계·통계가 전부 이 한 건에 물려 있다. 복귀 전에 비운다 —
+    // 뒤로가기(POP) 복귀는 재조회를 하지 않으므로 여기서 안 지우면 지운 카드가 그대로 보인다.
+    dropRecordFromCaches(data.id)
+    // `restoreList`: 목록이 재조회 없이 캐시(방금 이 카드를 뺀 상태)를 되살리게 한다 —
+    // AC-14가 "카드가 사라져 있고 **스크롤 위치는 유지**"를 동시에 요구한다.
+    navigate(backTo, { replace: true, state: { toast: '기록을 삭제했어요', restoreList: true } })
   }
 
   if (loadState === 'loading') {
+    // AC-15 / §6 "첫 픽셀": 목록에서 넘어왔으면 카드가 이미 아는 값(날짜·역명·감정·날씨)을
+    // 먼저 그린다. 같은 값이 같은 자리에 그대로 남으므로 본문이 도착해도 헤더가 튀지 않는다.
+    const head = preview === null ? null : formatVisitedOn(preview.visitedOn)
+    const previewMood = preview?.mood ?? null
+    const previewWeather = preview?.weather ?? null
     return (
       <div className={styles.screen}>
+        {preview !== null && head !== null && (
+          <header className={styles.header}>
+            <div>
+              <span className={styles.stationName}>{preview.stationName}</span>
+              <p className={styles.date}>
+                {head.dateLabel} ({head.weekday})
+              </p>
+            </div>
+          </header>
+        )}
+        {(previewMood !== null || previewWeather !== null) && (
+          <div className={styles.metaRow}>
+            {MOODS.filter((item) => item.slug === previewMood).map((item) => (
+              <span key={item.slug} className={styles.metaChip}>
+                <span aria-hidden="true">{item.emoji}</span> {item.label}
+              </span>
+            ))}
+            {WEATHERS.filter((item) => item.slug === previewWeather).map((item) => (
+              <span key={item.slug} className={styles.metaChip}>
+                <span aria-hidden="true">{item.emoji}</span> {item.label}
+              </span>
+            ))}
+          </div>
+        )}
         <div className={styles.skeleton} aria-hidden="true" />
         <p className="srOnly" role="status">
           불러오는 중
@@ -265,8 +354,9 @@ export function RecordDetailScreen() {
       <div className={ui.centerBox}>
         {/* §2.3: "권한 없음"이라고 말하지 않는다 — 존재 여부가 새어 나간다 */}
         <p>기록을 찾을 수 없어요.</p>
+        {/* §9(2026-08-25): 진입 출처로 되돌린다. 출처 불명이면 타임라인이 폴백이다. */}
         <Button asChild variant="default">
-          <Link to="/timeline">타임라인으로</Link>
+          <Link to={backTo}>{cameFromStation ? '역으로 돌아가기' : '타임라인으로'}</Link>
         </Button>
       </div>
     )
@@ -294,8 +384,12 @@ export function RecordDetailScreen() {
     <div className={styles.screen}>
       <header className={styles.header}>
         <div>
+          {/* F-02 / §9(2026-08-25): 역 상세에서 들어온 기록은 역명을 링크로 만들지 않는다 —
+              방금 떠나온 화면으로 돌아가는 링크는 정보를 주지 않고 혼란만 준다. */}
           {station === null ? (
             <span className={styles.stationName}>역 정보 없음</span>
+          ) : cameFromStation ? (
+            <span className={styles.stationName}>{station.name}</span>
           ) : (
             <Link to={`/stations/${station.id}`} className={styles.stationLink}>
               {station.name}
@@ -333,7 +427,7 @@ export function RecordDetailScreen() {
             ⋯
           </Button>
           {menuOpen && (
-            <div className={styles.menu} role="menu">
+            <div className={styles.menu} role="menu" ref={menuRef} onKeyDown={moveMenuFocus}>
               <button
                 type="button"
                 role="menuitem"

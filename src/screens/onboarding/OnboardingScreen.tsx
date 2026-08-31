@@ -7,7 +7,7 @@ import { useSession } from '../../auth/session-context'
 import { createCouple, failureMessage, redeemInvite } from '../../lib/couple-rpc'
 import type { RpcFailure } from '../../lib/couple-rpc'
 import { INVITE_CODE_LENGTH, normalizeInviteCode } from '../../lib/invite-code'
-import { todayLocal } from '../../lib/format-date'
+import { todayKst } from '../../lib/format-date'
 import ui from '../../styles/ui.module.css'
 
 /** F-06: `display_name` 길이 제한 (00 §4.1) */
@@ -40,7 +40,7 @@ export function OnboardingScreen() {
   const [retryAfterSec, setRetryAfterSec] = useState(0)
 
   // 로컬(KST) 기준 오늘 (00 D-13).
-  const [today] = useState(todayLocal)
+  const [today] = useState(todayKst)
 
   // F-12: rate limit 남은 시간 카운트다운. 0이 되면 다시 시도할 수 있다.
   const counting = retryAfterSec > 0

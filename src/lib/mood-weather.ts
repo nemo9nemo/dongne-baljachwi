@@ -22,3 +22,16 @@ export const WEATHERS: readonly { slug: Weather; emoji: string; label: string }[
   { slug: 'snowy', emoji: '❄️', label: '눈' },
   { slug: 'windy', emoji: '🌬️', label: '바람' },
 ]
+
+/**
+ * 앱 밖에서 들어온 값(localStorage 초안, `location.state`)을 슬러그로 좁힌다.
+ * 목록이 곧 DB enum이므로(00 §4.5) 여기 없는 값은 저장해도 서버가 거부한다 —
+ * 캐스팅으로 통과시키면 실패가 저장 시점까지 미뤄진다.
+ */
+export function isMood(value: unknown): value is Mood {
+  return MOODS.some((item) => item.slug === value)
+}
+
+export function isWeather(value: unknown): value is Weather {
+  return WEATHERS.some((item) => item.slug === value)
+}

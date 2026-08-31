@@ -11,8 +11,9 @@ import { recordFailureMessage, upsertRecord } from '../../lib/record-rpc'
 import { loadStationLines, loadStationMaster } from '../../lib/station-master'
 import type { StationMaster, StationRow } from '../../lib/station-master'
 import type { Database, Mood, Weather } from '../../lib/database.types'
-import { MOODS, WEATHERS } from '../../lib/mood-weather'
-import { todayLocal } from '../../lib/format-date'
+import { MOODS, WEATHERS, isMood, isWeather } from '../../lib/mood-weather'
+import { invalidateRecordCaches } from '../../lib/screen-cache'
+import { todayKst } from '../../lib/format-date'
 import { ConfirmDialog } from './ConfirmDialog'
 import { PhotoField } from './PhotoField'
 import type { EditorPhoto } from './PhotoField'
@@ -39,8 +40,6 @@ import ui from '../../styles/ui.module.css'
  * 사진이 실패해도 본문은 이미 저장돼 있다. **일기를 지키는 것이 사진보다 우선이다.**
  *
  * 이번 라운드에 없는 것:
- * - 역 상세(04)가 없어 "이 역에 기록 추가" 진입 경로 대신 `?stationId=`를 열어 뒀다 (§7 진입 경로).
- * - 기록 상세(06)가 없어 저장 후 이동 목적지는 자리표시자 화면이다.
  * - 수정 중 상대가 먼저 저장한 경우의 안내(§2.3): RPC가 충돌 신호를 주지 않아 감지 불가.
  */
 
@@ -80,13 +79,13 @@ export function RecordEditorScreen() {
 
   const routeRecordId = params.recordId ?? null
   const coupleId = session.couple?.id ?? null
-  const today = todayLocal()
+  const today = todayKst()
 
   const [form, setForm] = useState<FormValue>(() => {
     const prefilledDate = searchParams.get('date')
     return {
-      // §7 진입 경로: 프리필 파라미터만 다르고 폼은 동일하다. 04(역 상세)가 붙으면
-      // `/records/new?stationId=...`로 넘겨받는다.
+      // §7 진입 경로: 프리필 파라미터만 다르고 폼은 동일하다. 04(역 상세)의 "이 역에 기록
+      // 추가"와 09(프로필)의 추천 칩이 `/records/new?stationId=...`로 넘겨준다.
       stationId: searchParams.get('stationId'),
       visitedOn:
         prefilledDate !== null && DATE_PATTERN.test(prefilledDate) && prefilledDate <= today
@@ -267,8 +266,10 @@ export function RecordEditorScreen() {
       const restored: FormValue = {
         stationId: typeof draft.stationId === 'string' ? draft.stationId : null,
         visitedOn: draft.visitedOn,
-        mood: (draft.mood ?? null) as Mood | null,
-        weather: (draft.weather ?? null) as Weather | null,
+        // localStorage는 외부 입력이다(다른 탭·이전 버전·사용자 편집). 캐스팅으로 통과시키면
+        // 없는 슬러그가 폼에 들어와 저장 시점에야 서버 CHECK로 터진다.
+        mood: isMood(draft.mood) ? draft.mood : null,
+        weather: isWeather(draft.weather) ? draft.weather : null,
         note: typeof draft.note === 'string' ? draft.note : '',
         tags: draft.tags.filter((tag): tag is string => typeof tag === 'string'),
       }
@@ -322,7 +323,9 @@ export function RecordEditorScreen() {
     form.stationId === null ? null : (stationById.get(form.stationId) ?? null)
 
   const saving = saveState.kind !== 'idle'
-  const canSave = form.stationId !== null && online && !saving && loadState.kind === 'ready'
+  // `stationId`가 있어도 마스터에 없는 역(URL로 들어온 오타·삭제된 역)이면 저장할 수 없다 —
+  // 서버 FK가 거부할 요청을 보내 놓고 실패 배너로 알리는 것보다 버튼을 막고 사유를 보여준다.
+  const canSave = selectedStation !== null && online && !saving && loadState.kind === 'ready'
 
   // ── 저장 ────────────────────────────────────────────────────────────────
 
@@ -504,6 +507,10 @@ export function RecordEditorScreen() {
     recordIdRef.current = recordId
     // §5: 초안은 저장 성공 시 삭제한다. 사진 실패는 본문 저장을 되돌리지 않으므로 여기서 지운다.
     window.localStorage.removeItem(draftKey)
+    // AC-18 / 08 AC-04 / 09 AC-11: 목록·방문 집계 캐시가 화면 밖에 살아 있어서, 여기서
+    // 비우지 않으면 저장 직후 노선도 스탬프와 타임라인이 옛 상태 그대로 보인다.
+    // 사진 동기화 전에 부른다 — 사진이 실패해도 본문은 이미 저장됐으므로 캐시는 낡았다.
+    invalidateRecordCaches()
 
     const synced = await syncPhotos(recordId, photoList)
     setPhotos(synced.list)
@@ -522,7 +529,7 @@ export function RecordEditorScreen() {
       return
     }
 
-    // F-03: 작성 결과를 바로 확인시킨다. 06(기록 상세)은 아직 자리표시자다.
+    // F-03: 작성 결과를 바로 확인시킨다.
     skipBlockRef.current = true
     navigate(`/records/${recordId}`, { replace: true, state: { toast: '기록을 저장했어요' } })
   }
@@ -769,7 +776,7 @@ export function RecordEditorScreen() {
 
         <div className={styles.saveBar}>
           {!online && <p className={ui.hint}>오프라인이라 저장할 수 없어요.</p>}
-          {form.stationId === null && <p className={ui.hint}>역을 선택하면 저장할 수 있어요.</p>}
+          {selectedStation === null && <p className={ui.hint}>역을 선택하면 저장할 수 있어요.</p>}
           <Button type="submit" variant="default" disabled={!canSave}>
             {saveState.kind === 'saving'
               ? '저장하는 중…'

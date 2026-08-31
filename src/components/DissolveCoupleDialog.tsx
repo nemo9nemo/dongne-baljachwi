@@ -7,6 +7,7 @@ import {
   dissolveCouple,
   failureMessage,
 } from '../lib/couple-rpc'
+import { scopeToCouple } from '../lib/screen-cache'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Dialog, DialogContent, DialogOverlay, DialogPortal, DialogTitle } from './ui/dialog'
@@ -79,6 +80,10 @@ export function DissolveCoupleDialog({ onClose }: Props) {
     }
 
     // F-21: 이 시점부터 `current_couple_id()`가 NULL이라 기록이 전부 0건이 된다.
+    // AC-12: 서버가 0건을 돌려줘도 화면 밖 모듈 캐시(방문 집계·목록)가 남아 있으면 해제
+    // 직후 재결합했을 때 옛 커플의 기록이 그대로 보인다. 세션 갱신보다 **먼저** 비운다 —
+    // reload()가 끝나는 순간 라우팅이 바뀌면서 다른 화면이 캐시를 읽을 수 있다.
+    scopeToCouple(null)
     // 여기서는 갱신이 먼저다. 커플이 사라지는 순간 RequireCouple이 이 화면을 온보딩으로
     // 돌려보내므로 아래 navigate는 대개 같은 목적지에 대한 확인 사살이다
     // (해제 도중 다른 곳으로 이동한 경우를 대비해 남겨 둔다).

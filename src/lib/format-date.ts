@@ -15,13 +15,24 @@ export function formatVisitedOn(iso: string): { dateLabel: string; weekday: stri
 }
 
 /**
- * 오늘 날짜(로컬, `YYYY-MM-DD`). `toLocaleDateString('sv-SE')`는 스웨덴 로캘이 ISO 8601과
- * 같은 자리수 형식을 쓰는 걸 이용한 트릭이다 — 별도 포맷팅 없이 로컬 타임존 기준으로 떨어진다.
+ * 오늘 날짜(**한국 시각 기준**, `YYYY-MM-DD`).
  *
- * `RecordEditorScreen`(05, 미래 날짜 차단)과 `OnboardingScreen`(01, 사귄 날 상한)이 각자
- * 다른 방식(수동 조립 / 같은 트릭)으로 구현해 두고 있던 걸 공용으로 합쳤다. `ProfileScreen`
- * (09, 디데이·추천 시드)이 세 번째 사용처다.
+ * 브라우저 로컬 타임존이 아니라 `Asia/Seoul` 고정이다. 이 값이 쓰이는 세 곳이 전부 "한국의
+ * 오늘"을 의미하기 때문이다 — 05의 미래 날짜 차단(방문일은 타임존 변환 대상이 아니다,
+ * 00 D-08), 01의 사귄 날 상한, 09의 디데이·추천 시드(F-17 "시드 = couple_id + 오늘(KST)").
+ * 로컬 기준이면 해외에서 접속한 두 사람의 디데이·추천이 서로 달라지고, 같은 사람이 비행기를
+ * 타는 것만으로 어제 쓴 기록이 "미래 날짜"가 된다.
+ *
+ * 포맷터를 모듈 스코프에 한 번만 만든다 — `Intl.DateTimeFormat` 생성은 로캘 데이터 조회라
+ * 호출마다 만들면 비싸다. 'sv-SE' 로캘은 ISO 8601과 같은 `YYYY-MM-DD`로 떨어진다.
  */
-export function todayLocal(): string {
-  return new Date().toLocaleDateString('sv-SE')
+const KST_DATE = new Intl.DateTimeFormat('sv-SE', {
+  timeZone: 'Asia/Seoul',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+})
+
+export function todayKst(): string {
+  return KST_DATE.format(new Date())
 }

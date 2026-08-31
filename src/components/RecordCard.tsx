@@ -14,12 +14,22 @@ import styles from './RecordCard.module.css'
 type Props = {
   card: RecordCardData
   authorName: string
-  /** 넘기면 역명을 별도 링크로 보여준다 (F-06). 04는 안 넘긴다 */
-  stationName?: string
+  /**
+   * 이 기록의 역명. 화면에 링크로 **보여줄지**는 `stationHref` 유무가 정한다 —
+   * 04는 이미 역이 정해진 화면이라 링크를 숨기지만, 접근 가능한 이름(04 AC-13)과
+   * 06으로 넘기는 카드 요약(06 AC-15)에는 역명이 필요해서 값 자체는 항상 받는다.
+   */
+  stationName: string
+  /** 넘기면 역명을 별도 링크로 보여준다 (08 F-06). 04는 안 넘긴다 */
   stationHref?: string
+  /**
+   * 06이 삭제·"기록 없음" 후 돌아갈 곳 (06 §9 진입 출처 추적, AC-09).
+   * 쿼리스트링까지 포함한 전체 경로여야 한다 — 타임라인은 태그 필터가 URL에 있다.
+   */
+  backTo: string
 }
 
-export function RecordCard({ card, authorName, stationName, stationHref }: Props) {
+export function RecordCard({ card, authorName, stationName, stationHref, backTo }: Props) {
   const { dateLabel } = formatVisitedOn(card.visitedOn)
   const moodMeta = card.mood === null ? null : (MOODS.find((item) => item.slug === card.mood) ?? null)
   const weatherMeta =
@@ -31,7 +41,7 @@ export function RecordCard({ card, authorName, stationName, stationHref }: Props
   // 여기서 함께 문장에 포함시킨다 — 화면에는 각자 제자리에서 보이고, 접근성 트리에서만
   // 하나의 문장으로 합쳐진다.
   const labelParts = [
-    `${dateLabel}${stationName !== undefined ? ` ${stationName}` : ''} 기록`,
+    `${dateLabel} ${stationName} 기록`,
     moodMeta?.label,
     weatherMeta?.label,
     card.photoCount > 0 ? `사진 ${card.photoCount}장` : undefined,
@@ -41,12 +51,28 @@ export function RecordCard({ card, authorName, stationName, stationHref }: Props
 
   return (
     <li className={styles.item}>
-      {stationName !== undefined && stationHref !== undefined && (
+      {stationHref !== undefined && (
         <Link to={stationHref} className={styles.stationLink}>
           {stationName}
         </Link>
       )}
-      <Link to={`/records/${card.id}`} className={styles.card} aria-label={labelParts.join(', ')}>
+      <Link
+        to={`/records/${card.id}`}
+        className={styles.card}
+        aria-label={labelParts.join(', ')}
+        // 06 §6 "첫 픽셀"/AC-15: 상세가 조회를 마치기 전에 카드가 이미 아는 값으로 헤더를
+        // 그리게 한다. 사진·일기까지 넘기지 않는 이유는 그 둘이 상세에서 어차피 전문으로
+        // 다시 필요하고, history state는 세션 저장소에 직렬화되어 커질수록 비싸기 때문이다.
+        state={{
+          from: backTo,
+          card: {
+            stationName,
+            visitedOn: card.visitedOn,
+            mood: card.mood,
+            weather: card.weather,
+          },
+        }}
+      >
         {card.coverPhoto !== null && (
           <div
             className={styles.thumbWrap}

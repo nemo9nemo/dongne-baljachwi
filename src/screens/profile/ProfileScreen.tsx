@@ -10,7 +10,7 @@ import { loadStationLines } from '../../lib/station-master'
 import type { StationLineRow } from '../../lib/station-master'
 import { recommendStations } from '../../lib/station-recommendation'
 import type { RecommendedStation } from '../../lib/station-recommendation'
-import { todayLocal } from '../../lib/format-date'
+import { todayKst } from '../../lib/format-date'
 import styles from './profile.module.css'
 import ui from '../../styles/ui.module.css'
 
@@ -40,7 +40,7 @@ function daysBetween(a: string, b: string): number {
 
 /** F-02~F-05: 사귄 날을 1일째로 센다. 미래 날짜면 D-N (Could, 방어적으로 포함) */
 function ddayLabel(startedOn: string): string {
-  const diff = daysBetween(startedOn, todayLocal())
+  const diff = daysBetween(startedOn, todayKst())
   return diff < 0 ? `D${diff}` : `함께한 지 ${diff + 1}일째`
 }
 
@@ -99,7 +99,7 @@ export function ProfileScreen() {
       lines: master.master.lines,
       stationLines: lineLinks,
       visitedStationIds,
-      seed: `${coupleId}-${todayLocal()}`,
+      seed: `${coupleId}-${todayKst()}`,
     })
   }, [master, visits, linksReady, lineLinks, visitedStationIds, session.couple?.id])
 
@@ -140,7 +140,7 @@ export function ProfileScreen() {
   const [dateInput, setDateInput] = useState(session.couple?.startedOn ?? '')
   const [dateSaving, setDateSaving] = useState(false)
   const [dateError, setDateError] = useState<string | null>(null)
-  const today = todayLocal()
+  const today = todayKst()
 
   useEffect(() => {
     if (!dateEditing) setDateInput(session.couple?.startedOn ?? '')

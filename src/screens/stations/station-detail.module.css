@@ -54,6 +54,16 @@
   border-radius: var(--radius-pill);
 }
 
+/* F-13: 호선 배지를 눌러 노선도로 간다. 모양은 .badge 그대로 두고 "누를 수 있다"는
+   신호만 더한다 — 배지 형태가 화면마다 달라지면 같은 정보로 안 보인다. */
+.badgeButton {
+  cursor: pointer;
+}
+
+.badgeButton:hover {
+  color: var(--color-primary);
+}
+
 .badgeDot {
   width: 8px;
   height: 8px;
