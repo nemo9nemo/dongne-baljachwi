@@ -194,8 +194,9 @@ export function StationPicker({ stations, badgesByStationId, value, onChange, di
 /**
  * F-09: 동명이역을 구분하려면 소속 호선이 함께 보여야 한다.
  *
- * 배지 바탕을 노선 색으로 칠하지 않는다 — `lines.color_token`에 대응하는 CSS 변수가
- * 아직 2호선만 정의돼 있고(tokens.css), 없는 노선은 대비를 보장할 수 없다.
+ * 배지 바탕을 노선 색으로 칠하지 않는다. 2026-08-31에 MVP 24개 노선색이 전부 tokens.css에
+ * 채워졌지만 결론은 그대로다 — 공식 노선색 중 밝은 계열(자기부상 #ffcd12 등)은 라이트에서
+ * 흰 배경 대비가 1.5:1 수준이라, 그 위에 글자를 얹으면 대비를 보장할 수 없다.
  * 색은 점으로만 쓰고 글자는 본문색으로 둔다.
  */
 function Badges({ badges }: { badges: LineBadge[] }) {
