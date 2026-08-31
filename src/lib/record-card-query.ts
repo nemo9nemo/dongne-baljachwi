@@ -23,8 +23,8 @@ export type RecordCard = {
   visitedOn: string
   mood: Mood | null
   weather: Weather | null
-  /** 04 §4.1: 원래는 서버가 앞 200자만 보내야 하지만, 전용 뷰 없이는 PostgREST가 자를
-   *  방법이 없어 전문을 받아 클라이언트에서 자른다 (알려진 단순화 — 전용 뷰는 별도 작업). */
+  /** 04 §4.1: 일기 앞 200자. 절단은 `record_cards` 뷰(`left(note, 200)`)가 하므로
+   *  네트워크·캐시에 전문이 실리지 않는다. 전문이 필요하면 06이 `records`를 단건 조회한다. */
   noteExcerpt: string | null
   authorId: string
   photoCount: number
@@ -70,9 +70,12 @@ export async function fetchRecordCardPage(options: FetchOptions): Promise<Record
     if (candidateIds.length === 0) return { cards: [], nextCursor: null, hasMore: false }
   }
 
+  // 04 §4.1: 목록은 `records`가 아니라 목록 전용 뷰를 읽는다 — 이 뷰에는 note 전문 컬럼이
+  // 아예 없어서, 실수로 전문을 select 할 경로 자체가 없다. 뷰는 단순 투영이라 아래
+  // 필터/정렬(station_id, 키셋, order)이 records의 인덱스를 그대로 탄다.
   let query = supabase
-    .from('records')
-    .select('id, station_id, visited_on, mood, weather, note, author_id')
+    .from('record_cards')
+    .select('id, station_id, visited_on, mood, weather, note_excerpt, author_id')
 
   if (stationId !== null) query = query.eq('station_id', stationId)
   if (candidateIds !== null) query = query.in('id', candidateIds)
@@ -133,7 +136,7 @@ export async function fetchRecordCardPage(options: FetchOptions): Promise<Record
       visitedOn: row.visited_on,
       mood: row.mood,
       weather: row.weather,
-      noteExcerpt: row.note === null ? null : row.note.slice(0, 200),
+      noteExcerpt: row.note_excerpt,
       authorId: row.author_id,
       photoCount: photosByRecord.get(row.id)?.length ?? 0,
       coverPhoto:

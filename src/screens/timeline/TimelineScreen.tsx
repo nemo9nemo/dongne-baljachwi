@@ -25,8 +25,6 @@ import ui from '../../styles/ui.module.css'
  *   방법이 없다. DOM에 전부 쌓인다.
  * - **칩 정렬의 최근 사용 순 타이브레이커(F-12)**: `couple_tag_usage` 뷰에 `last_used_at`이
  *   없어(00 §4.9) 사용 횟수만으로 정렬한다.
- * - **`note` 200자 서버 절단**: 전용 뷰 없이는 PostgREST가 자를 수 없어 클라이언트에서
- *   자른다 (`record-card-query.ts` 상단 주석).
  * - **뷰포트 단위 서명 URL 발급**: 페이지당 최대 20장이라 배치로 한 번에 서명한다.
  */
 

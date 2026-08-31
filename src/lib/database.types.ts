@@ -279,6 +279,31 @@ export type Database = {
         }
         Relationships: []
       }
+      /**
+       * 목록 카드 전용 투영 (04 §4.1, `20260828090000_record_cards_view.sql`).
+       *
+       * `note` 전문 컬럼이 **없다** — 서버가 `left(note, 200)`으로 자른 `note_excerpt`만
+       * 노출한다. 목록 응답이 캐시·로그를 타고 복제돼도 일기 전문이 새지 않게 하려는 것이라,
+       * 이 뷰에 note를 되살리는 변경은 스펙 위반이다. 전문이 필요한 06(기록 상세)은
+       * `records`를 단건 조회한다.
+       *
+       * `authenticated`에 select만 grant돼 있고 security_invoker=true라 records의 RLS를
+       * 그대로 상속한다.
+       */
+      record_cards: {
+        Row: {
+          id: string
+          station_id: string
+          /** `YYYY-MM-DD` */
+          visited_on: string
+          mood: Mood | null
+          weather: Weather | null
+          /** 일기 앞 200자. NULL과 빈 문자열은 구분된다("일기 없음" vs "빈 일기") */
+          note_excerpt: string | null
+          author_id: string
+        }
+        Relationships: []
+      }
       /** 커플별 역 방문 집계 (00 §4.9). RLS로 내 커플 행만 온다 (03 §4.4) */
       couple_station_visits: {
         Row: {
