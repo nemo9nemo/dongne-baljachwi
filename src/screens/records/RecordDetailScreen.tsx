@@ -78,7 +78,10 @@ export function RecordDetailScreen() {
   const session = useSession()
 
   // §9: 진입 출처. 목록에서 왔으면 그 목록으로, 모르면 타임라인으로 돌아간다.
-  const backTo = readStateString(location.state, 'from') ?? '/timeline'
+  // history state는 사용자가 직접 넣을 수 있는 값이라 앱 내부 경로만 받는다 — `//`로
+  // 시작하면 브라우저가 프로토콜 상대 URL(외부 주소)로 해석한다.
+  const from = readStateString(location.state, 'from')
+  const backTo = from !== null && from.startsWith('/') && !from.startsWith('//') ? from : '/timeline'
   const cameFromStation = backTo.startsWith('/stations/')
   const preview = readCardPreview(location.state)
 
