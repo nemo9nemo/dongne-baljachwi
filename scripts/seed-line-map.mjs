@@ -19,9 +19,15 @@
  *   루프 경계 밀집(디자이너 진단: `docs/design/line-map-boundary-review.md`)을 2차 패스로
  *   해소한다. DB 접속이 필요 없다 — 이미 있는 파일의 좌표만 읽고 다시 쓴다.
  *
+ * 사용법 3: node scripts/seed-line-map.mjs --octolinear=L-S1102 --out=<경로>
+ *   선분 각도를 45도 배수로 스냅하는 3차 패스(03-line-map.md §9, 2026-08-31 B안).
+ *   **`--out` 이 필수다** — 아직 실험 단계라 fixture 를 덮어쓰지 않고 별도 산출물로 먼저
+ *   비교하기 위해서다. 파일럿이 승인되면 `--out=src/data/line-map/metro-seoul.json` 으로
+ *   같은 명령을 다시 돌리면 된다. DB 접속이 필요 없다.
+ *
  * service_role 키를 쓰는 이유는 verify-line-map.mjs 와 같다 — 로그인 세션 없이 CI/로컬에서
- * 돌리기 위해서다(단, `--resolve-crowding` 모드는 DB를 쓰지 않아 키가 없어도 동작한다).
- * 이 스크립트는 브라우저 번들에 들어가지 않는다.
+ * 돌리기 위해서다(단, `--resolve-crowding`/`--octolinear` 모드는 DB를 쓰지 않아 키가 없어도
+ * 동작한다). 이 스크립트는 브라우저 번들에 들어가지 않는다.
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -71,20 +77,36 @@ const EXCLUDE_STATION_CODES = new Set([
   // 해소되면 뺀다"는 이 목록의 용도를 보여주는 사례로 주석만 남겨둔다.
 ]);
 
-// `--resolve-crowding` 모드는 DB가 필요 없다 — 아래 Supabase 필수 체크보다 먼저 갈라진다.
+// `--resolve-crowding` / `--octolinear` 모드는 DB가 필요 없다 — 아래 Supabase 필수 체크보다
+// 먼저 갈라진다.
 const resolveCrowdingMode = process.argv.includes('--resolve-crowding');
+const octolinearArg = process.argv.find((a) => a.startsWith('--octolinear='));
+const octolinearLineCodes = octolinearArg
+  ? octolinearArg.slice('--octolinear='.length).split(',').map((s) => s.trim()).filter((s) => s.length > 0)
+  : [];
+const outArg = process.argv.find((a) => a.startsWith('--out='));
+const offlineMode = resolveCrowdingMode || octolinearLineCodes.length > 0;
 
 const url = process.env.VITE_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!resolveCrowdingMode && (!url || !serviceKey)) {
+if (!offlineMode && (!url || !serviceKey)) {
   console.error('VITE_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY 가 필요합니다.');
   process.exit(1);
 }
-const db = resolveCrowdingMode ? null : createClient(/** @type {string} */ (url), /** @type {string} */ (serviceKey), { auth: { persistSession: false } });
+const db = offlineMode ? null : createClient(/** @type {string} */ (url), /** @type {string} */ (serviceKey), { auth: { persistSession: false } });
 
 const lineArg = process.argv.find((a) => a.startsWith('--line='));
-if (!resolveCrowdingMode && !lineArg) {
-  console.error('사용법: --line=<lineCode>[,<lineCode>...] (예: --line=L-I1103,L-I4106) 또는 --resolve-crowding');
+if (!offlineMode && !lineArg) {
+  console.error(
+    '사용법: --line=<lineCode>[,<lineCode>...] (예: --line=L-I1103,L-I4106)\n' +
+      '     또는 --resolve-crowding\n' +
+      '     또는 --octolinear=<lineCode>[,...] --out=<경로>',
+  );
+  process.exit(1);
+}
+if (octolinearLineCodes.length > 0 && !outArg) {
+  // fixture 덮어쓰기를 사고로 하지 않도록 출력 경로를 반드시 명시하게 한다(§9 2026-08-31).
+  console.error('--octolinear 는 --out=<경로> 가 필수입니다 (실험 산출물을 fixture와 분리하기 위함).');
   process.exit(1);
 }
 const targetLineCodes = lineArg ? lineArg.slice('--line='.length).split(',').map((s) => s.trim()).filter((s) => s.length > 0) : [];
@@ -600,6 +622,216 @@ function resolveCrowding(doc) {
   return { clusterCount: lastClusterCount, movedCount: totalMoved, unresolvedCount: totalUnresolved, rounds: round + 1 };
 }
 
+// ── 3차 패스: 옥토리니어(0°/45°/90°) 스냅 ──────────────────────────────────────────
+// 왜 넣었는가: 서울시 공식 노선도를 비롯한 대부분의 도시철도 노선도는 옥토리니어 도식이다
+// (선이 45도 배수로만 꺾인다). 지금 우리 좌표는 실 위경도를 유사변환한 것이라 선분 각도가
+// 제각각이고, 그래서 "지도를 축소한 그림"으로 보이지 "노선도"로 보이지 않는다.
+// 03-line-map.md §9 (2026-08-31, B안) — 이미 확보한 실좌표 배치를 버리지 않고 각도만
+// 스냅하는 후처리 패스로 접근한다. `pushOutsideLoop`·`--resolve-crowding`과 같은 급의
+// 실용적 휴리스틱이지 전역 최적해가 아니다(그건 LOOM 같은 전용 도구의 영역이다).
+//
+// 위상 보존: 역의 인접 관계와 순서는 `stationCodes` 배열 그대로 유지하고 좌표만 옮긴다 —
+// 순서를 바꾸거나 역을 빼는 일이 없으므로 위상은 정의상 깨지지 않는다.
+const OCTO_MIN_SEG = 26; // 역 지름(2×STATION_R=22) + 여유 4. 이보다 짧은 선분은 만들지 않는다.
+const SQRT1_2 = Math.SQRT1_2;
+/** 45도 배수 단위벡터 8개. `Math.cos(Math.PI/2)`가 6.1e-17을 돌려주는 부동소수점 찌꺼기를
+ * 좌표에 누적시키지 않으려고 표로 박아둔다 — 찌꺼기가 쌓이면 "수직인데 x가 조금씩 밀리는"
+ * 선분이 생겨 스냅한 의미가 없어진다. 인덱스는 atan2 기준 0°,45°,…,315°(SVG는 y축이 아래로
+ * 향하므로 화면상으로는 시계방향). */
+const OCTO_UNITS = /** @type {Point[]} */ ([
+  { x: 1, y: 0 }, { x: SQRT1_2, y: SQRT1_2 }, { x: 0, y: 1 }, { x: -SQRT1_2, y: SQRT1_2 },
+  { x: -1, y: 0 }, { x: -SQRT1_2, y: -SQRT1_2 }, { x: 0, y: -1 }, { x: SQRT1_2, y: -SQRT1_2 },
+]);
+
+/** @param {number} dx @param {number} dy @returns {Point} 가장 가까운 45도 배수 단위벡터 */
+function snapUnit(dx, dy) {
+  const k = Math.round(Math.atan2(dy, dx) / (Math.PI / 4));
+  return OCTO_UNITS[((k % 8) + 8) % 8];
+}
+
+/**
+ * 방향(`dirs`)을 고정한 채 선분 길이만 다시 정한다.
+ *
+ * 열린 노선은 원래 길이를 그대로 쓰면 되지만, 순환선(2호선)은 마지막 선분이 첫 역으로
+ * 정확히 돌아와야 한다 — 방향을 스냅한 순간 Σ(L_i·u_i) ≠ 0 이 되어 그냥 이어 붙이면 루프가
+ * 벌어진다. 그래서 "원래 길이에서 가장 덜 벗어나면서 닫히는 길이 조합"을 라그랑주 승수로
+ * 푼다: min Σ(L'_i−L_i)² s.t. Σ L'_i·u_i = 0 → L'_i = L_i + λ·u_i, λ = −M⁻¹·Σ(L_i·u_i),
+ * M = Σ u_i u_iᵀ. 닫힘 오차를 방향별로 "덜 저항하는 선분"에 자동 배분하는 효과가 있어,
+ * 한 선분에 몰아서 보정할 때 생기는 뒤틀림이 없다.
+ *
+ * 길이가 음수/과소로 떨어지는 선분은 `OCTO_MIN_SEG`로 고정하고 나머지만 다시 푼다(능동
+ * 제약 집합법). 반복 상한은 선분 수 — 매 반복마다 최소 1개가 고정되므로 반드시 끝난다.
+ * @param {number[]} baseLengths
+ * @param {Point[]} dirs
+ * @param {boolean} closed
+ * @returns {{ lengths: number[], clampedCount: number, closureError: number }}
+ */
+function solveOctolinearLengths(baseLengths, dirs, closed) {
+  const n = baseLengths.length;
+  const lengths = baseLengths.map((l) => Math.max(l, OCTO_MIN_SEG));
+  if (!closed) return { lengths, clampedCount: 0, closureError: 0 };
+
+  const clamped = new Array(n).fill(false);
+  for (let iter = 0; iter <= n; iter += 1) {
+    let m00 = 0, m01 = 0, m11 = 0, freeSumX = 0, freeSumY = 0, fixedSumX = 0, fixedSumY = 0;
+    for (let i = 0; i < n; i += 1) {
+      const u = dirs[i];
+      if (clamped[i]) { fixedSumX += OCTO_MIN_SEG * u.x; fixedSumY += OCTO_MIN_SEG * u.y; continue; }
+      m00 += u.x * u.x; m01 += u.x * u.y; m11 += u.y * u.y;
+      freeSumX += baseLengths[i] * u.x; freeSumY += baseLengths[i] * u.y;
+    }
+    const rx = -fixedSumX - freeSumX;
+    const ry = -fixedSumY - freeSumY;
+    const det = m00 * m11 - m01 * m01;
+    if (Math.abs(det) < 1e-9) {
+      // 자유 선분의 방향이 한 직선에 몰린 퇴화 케이스 — 닫힘을 만들 자유도가 없다.
+      // 실 데이터에서 나올 일이 사실상 없으므로 보정을 포기하고 원래 길이를 쓴다.
+      break;
+    }
+    const lx = (m11 * rx - m01 * ry) / det;
+    const ly = (-m01 * rx + m00 * ry) / det;
+    let worst = -1;
+    for (let i = 0; i < n; i += 1) {
+      if (clamped[i]) { lengths[i] = OCTO_MIN_SEG; continue; }
+      lengths[i] = baseLengths[i] + lx * dirs[i].x + ly * dirs[i].y;
+      if (lengths[i] < OCTO_MIN_SEG && (worst === -1 || lengths[i] < lengths[worst])) worst = i;
+    }
+    if (worst === -1) break;
+    clamped[worst] = true;
+    lengths[worst] = OCTO_MIN_SEG;
+  }
+
+  let ex = 0, ey = 0;
+  for (let i = 0; i < n; i += 1) { ex += lengths[i] * dirs[i].x; ey += lengths[i] * dirs[i].y; }
+  return { lengths, clampedCount: clamped.filter(Boolean).length, closureError: Math.hypot(ex, ey) };
+}
+
+/**
+ * 역 하나의 좌표를 옮기고, **그 역을 지나는 모든 노선의 polyline을 함께 갱신한다.**
+ * 환승역은 여러 노선이 같은 좌표를 참조하므로 이걸 빼먹으면 다른 노선이 그 역에서 떨어져
+ * 나간다(`docs/design/line-map-boundary-review.md` §3-5의 지시 사항).
+ *
+ * polyline이 stationCodes와 인덱스가 일치하지 않는 노선이 있다(예: 2호선 루프는 역 사이에
+ * 보간점이 3개씩 들어간 130점 곡선, 성수/신정지선은 손으로 넣은 접속점이 1개 더 있다).
+ * 그래서 인덱스가 아니라 **옛 좌표와 가장 가까운 polyline 점**을 찾아 바꾼다.
+ * @param {GeomDoc} d
+ * @param {string} code
+ * @param {Point} oldPt
+ * @param {Point} newPt
+ * @param {Set<string>} skipLineCodes polyline을 통째로 다시 만들 노선(중복 갱신 방지)
+ * @returns {string[]} 실제로 polyline을 고친 다른 노선의 lineCode 목록
+ */
+function moveStationWithPolylines(d, code, oldPt, newPt, skipLineCodes) {
+  /** @type {string[]} */
+  const touched = [];
+  for (const line of d.lines) {
+    if (skipLineCodes.has(line.lineCode)) continue;
+    if (!line.stationCodes.includes(code)) continue;
+    let best = -1;
+    let bestD = Number.POSITIVE_INFINITY;
+    for (let i = 0; i < line.polyline.length; i += 1) {
+      const dd = Math.hypot(line.polyline[i][0] - oldPt.x, line.polyline[i][1] - oldPt.y);
+      if (dd < bestD) { bestD = dd; best = i; }
+    }
+    // 0.6 = round1(소수 1자리 반올림)로 생길 수 있는 최대 오차보다 약간 큰 값. 이보다 멀면
+    // 그 노선의 polyline에는 애초에 이 역에 해당하는 꼭짓점이 없다는 뜻이라 건드리지 않는다.
+    if (best === -1 || bestD > 0.6) continue;
+    line.polyline[best] = [round1(newPt.x), round1(newPt.y)];
+    touched.push(line.lineCode);
+  }
+  const st = d.stations.find((s) => s.stationCode === code);
+  if (st) { st.x = round1(newPt.x); st.y = round1(newPt.y); }
+  return touched;
+}
+
+/**
+ * 한 노선을 옥토리니어로 스냅한다.
+ * @param {GeomDoc} d
+ * @param {string} lineCode
+ * @param {Set<string>} transferCodes
+ * @returns {{ moved: number, maxShift: number, minSegment: number, clampedCount: number,
+ *   closureError: number, reversals: number, affectedLines: Map<string, string[]> } | null}
+ */
+function octolinearizeLine(d, lineCode, transferCodes) {
+  const line = d.lines.find((l) => l.lineCode === lineCode);
+  if (!line) { console.error(`파일에 없는 lineCode: ${lineCode}`); return null; }
+  const stationByCode = new Map(d.stations.map((s) => [s.stationCode, s]));
+  const pts = line.stationCodes.map((c) => {
+    const s = stationByCode.get(c);
+    return s ? { x: s.x, y: s.y } : null;
+  });
+  if (pts.some((p) => p === null)) { console.error(`${lineCode}: 좌표가 없는 역이 있습니다.`); return null; }
+  const p = /** @type {Point[]} */ (pts);
+  const n = p.length;
+  if (n < 2) return null;
+
+  // 순환선 판정은 polyline의 첫/끝점이 같은지로 한다 — 2호선 루프만 이 형태다.
+  const first = line.polyline[0];
+  const last = line.polyline[line.polyline.length - 1];
+  const closed = first[0] === last[0] && first[1] === last[1];
+  const segCount = closed ? n : n - 1;
+
+  /** @type {number[]} */
+  const baseLengths = [];
+  /** @type {Point[]} */
+  const dirs = [];
+  let reversals = 0;
+  for (let i = 0; i < segCount; i += 1) {
+    const a = p[i];
+    const b = p[(i + 1) % n];
+    baseLengths.push(Math.hypot(b.x - a.x, b.y - a.y));
+    const u = snapUnit(b.x - a.x, b.y - a.y);
+    // 직전 선분과 정확히 반대 방향으로 스냅되면 노선이 되돌아가 위상이 시각적으로 꼬인다.
+    // 실제로는 원 선분이 135도 이상 꺾여야 나오는 상황이라 지하철 노선에선 나오지 않지만,
+    // 나오면 조용히 이상해지므로 세어서 보고만 한다(자동 교정은 하지 않는다 — 어느 쪽으로
+    // 틀어야 하는지는 사람이 판단할 문제다).
+    if (i > 0 && dirs[i - 1].x === -u.x && dirs[i - 1].y === -u.y) reversals += 1;
+    dirs.push(u);
+  }
+
+  const { lengths, clampedCount, closureError } = solveOctolinearLengths(baseLengths, dirs, closed);
+
+  /** @type {Point[]} */
+  const rebuilt = [{ x: 0, y: 0 }];
+  for (let i = 0; i < n - 1; i += 1) {
+    const prev = rebuilt[i];
+    rebuilt.push({ x: prev.x + lengths[i] * dirs[i].x, y: prev.y + lengths[i] * dirs[i].y });
+  }
+  // 무게중심을 원래 위치에 맞춘다. 첫 역을 고정하면 스냅 오차가 전부 반대쪽 끝에 쌓여
+  // 노선 전체가 한쪽으로 밀린 것처럼 보이는데, 무게중심 기준이면 오차가 양쪽으로 갈린다.
+  const oldC = { x: p.reduce((s, q) => s + q.x, 0) / n, y: p.reduce((s, q) => s + q.y, 0) / n };
+  const newC = { x: rebuilt.reduce((s, q) => s + q.x, 0) / n, y: rebuilt.reduce((s, q) => s + q.y, 0) / n };
+  const dx = oldC.x - newC.x;
+  const dy = oldC.y - newC.y;
+  for (const q of rebuilt) { q.x += dx; q.y += dy; }
+
+  /** @type {Map<string, string[]>} 환승역 코드 → 이 이동으로 polyline까지 고친 다른 노선들 */
+  const affectedLines = new Map();
+  let maxShift = 0;
+  const skip = new Set([lineCode]);
+  for (let i = 0; i < n; i += 1) {
+    const shift = Math.hypot(rebuilt[i].x - p[i].x, rebuilt[i].y - p[i].y);
+    if (shift > maxShift) maxShift = shift;
+    const touched = moveStationWithPolylines(d, line.stationCodes[i], p[i], rebuilt[i], skip);
+    if (transferCodes.has(line.stationCodes[i])) affectedLines.set(line.stationCodes[i], touched);
+  }
+
+  // 옥토리니어에서 역 사이는 직선이므로 곡선 보간점(2호선 루프의 역당 3점)을 버리고
+  // 역 좌표만으로 polyline을 다시 만든다. 순환선은 첫 점을 끝에 한 번 더 넣어 닫는다.
+  line.polyline = rebuilt.map((q) => /** @type {[number, number]} */ ([round1(q.x), round1(q.y)]));
+  if (closed) line.polyline.push([round1(rebuilt[0].x), round1(rebuilt[0].y)]);
+
+  return {
+    moved: n,
+    maxShift,
+    minSegment: Math.min(...lengths),
+    clampedCount,
+    closureError,
+    reversals,
+    affectedLines,
+  };
+}
+
 /** @param {GeomDoc} d @returns {string} */
 function formatDoc(d) {
   // 기존 metro-seoul.json은 손으로 쓰기 좋게 컴팩트 스타일(폴리라인 점 한 줄, 역 한 줄)로
@@ -677,7 +909,66 @@ if (resolveCrowdingMode) {
   process.exit(0);
 }
 
-// 위에서 exit 하지 않았다면 resolveCrowdingMode 는 false 였고, 그때만 db 가 만들어졌다.
+if (octolinearLineCodes.length > 0) {
+  /** @type {Map<string, string[]>} */
+  const linesByStationCode = new Map();
+  for (const line of doc.lines) {
+    for (const code of line.stationCodes) {
+      if (!linesByStationCode.has(code)) linesByStationCode.set(code, []);
+      /** @type {string[]} */ (linesByStationCode.get(code)).push(line.lineCode);
+    }
+  }
+  const transferCodes = new Set(
+    [...linesByStationCode.entries()].filter(([, ls]) => ls.length > 1).map(([c]) => c),
+  );
+
+  for (const lineCode of octolinearLineCodes) {
+    const targetCodes = new Set(doc.lines.find((l) => l.lineCode === lineCode)?.stationCodes ?? []);
+    const result = octolinearizeLine(doc, lineCode, transferCodes);
+    if (!result) continue;
+    console.log(
+      `${lineCode}: 역 ${result.moved}개 재배치, 최대 이동 ${round1(result.maxShift)}, ` +
+        `최단 선분 ${round1(result.minSegment)}(하한 ${OCTO_MIN_SEG}에 걸린 선분 ${result.clampedCount}개), ` +
+        `닫힘 잔차 ${result.closureError.toFixed(3)}, 역방향 스냅 ${result.reversals}건`,
+    );
+    if (result.affectedLines.size > 0) {
+      console.log(`  환승역 ${result.affectedLines.size}개가 이동했다 — 아래 노선의 polyline도 함께 갱신했다:`);
+      /** @type {Map<string, number>} */
+      const byLine = new Map();
+      for (const [, touched] of result.affectedLines) {
+        for (const lc of touched) byLine.set(lc, (byLine.get(lc) ?? 0) + 1);
+      }
+      for (const [lc, count] of [...byLine.entries()].sort((a, b) => b[1] - a[1])) {
+        console.log(`    ${lc}: 공유 역 ${count}개`);
+      }
+    }
+
+    // 스냅 뒤 다른 노선 역과 얼마나 붙었는지 — 겹침이 심하면 `--resolve-crowding`을 이어서
+    // 돌려야 한다는 신호다. 여기서 자동으로 돌리지는 않는다(패스를 섞으면 어느 쪽이 만든
+    // 결과인지 구분이 안 돼 파일럿 판단이 흐려진다).
+    /** @type {{ a: string, b: string, d: number }[]} */
+    const close = [];
+    for (const s of doc.stations) {
+      if (!targetCodes.has(s.stationCode)) continue;
+      for (const o of doc.stations) {
+        if (targetCodes.has(o.stationCode)) continue;
+        const dd = Math.hypot(s.x - o.x, s.y - o.y);
+        if (dd < 22) close.push({ a: s.stationCode, b: o.stationCode, d: dd });
+      }
+    }
+    close.sort((x, y) => x.d - y.d);
+    console.log(`  다른 노선 역과 원(반지름 11)이 겹치는 쌍 ${close.length}건` +
+      (close.length > 0 ? ` — 최악 ${close.slice(0, 5).map((c) => `${c.a}↔${c.b}(${round1(c.d)})`).join(', ')}` : ''));
+  }
+
+  normalizeViewBox(doc);
+  const outPath = /** @type {string} */ (outArg).slice('--out='.length);
+  writeFileSync(outPath, formatDoc(doc));
+  console.log(`저장 완료: ${outPath} (viewBox ${doc.viewBox.width}x${doc.viewBox.height})`);
+  process.exit(0);
+}
+
+// 위에서 exit 하지 않았다면 offlineMode 는 false 였고, 그때만 db 가 만들어졌다.
 const dbClient = /** @type {NonNullable<typeof db>} */ (db);
 
 /** @type {Map<string, StationEntry>} */
