@@ -19,11 +19,14 @@
  *   루프 경계 밀집(디자이너 진단: `docs/design/line-map-boundary-review.md`)을 2차 패스로
  *   해소한다. DB 접속이 필요 없다 — 이미 있는 파일의 좌표만 읽고 다시 쓴다.
  *
- * 사용법 3: node scripts/seed-line-map.mjs --octolinear=L-S1102 --out=<경로>
+ * 사용법 3: node scripts/seed-line-map.mjs --octolinear=<lineCode>[,...] --out=<경로>
  *   선분 각도를 45도 배수로 스냅하는 3차 패스(03-line-map.md §9, 2026-08-31 B안).
- *   **`--out` 이 필수다** — 아직 실험 단계라 fixture 를 덮어쓰지 않고 별도 산출물로 먼저
- *   비교하기 위해서다. 파일럿이 승인되면 `--out=src/data/line-map/metro-seoul.json` 으로
- *   같은 명령을 다시 돌리면 된다. DB 접속이 필요 없다.
+ *   여러 노선을 넘기면 **하나씩 순서대로 처리하는 게 아니라** 전역 완화 → 확정 두 단계로
+ *   한꺼번에 푼다(`octolinearizeAll` 주석 참고) — 환승역 좌표가 "누가 마지막에 만졌는가"로
+ *   결정되지 않게 하기 위해서다.
+ *   `--rounds=<n>`(1단계 완화 상한, 기본 60), `--min-seg=<px>`(선분 길이 하한, 기본 26)로
+ *   튜닝한다. **`--out` 이 필수다** — fixture 를 사고로 덮어쓰지 않고 먼저 비교하기 위해서다
+ *   (반영할 때는 `--out=src/data/line-map/metro-seoul.json`). DB 접속이 필요 없다.
  *
  * service_role 키를 쓰는 이유는 verify-line-map.mjs 와 같다 — 로그인 세션 없이 CI/로컬에서
  * 돌리기 위해서다(단, `--resolve-crowding`/`--octolinear` 모드는 DB를 쓰지 않아 키가 없어도
@@ -85,6 +88,9 @@ const octolinearLineCodes = octolinearArg
   ? octolinearArg.slice('--octolinear='.length).split(',').map((s) => s.trim()).filter((s) => s.length > 0)
   : [];
 const outArg = process.argv.find((a) => a.startsWith('--out='));
+const roundsArg = process.argv.find((a) => a.startsWith('--rounds='));
+const minSegArg = process.argv.find((a) => a.startsWith('--min-seg='));
+const octoRounds = roundsArg ? Number(roundsArg.slice('--rounds='.length)) : 60;
 const offlineMode = resolveCrowdingMode || octolinearLineCodes.length > 0;
 
 const url = process.env.VITE_SUPABASE_URL;
@@ -632,7 +638,17 @@ function resolveCrowding(doc) {
 //
 // 위상 보존: 역의 인접 관계와 순서는 `stationCodes` 배열 그대로 유지하고 좌표만 옮긴다 —
 // 순서를 바꾸거나 역을 빼는 일이 없으므로 위상은 정의상 깨지지 않는다.
-const OCTO_MIN_SEG = 26; // 역 지름(2×STATION_R=22) + 여유 4. 이보다 짧은 선분은 만들지 않는다.
+//
+// **이 패스 뒤에 `--resolve-crowding`을 이어 돌리지 마라.** 그 패스는 2호선 루프 타원의
+// 특정 반경(r≈1.12)에 놓인 역만 접선 방향으로 미는 것이라, 옥토리니어 결과 위에서는 각도만
+// 망가뜨린다 — 실측(2026-08-31)으로 겹침 쌍 11 → 13, 격자 이탈 선분 56 → 63, 2호선 8각형이
+// 13선분 어긋남으로 무너졌다. 겹침 해소는 아래 1단계 완화 안의 반발항이 대신 맡는다.
+
+// 역 지름(2×STATION_R=22) + 여유 4. 이보다 짧은 선분은 만들지 않는다. `--min-seg=` 로 올릴 수
+// 있게 해 둔 이유는 33개 노선 전체 확대 때 "선분 하한을 올리면 노선 간 겹침이 줄어드는가"를
+// 실측으로 비교해야 했기 때문이다(2026-08-31 확대 라운드).
+let octoMinSeg = 26;
+if (minSegArg) octoMinSeg = Number(minSegArg.slice('--min-seg='.length));
 const SQRT1_2 = Math.SQRT1_2;
 /** 45도 배수 단위벡터 8개. `Math.cos(Math.PI/2)`가 6.1e-17을 돌려주는 부동소수점 찌꺼기를
  * 좌표에 누적시키지 않으려고 표로 박아둔다 — 찌꺼기가 쌓이면 "수직인데 x가 조금씩 밀리는"
@@ -652,58 +668,141 @@ function snapUnit(dx, dy) {
 /**
  * 방향(`dirs`)을 고정한 채 선분 길이만 다시 정한다.
  *
- * 열린 노선은 원래 길이를 그대로 쓰면 되지만, 순환선(2호선)은 마지막 선분이 첫 역으로
- * 정확히 돌아와야 한다 — 방향을 스냅한 순간 Σ(L_i·u_i) ≠ 0 이 되어 그냥 이어 붙이면 루프가
- * 벌어진다. 그래서 "원래 길이에서 가장 덜 벗어나면서 닫히는 길이 조합"을 라그랑주 승수로
- * 푼다: min Σ(L'_i−L_i)² s.t. Σ L'_i·u_i = 0 → L'_i = L_i + λ·u_i, λ = −M⁻¹·Σ(L_i·u_i),
- * M = Σ u_i u_iᵀ. 닫힘 오차를 방향별로 "덜 저항하는 선분"에 자동 배분하는 효과가 있어,
- * 한 선분에 몰아서 보정할 때 생기는 뒤틀림이 없다.
+ * 자유 체인(양 끝이 아무 데도 안 묶인 노선)은 원래 길이를 그대로 쓰면 되지만, 두 경우는
+ * 체인의 시작→끝 변위가 **미리 정해져 있다**: ① 순환선(2호선)은 마지막 선분이 첫 역으로
+ * 정확히 돌아와야 하고(변위 0), ② 이미 확정된 환승역 두 개 사이에 낀 구간은 그 두 점을
+ * 정확히 이어야 한다(변위 = 끝점 − 시작점). 방향을 스냅한 순간 Σ(L_i·u_i) ≠ 변위가 되어
+ * 그냥 이어 붙이면 루프가 벌어지거나 구간이 환승역에서 떨어져 나간다.
  *
- * 길이가 음수/과소로 떨어지는 선분은 `OCTO_MIN_SEG`로 고정하고 나머지만 다시 푼다(능동
+ * 그래서 "원래 길이에서 가장 덜 벗어나면서 제약을 만족하는 길이 조합"을 라그랑주 승수로
+ * 푼다: min Σ(L'_i−L_i)² s.t. Σ L'_i·u_i = T → L'_i = L_i + λ·u_i,
+ * λ = M⁻¹·(T − Σ(L_i·u_i)), M = Σ u_i u_iᵀ. 오차를 방향별로 "덜 저항하는 선분"에 자동
+ * 배분하는 효과가 있어, 한 선분에 몰아서 보정할 때 생기는 뒤틀림이 없다.
+ *
+ * 길이가 음수/과소로 떨어지는 선분은 `octoMinSeg`로 고정하고 나머지만 다시 푼다(능동
  * 제약 집합법). 반복 상한은 선분 수 — 매 반복마다 최소 1개가 고정되므로 반드시 끝난다.
  * @param {number[]} baseLengths
  * @param {Point[]} dirs
- * @param {boolean} closed
+ * @param {Point | null} target 체인의 시작→끝 변위 제약. null 이면 제약 없음.
  * @returns {{ lengths: number[], clampedCount: number, closureError: number }}
  */
-function solveOctolinearLengths(baseLengths, dirs, closed) {
+function solveOctolinearLengths(baseLengths, dirs, target) {
   const n = baseLengths.length;
-  const lengths = baseLengths.map((l) => Math.max(l, OCTO_MIN_SEG));
-  if (!closed) return { lengths, clampedCount: 0, closureError: 0 };
+  const lengths = baseLengths.map((l) => Math.max(l, octoMinSeg));
+  if (!target) return { lengths, clampedCount: 0, closureError: 0 };
 
   const clamped = new Array(n).fill(false);
   for (let iter = 0; iter <= n; iter += 1) {
     let m00 = 0, m01 = 0, m11 = 0, freeSumX = 0, freeSumY = 0, fixedSumX = 0, fixedSumY = 0;
     for (let i = 0; i < n; i += 1) {
       const u = dirs[i];
-      if (clamped[i]) { fixedSumX += OCTO_MIN_SEG * u.x; fixedSumY += OCTO_MIN_SEG * u.y; continue; }
+      if (clamped[i]) { fixedSumX += octoMinSeg * u.x; fixedSumY += octoMinSeg * u.y; continue; }
       m00 += u.x * u.x; m01 += u.x * u.y; m11 += u.y * u.y;
       freeSumX += baseLengths[i] * u.x; freeSumY += baseLengths[i] * u.y;
     }
-    const rx = -fixedSumX - freeSumX;
-    const ry = -fixedSumY - freeSumY;
+    const rx = target.x - fixedSumX - freeSumX;
+    const ry = target.y - fixedSumY - freeSumY;
     const det = m00 * m11 - m01 * m01;
     if (Math.abs(det) < 1e-9) {
-      // 자유 선분의 방향이 한 직선에 몰린 퇴화 케이스 — 닫힘을 만들 자유도가 없다.
-      // 실 데이터에서 나올 일이 사실상 없으므로 보정을 포기하고 원래 길이를 쓴다.
+      // 자유 선분의 방향이 한 직선에 몰린 퇴화 케이스 — 제약을 만족시킬 자유도가 없다.
+      // 남은 오차는 호출자(snapChain)가 구간 전체에 선형 분배해 접합만은 살린다.
       break;
     }
     const lx = (m11 * rx - m01 * ry) / det;
     const ly = (-m01 * rx + m00 * ry) / det;
     let worst = -1;
     for (let i = 0; i < n; i += 1) {
-      if (clamped[i]) { lengths[i] = OCTO_MIN_SEG; continue; }
+      if (clamped[i]) { lengths[i] = octoMinSeg; continue; }
       lengths[i] = baseLengths[i] + lx * dirs[i].x + ly * dirs[i].y;
-      if (lengths[i] < OCTO_MIN_SEG && (worst === -1 || lengths[i] < lengths[worst])) worst = i;
+      if (lengths[i] < octoMinSeg && (worst === -1 || lengths[i] < lengths[worst])) worst = i;
     }
     if (worst === -1) break;
     clamped[worst] = true;
-    lengths[worst] = OCTO_MIN_SEG;
+    lengths[worst] = octoMinSeg;
   }
 
   let ex = 0, ey = 0;
   for (let i = 0; i < n; i += 1) { ex += lengths[i] * dirs[i].x; ey += lengths[i] * dirs[i].y; }
-  return { lengths, clampedCount: clamped.filter(Boolean).length, closureError: Math.hypot(ex, ey) };
+  return {
+    lengths,
+    clampedCount: clamped.filter(Boolean).length,
+    closureError: Math.hypot(ex - target.x, ey - target.y),
+  };
+}
+
+/**
+ * 좌표열 하나를 옥토리니어 체인으로 재구성한다. **파일을 건드리지 않는 순수 함수**라
+ * 완화 반복(제안만 계산)과 확정 패스가 같은 코드를 공유한다.
+ *
+ * 기준점 정렬 규칙: 시작이 고정이면 시작점을, 끝만 고정이면 끝점을, 아무것도 고정이 아니면
+ * **무게중심**을 원래 위치에 맞춘다. 자유 체인에서 첫 역을 기준으로 잡으면 스냅 오차가 전부
+ * 반대쪽 끝에 쌓여 노선 전체가 한쪽으로 밀린 것처럼 보이는데, 무게중심이면 양쪽으로 갈린다.
+ * @param {Point[]} pts
+ * @param {{ closed?: boolean, startFixed?: boolean, endFixed?: boolean }} opts
+ * @returns {{ pts: Point[], residual: number, clampedCount: number }}
+ */
+function snapChain(pts, opts) {
+  const closed = opts.closed === true;
+  const n = pts.length;
+  const segCount = closed ? n : n - 1;
+  if (segCount < 1) return { pts: pts.map((p) => ({ ...p })), residual: 0, clampedCount: 0 };
+
+  /** @type {number[]} */
+  const baseLengths = [];
+  /** @type {Point[]} */
+  const dirs = [];
+  for (let i = 0; i < segCount; i += 1) {
+    const a = pts[i];
+    const b = pts[(i + 1) % n];
+    baseLengths.push(Math.hypot(b.x - a.x, b.y - a.y));
+    dirs.push(snapUnit(b.x - a.x, b.y - a.y));
+  }
+
+  const bothFixed = opts.startFixed === true && opts.endFixed === true;
+  const target = closed
+    ? { x: 0, y: 0 }
+    : bothFixed
+      ? { x: pts[n - 1].x - pts[0].x, y: pts[n - 1].y - pts[0].y }
+      : null;
+  const { lengths, clampedCount } = solveOctolinearLengths(baseLengths, dirs, target);
+
+  /** @type {Point[]} */
+  const rebuilt = [{ x: 0, y: 0 }];
+  for (let i = 0; i < n - 1; i += 1) {
+    const prev = rebuilt[i];
+    rebuilt.push({ x: prev.x + lengths[i] * dirs[i].x, y: prev.y + lengths[i] * dirs[i].y });
+  }
+
+  let ox;
+  let oy;
+  if (opts.startFixed) { ox = pts[0].x; oy = pts[0].y; }
+  else if (opts.endFixed) { ox = pts[n - 1].x - rebuilt[n - 1].x; oy = pts[n - 1].y - rebuilt[n - 1].y; }
+  else {
+    const oldC = { x: pts.reduce((s, q) => s + q.x, 0) / n, y: pts.reduce((s, q) => s + q.y, 0) / n };
+    const newC = { x: rebuilt.reduce((s, q) => s + q.x, 0) / n, y: rebuilt.reduce((s, q) => s + q.y, 0) / n };
+    ox = oldC.x - newC.x; oy = oldC.y - newC.y;
+  }
+  for (const q of rebuilt) { q.x += ox; q.y += oy; }
+
+  let residual = closed ? Math.hypot(
+    rebuilt[n - 1].x + lengths[n - 1] * dirs[n - 1].x - rebuilt[0].x,
+    rebuilt[n - 1].y + lengths[n - 1] * dirs[n - 1].y - rebuilt[0].y,
+  ) : 0;
+  if (bothFixed) {
+    // 방향 집합이 퇴화해 제약을 정확히 못 맞춘 경우(예: 자유 선분이 전부 같은 방향)
+    // 남은 오차를 구간 전체에 선형 분배한다. **각도가 조금 틀어지더라도 환승역에서
+    // 선이 끊어지는 것만은 절대 만들지 않는다** — 끊긴 선은 명백한 렌더 버그로 보인다.
+    const ex = rebuilt[n - 1].x - pts[n - 1].x;
+    const ey = rebuilt[n - 1].y - pts[n - 1].y;
+    residual = Math.hypot(ex, ey);
+    if (residual > 1e-6) {
+      for (let i = 1; i < n; i += 1) {
+        rebuilt[i].x -= (ex * i) / (n - 1);
+        rebuilt[i].y -= (ey * i) / (n - 1);
+      }
+    }
+  }
+  return { pts: rebuilt, residual, clampedCount };
 }
 
 /**
@@ -745,91 +844,346 @@ function moveStationWithPolylines(d, code, oldPt, newPt, skipLineCodes) {
 }
 
 /**
- * 한 노선을 옥토리니어로 스냅한다.
- * @param {GeomDoc} d
- * @param {string} lineCode
- * @param {Set<string>} transferCodes
- * @returns {{ moved: number, maxShift: number, minSegment: number, clampedCount: number,
- *   closureError: number, reversals: number, affectedLines: Map<string, string[]> } | null}
+ * 노선 하나가 순환선인가. polyline의 첫/끝점이 같은지로 판정한다 — 실 데이터에서 이 형태인
+ * 것은 2호선 본선(L-S1102) 하나뿐이다. **스냅으로 polyline을 다시 만들기 전에** 한 번만
+ * 계산해 둬야 한다(다시 만든 뒤에도 닫힘 점을 붙여주긴 하지만, 판정 기준이 산출물에
+ * 의존하게 두면 재실행 시 조용히 깨질 여지가 생긴다).
+ * @param {LineEntry} line
+ * @returns {boolean}
  */
-function octolinearizeLine(d, lineCode, transferCodes) {
-  const line = d.lines.find((l) => l.lineCode === lineCode);
-  if (!line) { console.error(`파일에 없는 lineCode: ${lineCode}`); return null; }
-  const stationByCode = new Map(d.stations.map((s) => [s.stationCode, s]));
-  const pts = line.stationCodes.map((c) => {
-    const s = stationByCode.get(c);
-    return s ? { x: s.x, y: s.y } : null;
-  });
-  if (pts.some((p) => p === null)) { console.error(`${lineCode}: 좌표가 없는 역이 있습니다.`); return null; }
-  const p = /** @type {Point[]} */ (pts);
-  const n = p.length;
-  if (n < 2) return null;
-
-  // 순환선 판정은 polyline의 첫/끝점이 같은지로 한다 — 2호선 루프만 이 형태다.
+function isClosedLine(line) {
   const first = line.polyline[0];
   const last = line.polyline[line.polyline.length - 1];
-  const closed = first[0] === last[0] && first[1] === last[1];
-  const segCount = closed ? n : n - 1;
+  return line.polyline.length > 2 && first[0] === last[0] && first[1] === last[1];
+}
 
-  /** @type {number[]} */
-  const baseLengths = [];
-  /** @type {Point[]} */
-  const dirs = [];
-  let reversals = 0;
-  for (let i = 0; i < segCount; i += 1) {
-    const a = p[i];
-    const b = p[(i + 1) % n];
-    baseLengths.push(Math.hypot(b.x - a.x, b.y - a.y));
-    const u = snapUnit(b.x - a.x, b.y - a.y);
-    // 직전 선분과 정확히 반대 방향으로 스냅되면 노선이 되돌아가 위상이 시각적으로 꼬인다.
-    // 실제로는 원 선분이 135도 이상 꺾여야 나오는 상황이라 지하철 노선에선 나오지 않지만,
-    // 나오면 조용히 이상해지므로 세어서 보고만 한다(자동 교정은 하지 않는다 — 어느 쪽으로
-    // 틀어야 하는지는 사람이 판단할 문제다).
-    if (i > 0 && dirs[i - 1].x === -u.x && dirs[i - 1].y === -u.y) reversals += 1;
-    dirs.push(u);
+// ── 33개 노선 전역 스냅: 환승역이 노선마다 다른 좌표를 갖지 않게 하는 두 단계 ──────────
+//
+// 파일럿(2호선 단독)은 "한 노선을 스냅하고 환승역이 움직이면 다른 노선의 polyline을 따라
+// 움직이게 한다"는 방식이었다. 33개를 그 방식으로 연달아 돌리면 **나중에 처리한 노선이
+// 앞 노선의 각도를 되돌려놓는다** — 환승역 좌표는 파일 구조상 언제나 1개지만(`stations[]`가
+// 역당 한 행이라 물리적으로 갈라질 수 없다), "누가 마지막에 만졌는가"가 결과를 지배해
+// 노선 절반이 옥토리니어가 아니게 된다.
+//
+// 그래서 두 단계로 나눈다.
+//   1단계(전역 완화): 모든 노선이 **동시에** 자기 이상적 옥토리니어 배치를 제안하고, 환승역은
+//     그 제안들의 평균으로 이동한다(Jacobi 반복 + 감쇠). 어느 노선도 특권을 갖지 않으므로
+//     "처리 순서에 따라 결과가 달라지는" 문제 자체가 사라진다. 여러 라운드를 돌리면 전역적으로
+//     거의 옥토리니어인 상태로 수렴한다 — 다만 "거의"라서 각도가 미세하게 틀어져 있다.
+//   2단계(확정): 그 상태를 출발점으로, 노선을 **환승역 많은 순서**로 처리하며 각 노선을 정확한
+//     45° 배수로 확정하고 그 역들을 얼린다. 뒤에 오는 노선은 이미 얼린 환승역 사이 구간을
+//     `solveOctolinearLengths`의 변위 제약으로 정확히 이어붙인다. 환승역 많은 노선을 먼저
+//     두는 이유는, 그런 노선일수록 나중에 처리되면 제약이 많아 형태가 망가지기 때문이다.
+//
+// 남는 한계: **이미 얼린 환승역 두 개가 노선상 바로 이웃한 구간**(예: 시청↔서울역)은 자유도가
+// 0이라 45°로 만들 방법이 없다. 1단계가 그 구간까지 거의 옥토리니어로 만들어 두므로 실제
+// 잔차는 작지만 0은 아니다. 이 잔차 구간 수는 실행 로그에 그대로 찍어 사람이 보게 한다.
+/** 완화 감쇠 계수. 1.0(제안 전체 반영)이면 환승역이 노선 사이를 왕복하며 진동한다 — 실측으로
+ * 0.6~0.7 부근이 라운드당 이동량이 단조 감소했다. */
+const OCTO_DAMPING = 0.65;
+/** 서로 다른 역이 이만큼보다 가까워지면 완화 중에 밀어낸다. 역 원 지름 22 + 여유 4.
+ * 이게 없으면 45° 스냅이 도심부를 압축하면서 서로 다른 노선의 역이 **정확히 같은 점**에
+ * 겹친다(2026-08-31 실측: 겹침 쌍 39 → 57, 그중 7쌍이 거리 0.5 미만). 밀집 해소를 별도
+ * 3차 패스로 두지 않고 완화 안에 넣은 이유는, 스냅이 끝난 뒤에 역을 옮기면 그 순간 각도가
+ * 격자에서 벗어나기 때문이다 — 같은 반복 안에서 두 요구를 함께 타협시켜야 한다. */
+const OCTO_MIN_GAP = 26;
+/** 2단계가 역 사이 거리를 이 값 아래로 좁히면 그 구간의 확정을 포기한다. 역 원 지름(22)이
+ * 아니라 그보다 2px 낮은 값인 이유: 22를 그대로 쓰면 "22.1 → 20.3"처럼 사실상 안 보이는
+ * 2px 접근 때문에 2호선 루프 전체(43선분)의 확정이 통째로 날아갔다(2026-08-31 실측).
+ * 20이면 원이 1px씩 겹치는 정도라 육안으로 구분되지 않는다. */
+const OCTO_OVERLAP_FLOOR = 20;
+
+/**
+ * @param {GeomDoc} d
+ * @param {string[]} lineCodes 스냅 대상 노선
+ * @param {number} rounds 1단계 완화 최대 라운드
+ * @returns {{ frozenResiduals: { lineCode: string, index: number, residual: number }[],
+ *   pinnedPairs: number, clampedCount: number, maxShift: number, rejectedRuns: number }}
+ */
+function octolinearizeAll(d, lineCodes, rounds) {
+  const targets = lineCodes
+    .map((c) => d.lines.find((l) => l.lineCode === c))
+    .filter((l) => l !== undefined);
+  /** @type {Map<string, boolean>} */
+  const closedBy = new Map(d.lines.map((l) => [l.lineCode, isClosedLine(l)]));
+  /** @type {Map<string, Point>} 실행 시작 시점 좌표 — 비대상 노선 polyline 동기화의 기준점 */
+  const origPos = new Map(d.stations.map((s) => [s.stationCode, { x: s.x, y: s.y }]));
+  /** @type {Map<string, Point>} */
+  const pos = new Map(d.stations.map((s) => [s.stationCode, { x: s.x, y: s.y }]));
+
+  // ── 1단계: 전역 완화 ──
+  // **선분 단위 국소 완화**다. 처음에는 "노선마다 이상적 옥토리니어 체인을 통째로 만들어
+  // 평균낸다"로 짰는데 발산했다(라운드당 최대 이동이 42 → 133으로 오히려 커졌다, 2026-08-31
+  // 실측). 이유: 체인을 첫 역부터 누적해 다시 그리면 앞쪽 선분의 미세한 각도 오차가 뒤로 갈수록
+  // 증폭돼, 56역짜리 5호선 같은 긴 노선의 끝이 수백 px씩 휘둘린다. 그 값이 환승역을 통해 다른
+  // 노선으로 전파되면서 되먹임 발진이 됐다.
+  //
+  // 지금 방식은 누적이 없다. 선분 하나하나를 독립적으로 보고 "이 선분이 45° 방향 u에 놓이려면
+  // 양 끝이 각각 어디로 가야 하는가"를 구해, 역마다 자기에게 걸린 모든 선분의 요구를 평균내
+  // 조금씩(감쇠) 움직인다. 선분 하나의 보정은 양 끝에 크기가 같고 부호가 반대라 **전체 무게중심이
+  // 보존되고**, 오차가 확산(diffusion)될 뿐 증폭되지 않는다. 순환선의 닫힘도 별도 제약 없이
+  // 자동으로 지켜진다 — 루프는 그래프상 하나의 사이클이라 완화가 최소자승 타협점을 찾는다.
+  let rounds1 = 0;
+  /** @type {[string, string][]} 겹침 후보 쌍. 수천 라운드를 도는 루프라 매 라운드 새 배열을
+   * 만들지 않고 하나를 비워 재사용한다. */
+  const pairs = [];
+  for (let r = 0; r < rounds; r += 1) {
+    rounds1 = r + 1;
+    /** @type {Map<string, { x: number, y: number, n: number }>} */
+    const corr = new Map();
+    /** @param {string} code @param {number} dx @param {number} dy */
+    const add = (code, dx, dy) => {
+      const c = corr.get(code) ?? { x: 0, y: 0, n: 0 };
+      c.x += dx; c.y += dy; c.n += 1;
+      corr.set(code, c);
+    };
+    for (const line of targets) {
+      const codes = line.stationCodes;
+      const n = codes.length;
+      if (n < 2) continue;
+      const segCount = closedBy.get(line.lineCode) ? n : n - 1;
+      for (let i = 0; i < segCount; i += 1) {
+        const ca = codes[i];
+        const cb = codes[(i + 1) % n];
+        const a = /** @type {Point} */ (pos.get(ca));
+        const b = /** @type {Point} */ (pos.get(cb));
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const u = snapUnit(dx, dy);
+        const len = Math.max(Math.hypot(dx, dy), octoMinSeg);
+        const ex = dx - len * u.x;
+        const ey = dy - len * u.y;
+        add(ca, ex / 2, ey / 2);
+        add(cb, -ex / 2, -ey / 2);
+      }
+    }
+
+    // 겹침 반발. 646역을 전수 비교하면 라운드당 20만 쌍이라 수천 라운드를 못 돌린다 —
+    // OCTO_MIN_GAP 크기의 격자에 역을 담고 자기 칸 + 이웃 8칸만 본다(그보다 먼 쌍은 정의상
+    // 임계 거리 밖이다).
+    /** @type {Map<string, string[]>} */
+    const buckets = new Map();
+    for (const [code, p] of pos) {
+      const key = `${Math.floor(p.x / OCTO_MIN_GAP)},${Math.floor(p.y / OCTO_MIN_GAP)}`;
+      const b = buckets.get(key);
+      if (b) b.push(code); else buckets.set(key, [code]);
+    }
+    for (const [key, members] of buckets) {
+      const [bx, by] = key.split(',').map(Number);
+      /** @type {string[]} */
+      const near = [];
+      for (let ox = 0; ox <= 1; ox += 1) {
+        for (let oy = ox === 0 ? 0 : -1; oy <= 1; oy += 1) {
+          if (ox === 0 && oy === 0) continue;
+          near.push(...(buckets.get(`${bx + ox},${by + oy}`) ?? []));
+        }
+      }
+      // 같은 칸 안의 쌍(i<j)만 자기 자신과 비교하고, 이웃 칸은 절반 방향(오른쪽·아래)만 봐서
+      // 같은 쌍을 두 번 세지 않는다.
+      for (let i = 0; i < members.length; i += 1) {
+        for (let j = i + 1; j < members.length; j += 1) pairs.push([members[i], members[j]]);
+        for (const other of near) pairs.push([members[i], other]);
+      }
+    }
+    for (const [ca, cb] of pairs) {
+      const a = /** @type {Point} */ (pos.get(ca));
+      const b = /** @type {Point} */ (pos.get(cb));
+      let dx = b.x - a.x;
+      let dy = b.y - a.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist >= OCTO_MIN_GAP) continue;
+      if (dist < 1e-6) { dx = 1; dy = 0; } // 완전히 겹친 상태에선 밀 방향이 없다 — 임의로 x축
+      const need = OCTO_MIN_GAP - Math.max(dist, 1e-6);
+      const ux = dx / Math.max(dist, 1e-6);
+      const uy = dy / Math.max(dist, 1e-6);
+      add(ca, (-ux * need) / 2, (-uy * need) / 2);
+      add(cb, (ux * need) / 2, (uy * need) / 2);
+    }
+    pairs.length = 0;
+
+    let maxMove = 0;
+    for (const [code, c] of corr) {
+      const cur = /** @type {Point} */ (pos.get(code));
+      const mx = (OCTO_DAMPING * c.x) / c.n;
+      const my = (OCTO_DAMPING * c.y) / c.n;
+      maxMove = Math.max(maxMove, Math.hypot(mx, my));
+      pos.set(code, { x: cur.x + mx, y: cur.y + my });
+    }
+    if (maxMove < 0.02) break; // 0.02 = 저장 해상도(0.1)의 1/5. 그 아래는 파일에 남지도 않는다
+  }
+  console.log(`  1단계 전역 완화: ${rounds1}라운드`);
+
+  // ── 2단계: 확정 ──
+  /** @type {Map<string, number>} */
+  const lineCountByStation = new Map();
+  for (const line of d.lines) {
+    for (const c of line.stationCodes) lineCountByStation.set(c, (lineCountByStation.get(c) ?? 0) + 1);
+  }
+  const order = [...targets].sort((a, b) => {
+    const ta = a.stationCodes.filter((c) => (lineCountByStation.get(c) ?? 1) > 1).length;
+    const tb = b.stationCodes.filter((c) => (lineCountByStation.get(c) ?? 1) > 1).length;
+    return tb - ta || b.stationCodes.length - a.stationCodes.length;
+  });
+
+  /** @type {Set<string>} */
+  const frozen = new Set();
+  /** @type {{ lineCode: string, index: number, residual: number }[]} */
+  const frozenResiduals = [];
+  let pinnedPairs = 0;
+  let clampedCount = 0;
+  let rejectedRuns = 0;
+
+  for (const line of order) {
+    const codes = line.stationCodes;
+    const n = codes.length;
+    const pts = codes.map((c) => ({ .../** @type {Point} */ (pos.get(c)) }));
+    // 확정 결과를 그대로 받으면 **1단계가 벌려놓은 역이 다시 겹친다** — 첫 구현에서 겹침 쌍이
+    // 1단계 직후 3건에서 25건으로(그중 1건은 거리 0으로 완전히 포개짐) 늘어나는 것을 실측했다.
+    // 각도를 0.4°에서 0.2°로 다듬는 대가로 역 원이 포개지는 건 명백히 손해라(1° 어긋난 선은
+    // 아무도 못 알아보지만 겹친 역 원은 바로 보인다), 겹침을 새로 만드는 구간은 통째로 버리고
+    // 1단계 좌표를 그대로 쓴다.
+    /** @param {Point[]} next @param {number} from @returns {boolean} */
+    const createsOverlap = (next, from) => {
+      for (let i = 0; i < next.length; i += 1) {
+        const code = codes[from + i];
+        for (const [other, op] of pos) {
+          if (other === code) continue;
+          const oi = codes.indexOf(other);
+          const q = oi >= from && oi < from + next.length ? next[oi - from] : op;
+          const nd = Math.hypot(next[i].x - q.x, next[i].y - q.y);
+          if (nd >= OCTO_OVERLAP_FLOOR) continue;
+          const cur = /** @type {Point} */ (pos.get(code));
+          if (nd < Math.hypot(cur.x - q.x, cur.y - q.y)) return true;
+        }
+      }
+      return false;
+    };
+
+    // 통째로 버리는 대신 "1단계 좌표 ↔ 정확한 격자 좌표" 사이를 선형 보간해 겹침이 생기지 않는
+    // 가장 큰 비율을 쓴다. 전부 아니면 전무로 하면 2호선 루프처럼 역이 많은 노선이 딱 한 쌍의
+    // 겹침 때문에 개선을 통째로 잃는다(실측: 루프 43선분 중 14개가 격자에서 벗어난 채 남았다).
+    /** @type {number[]} */
+    const BLEND_STEPS = [1, 0.75, 0.5, 0.25];
+    /** @param {Point[]} exact @param {Point[]} base @param {number} from @returns {Point[] | null} */
+    const bestBlend = (exact, base, from) => {
+      for (const t of BLEND_STEPS) {
+        const blended = exact.map((q, i) => ({
+          x: base[i].x + (q.x - base[i].x) * t,
+          y: base[i].y + (q.y - base[i].y) * t,
+        }));
+        if (!createsOverlap(blended, from)) return t === 1 ? exact : blended;
+      }
+      return null;
+    };
+
+    /** @param {number} from @param {number} to @param {{ startFixed?: boolean, endFixed?: boolean }} o */
+    const applyRun = (from, to, o) => {
+      const sub = pts.slice(from, to + 1);
+      if (sub.length < 2) return;
+      const res = snapChain(sub, o);
+      const accepted = bestBlend(res.pts, sub, from);
+      if (!accepted) { rejectedRuns += 1; return; }
+      clampedCount += res.clampedCount;
+      if (res.residual > 0.5) frozenResiduals.push({ lineCode: line.lineCode, index: from, residual: res.residual });
+      for (let i = 0; i < sub.length; i += 1) pts[from + i] = accepted[i];
+    };
+
+    if (n < 2) { /* 역 1개짜리 노선은 스냅할 선분이 없다 */ }
+    else if (closedBy.get(line.lineCode)) {
+      // 순환선은 구간 분할이 불가능하다(어디를 잘라도 닫힘 제약이 깨진다) — 통째로 스냅한다.
+      // 환승역 많은 순 정렬 덕에 2호선이 첫 번째라 얼린 역이 아직 없다.
+      const res = snapChain(pts, { closed: true });
+      const accepted = bestBlend(res.pts, pts.map((p) => ({ ...p })), 0);
+      if (!accepted) rejectedRuns += 1;
+      else {
+        clampedCount += res.clampedCount;
+        if (res.residual > 0.5) frozenResiduals.push({ lineCode: line.lineCode, index: 0, residual: res.residual });
+        for (let i = 0; i < n; i += 1) pts[i] = accepted[i];
+      }
+    } else {
+      const fixed = codes.map((c, i) => (frozen.has(c) ? i : -1)).filter((i) => i >= 0);
+      if (fixed.length === 0) applyRun(0, n - 1, {});
+      else {
+        if (fixed[0] > 0) applyRun(0, fixed[0], { endFixed: true });
+        for (let k = 0; k < fixed.length - 1; k += 1) {
+          if (fixed[k + 1] === fixed[k] + 1) { pinnedPairs += 1; continue; } // 자유도 0 — 손댈 수 없다
+          applyRun(fixed[k], fixed[k + 1], { startFixed: true, endFixed: true });
+        }
+        if (fixed[fixed.length - 1] < n - 1) applyRun(fixed[fixed.length - 1], n - 1, { startFixed: true });
+      }
+    }
+
+    for (let i = 0; i < n; i += 1) { pos.set(codes[i], pts[i]); frozen.add(codes[i]); }
   }
 
-  const { lengths, clampedCount, closureError } = solveOctolinearLengths(baseLengths, dirs, closed);
-
-  /** @type {Point[]} */
-  const rebuilt = [{ x: 0, y: 0 }];
-  for (let i = 0; i < n - 1; i += 1) {
-    const prev = rebuilt[i];
-    rebuilt.push({ x: prev.x + lengths[i] * dirs[i].x, y: prev.y + lengths[i] * dirs[i].y });
-  }
-  // 무게중심을 원래 위치에 맞춘다. 첫 역을 고정하면 스냅 오차가 전부 반대쪽 끝에 쌓여
-  // 노선 전체가 한쪽으로 밀린 것처럼 보이는데, 무게중심 기준이면 오차가 양쪽으로 갈린다.
-  const oldC = { x: p.reduce((s, q) => s + q.x, 0) / n, y: p.reduce((s, q) => s + q.y, 0) / n };
-  const newC = { x: rebuilt.reduce((s, q) => s + q.x, 0) / n, y: rebuilt.reduce((s, q) => s + q.y, 0) / n };
-  const dx = oldC.x - newC.x;
-  const dy = oldC.y - newC.y;
-  for (const q of rebuilt) { q.x += dx; q.y += dy; }
-
-  /** @type {Map<string, string[]>} 환승역 코드 → 이 이동으로 polyline까지 고친 다른 노선들 */
-  const affectedLines = new Map();
+  // ── 반영: 좌표 → stations[] / 대상 노선 polyline 재생성 / 비대상 노선 polyline 동기화 ──
   let maxShift = 0;
-  const skip = new Set([lineCode]);
-  for (let i = 0; i < n; i += 1) {
-    const shift = Math.hypot(rebuilt[i].x - p[i].x, rebuilt[i].y - p[i].y);
-    if (shift > maxShift) maxShift = shift;
-    const touched = moveStationWithPolylines(d, line.stationCodes[i], p[i], rebuilt[i], skip);
-    if (transferCodes.has(line.stationCodes[i])) affectedLines.set(line.stationCodes[i], touched);
+  for (const s of d.stations) {
+    const p = /** @type {Point} */ (pos.get(s.stationCode));
+    const o = /** @type {Point} */ (origPos.get(s.stationCode));
+    maxShift = Math.max(maxShift, Math.hypot(p.x - o.x, p.y - o.y));
+  }
+  const targetCodes = new Set(targets.map((l) => l.lineCode));
+  for (const s of d.stations) {
+    const p = /** @type {Point} */ (pos.get(s.stationCode));
+    const o = /** @type {Point} */ (origPos.get(s.stationCode));
+    if (Math.abs(p.x - o.x) < 0.05 && Math.abs(p.y - o.y) < 0.05) continue;
+    moveStationWithPolylines(d, s.stationCode, o, p, targetCodes);
+  }
+  for (const line of targets) {
+    // 옥토리니어에서 역 사이는 직선이므로 곡선 보간점(2호선 루프의 역당 3점)과 손으로 넣은
+    // 접속점(성수/신정지선의 1점)을 버리고 역 좌표만으로 polyline을 다시 만든다. 결과적으로
+    // 33개 노선 전부가 "polyline 길이 == 역 수(+순환선 닫힘 점 1)"라는 단순한 형태가 된다.
+    line.polyline = line.stationCodes.map((c) => {
+      const p = /** @type {Point} */ (pos.get(c));
+      return /** @type {[number, number]} */ ([round1(p.x), round1(p.y)]);
+    });
+    if (closedBy.get(line.lineCode)) line.polyline.push([...line.polyline[0]]);
+  }
+  for (const s of d.stations) {
+    const p = /** @type {Point} */ (pos.get(s.stationCode));
+    s.x = round1(p.x); s.y = round1(p.y);
   }
 
-  // 옥토리니어에서 역 사이는 직선이므로 곡선 보간점(2호선 루프의 역당 3점)을 버리고
-  // 역 좌표만으로 polyline을 다시 만든다. 순환선은 첫 점을 끝에 한 번 더 넣어 닫는다.
-  line.polyline = rebuilt.map((q) => /** @type {[number, number]} */ ([round1(q.x), round1(q.y)]));
-  if (closed) line.polyline.push([round1(rebuilt[0].x), round1(rebuilt[0].y)]);
+  return { frozenResiduals, pinnedPairs, clampedCount, maxShift, rejectedRuns };
+}
 
-  return {
-    moved: n,
-    maxShift,
-    minSegment: Math.min(...lengths),
-    clampedCount,
-    closureError,
-    reversals,
-    affectedLines,
-  };
+/**
+ * 결과 품질 지표. "각도가 실제로 45° 배수인가"와 "역 원이 얼마나 겹치는가" 두 가지를
+ * 같은 기준으로 스냅 전/후에 각각 재서 비교한다.
+ * @param {GeomDoc} d
+ * @returns {{ segments: number, offGrid: number, meanDev: number, maxDev: number,
+ *   minSeg: number, overlapPairs: number }}
+ */
+function octolinearStats(d) {
+  const byCode = new Map(d.stations.map((s) => [s.stationCode, s]));
+  let segments = 0, offGrid = 0, sumDev = 0, maxDev = 0;
+  let minSeg = Number.POSITIVE_INFINITY;
+  for (const line of d.lines) {
+    const closed = isClosedLine(line);
+    const n = line.stationCodes.length;
+    for (let i = 0; i < (closed ? n : n - 1); i += 1) {
+      const a = byCode.get(line.stationCodes[i]);
+      const b = byCode.get(line.stationCodes[(i + 1) % n]);
+      if (!a || !b) continue;
+      const len = Math.hypot(b.x - a.x, b.y - a.y);
+      if (len < 1e-6) continue;
+      minSeg = Math.min(minSeg, len);
+      const raw = (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
+      const dev = Math.abs(raw - Math.round(raw / 45) * 45);
+      segments += 1; sumDev += dev; maxDev = Math.max(maxDev, dev);
+      // 1° = 길이 26 선분에서 0.45px. round1(0.1 단위)만으로도 0.2° 안팎이 생기므로
+      // 그보다 넉넉한 1°를 "격자에서 벗어남"의 기준으로 잡는다.
+      if (dev > 1) offGrid += 1;
+    }
+  }
+  let overlapPairs = 0;
+  for (let i = 0; i < d.stations.length; i += 1) {
+    for (let j = i + 1; j < d.stations.length; j += 1) {
+      if (Math.hypot(d.stations[i].x - d.stations[j].x, d.stations[i].y - d.stations[j].y) < 22) overlapPairs += 1;
+    }
+  }
+  return { segments, offGrid, meanDev: segments ? sumDev / segments : 0, maxDev, minSeg, overlapPairs };
 }
 
 /** @param {GeomDoc} d @returns {string} */
@@ -910,58 +1264,34 @@ if (resolveCrowdingMode) {
 }
 
 if (octolinearLineCodes.length > 0) {
-  /** @type {Map<string, string[]>} */
-  const linesByStationCode = new Map();
-  for (const line of doc.lines) {
-    for (const code of line.stationCodes) {
-      if (!linesByStationCode.has(code)) linesByStationCode.set(code, []);
-      /** @type {string[]} */ (linesByStationCode.get(code)).push(line.lineCode);
-    }
-  }
-  const transferCodes = new Set(
-    [...linesByStationCode.entries()].filter(([, ls]) => ls.length > 1).map(([c]) => c),
-  );
-
-  for (const lineCode of octolinearLineCodes) {
-    const targetCodes = new Set(doc.lines.find((l) => l.lineCode === lineCode)?.stationCodes ?? []);
-    const result = octolinearizeLine(doc, lineCode, transferCodes);
-    if (!result) continue;
-    console.log(
-      `${lineCode}: 역 ${result.moved}개 재배치, 최대 이동 ${round1(result.maxShift)}, ` +
-        `최단 선분 ${round1(result.minSegment)}(하한 ${OCTO_MIN_SEG}에 걸린 선분 ${result.clampedCount}개), ` +
-        `닫힘 잔차 ${result.closureError.toFixed(3)}, 역방향 스냅 ${result.reversals}건`,
-    );
-    if (result.affectedLines.size > 0) {
-      console.log(`  환승역 ${result.affectedLines.size}개가 이동했다 — 아래 노선의 polyline도 함께 갱신했다:`);
-      /** @type {Map<string, number>} */
-      const byLine = new Map();
-      for (const [, touched] of result.affectedLines) {
-        for (const lc of touched) byLine.set(lc, (byLine.get(lc) ?? 0) + 1);
-      }
-      for (const [lc, count] of [...byLine.entries()].sort((a, b) => b[1] - a[1])) {
-        console.log(`    ${lc}: 공유 역 ${count}개`);
-      }
-    }
-
-    // 스냅 뒤 다른 노선 역과 얼마나 붙었는지 — 겹침이 심하면 `--resolve-crowding`을 이어서
-    // 돌려야 한다는 신호다. 여기서 자동으로 돌리지는 않는다(패스를 섞으면 어느 쪽이 만든
-    // 결과인지 구분이 안 돼 파일럿 판단이 흐려진다).
-    /** @type {{ a: string, b: string, d: number }[]} */
-    const close = [];
-    for (const s of doc.stations) {
-      if (!targetCodes.has(s.stationCode)) continue;
-      for (const o of doc.stations) {
-        if (targetCodes.has(o.stationCode)) continue;
-        const dd = Math.hypot(s.x - o.x, s.y - o.y);
-        if (dd < 22) close.push({ a: s.stationCode, b: o.stationCode, d: dd });
-      }
-    }
-    close.sort((x, y) => x.d - y.d);
-    console.log(`  다른 노선 역과 원(반지름 11)이 겹치는 쌍 ${close.length}건` +
-      (close.length > 0 ? ` — 최악 ${close.slice(0, 5).map((c) => `${c.a}↔${c.b}(${round1(c.d)})`).join(', ')}` : ''));
-  }
-
+  const before = octolinearStats(doc);
+  const result = octolinearizeAll(doc, octolinearLineCodes, octoRounds);
   normalizeViewBox(doc);
+  const after = octolinearStats(doc);
+
+  console.log(
+    `대상 노선 ${octolinearLineCodes.length}개 / 최대 이동 ${round1(result.maxShift)} / ` +
+      `선분 하한(${octoMinSeg})에 걸린 선분 ${result.clampedCount}개`,
+  );
+  console.log(
+    `격자 이탈(45°에서 1° 초과) 선분: ${before.offGrid}/${before.segments} → ${after.offGrid}/${after.segments}, ` +
+      `평균 편차 ${before.meanDev.toFixed(2)}° → ${after.meanDev.toFixed(2)}°, 최대 ${before.maxDev.toFixed(2)}° → ${after.maxDev.toFixed(2)}°`,
+  );
+  console.log(
+    `역 원(반지름 11) 겹침 쌍: ${before.overlapPairs} → ${after.overlapPairs}, ` +
+      `최단 선분 ${round1(before.minSeg)} → ${round1(after.minSeg)}`,
+  );
+  console.log(
+    `2단계에서 손대지 않은 구간: 자유도 0(확정된 환승역이 노선상 바로 이웃) ${result.pinnedPairs}개, ` +
+      `겹침을 새로 만들어 되돌린 구간 ${result.rejectedRuns}개 — 둘 다 1단계 결과를 그대로 쓴다`,
+  );
+  if (result.frozenResiduals.length > 0) {
+    console.log(`제약을 정확히 못 맞춰 오차를 선형 분배한 구간 ${result.frozenResiduals.length}개:`);
+    for (const r of result.frozenResiduals.sort((a, b) => b.residual - a.residual).slice(0, 10)) {
+      console.log(`    ${r.lineCode} idx ${r.index}: 잔차 ${round1(r.residual)}`);
+    }
+  }
+
   const outPath = /** @type {string} */ (outArg).slice('--out='.length);
   writeFileSync(outPath, formatDoc(doc));
   console.log(`저장 완료: ${outPath} (viewBox ${doc.viewBox.width}x${doc.viewBox.height})`);
