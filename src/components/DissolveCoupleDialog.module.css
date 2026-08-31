@@ -19,8 +19,10 @@
   padding: var(--space-6);
   overflow-y: auto;
   background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-dialog);
+  /* 그림자가 사라졌으므로(기아: box-shadow 없음) 다이얼로그의 경계는 테두리가 진다 —
+     다크에서 서피스(#05141f)와 딤(#010e18 78%)이 가까워 선이 없으면 가장자리가 녹는다. */
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
 }
 
 .title {
@@ -32,7 +34,7 @@
   padding: var(--space-4);
   background: var(--color-danger-soft);
   border: 1px solid var(--color-danger);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
 }
 
 .stat {

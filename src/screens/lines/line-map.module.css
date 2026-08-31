@@ -10,9 +10,7 @@
      min-height:0 이 있어야 캔버스가 콘텐츠 높이 아래로도 줄어들어 탭바를 밀지 않는다. */
   flex: 1;
   min-height: 0;
-  background-image: var(--app-screen-wash);
-  background-repeat: no-repeat;
-  background-size: 100% var(--app-screen-wash-height);
+  /* 상단 워시 제거(2026-08-31 기아 재브랜딩) — 플랫 배경. */
 }
 
 .header {
@@ -41,7 +39,7 @@
   padding: 0 var(--space-3);
   background: var(--color-field);
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
 }
 
 .toggleLink {
@@ -54,7 +52,7 @@
   text-decoration: none;
   background: var(--color-surface);
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
 }
 
 .toggleLink:hover {
@@ -80,7 +78,7 @@
   cursor: pointer;
   background: none;
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
 }
 
 .notice {
@@ -251,10 +249,11 @@
   font-size: var(--font-size-lg);
   line-height: 1;
   cursor: pointer;
+  /* 캔버스(노선도 SVG·카카오맵) 위에 얹히므로 반투명 금지 — 불투명 서피스로 대비를
+     보장한다. 그림자가 사라졌으니 경계는 border-strong(4.9:1) 하나가 진다. */
   background: var(--color-surface);
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-control);
 }
 
 .zoomButton:hover {
@@ -273,7 +272,7 @@
   padding: var(--space-3) var(--space-4);
   text-align: center;
   background: var(--color-primary-soft);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
 }
 
 .missing > summary {
@@ -285,7 +284,7 @@
 
 .missingList {
   max-height: 240px;
-  padding-left: var(--space-5);
+  padding-left: var(--space-6);
   margin: 0;
   overflow-y: auto;
 }

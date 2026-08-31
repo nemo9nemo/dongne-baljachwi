@@ -5,46 +5,51 @@ import type { VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 /**
- * `ui.module.css`의 `.button`/`.buttonPrimary`/`.buttonDanger`를 Tailwind 유틸리티로
- * 옮긴 shadcn 스타일 Button. 값은 전부 `tailwind.config.ts`를 거쳐 tokens.css를
- * 참조한다 — 여기서 색·반경 리터럴을 새로 쓰지 않는다.
+ * shadcn 스타일 Button. 값은 전부 `tailwind.config.ts`를 거쳐 tokens.css를 참조한다 —
+ * 여기서 색·반경 리터럴을 새로 쓰지 않는다.
  *
- * 접근성 규칙(`docs/design/system.md` §5)을 그대로 지킨다: 비활성은 opacity가 아니라
- * 채움 제거 + muted 텍스트로 표현하고, 이동 효과는 `motion-reduce:`로 끈다.
+ * 2026-08-31 기아 재브랜딩:
+ *  - 형태: `rounded-md`가 이제 0px다(--radius-control). 패딩은 기아 버튼 규격 16/24px
+ *    (`min-h-control`=48px + `px-6`), 라벨은 Bold 하나로 통일했다(굵기 2단계 원칙).
+ *  - 그림자·부양 제거: `shadow-button`/`-translate-y-px`를 전부 걷어냈다. 이 시스템의
+ *    깊이는 그림자가 아니라 채움 대비(차콜 vs 화이트)가 낸다. 남은 상태 변화는 색뿐이라
+ *    `prefers-reduced-motion`에서 끌 이동 효과 자체가 없어졌다(transition-none만 남긴다).
+ *  - 비활성: 회색으로 바꾸지 않고 **브랜드 색을 페이드**한다(--color-primary-disabled,
+ *    차콜 30% 합성을 불투명 값으로 고정). 라벨은 채움 위 흰색/차콜 그대로라 대비가
+ *    라이트 4.91:1 / 다크 4.82:1로 계산상 확정된다 — 반투명 위 글자를 만들지 않는다는
+ *    기존 접근성 규칙(system.md §5)을 지키면서 브랜드 톤을 유지하는 방식이다.
  */
 const buttonVariants = cva(
   [
     // `no-underline`: asChild로 <a>를 감쌀 때(빈 상태 CTA 등) index.css의 전역 링크 밑줄이
     // 버튼 라벨에 그어지는 걸 막는다. 버튼은 형태 자체가 클릭 대상임을 알리므로 밑줄이 필요 없다.
-    'inline-flex min-h-control items-center justify-center rounded-md px-5 text-center font-medium no-underline',
-    'transition-[background-color,border-color,box-shadow,transform] duration-150 ease-out',
-    'disabled:pointer-events-none disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none',
-    'motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:active:translate-y-0',
+    'inline-flex min-h-control items-center justify-center rounded-md px-6 text-center font-bold no-underline',
+    'transition-[background-color,border-color,color] duration-150 ease-out',
+    'disabled:pointer-events-none disabled:cursor-not-allowed',
+    'motion-reduce:transition-none',
   ].join(' '),
   {
     variants: {
       variant: {
-        /** 채움. 진입점의 주 동작 하나에만 쓴다(ui.module.css `.buttonPrimary`와 동일). */
+        /** 채움. 진입점의 주 동작 하나에만 쓴다. */
         default: [
-          'border border-transparent bg-primary font-bold text-primary-foreground shadow-button',
-          'hover:-translate-y-px hover:bg-[var(--color-primary-hover)] hover:shadow-button-hover',
-          'active:translate-y-px active:shadow-button',
-          'disabled:bg-[var(--color-primary-soft)] disabled:text-muted-foreground',
+          'border border-transparent bg-primary text-primary-foreground',
+          'hover:bg-[var(--color-primary-hover)]',
+          'disabled:border-transparent disabled:bg-[var(--color-primary-disabled)] disabled:text-primary-foreground',
         ].join(' '),
-        /** 윤곽. 기본값(`.button`) — 보조 동작 전반. */
+        /** 윤곽. 기본값 — 보조 동작 전반. */
         outline: [
           'border border-input bg-card text-foreground',
-          'hover:bg-secondary active:translate-y-px',
+          'hover:bg-secondary',
           'disabled:border-input disabled:bg-secondary disabled:text-muted-foreground',
         ].join(' '),
         /**
-         * 되돌릴 수 없는 동작(삭제·연결 해제). primary와 같은 색(검정/흰색)이므로
+         * 되돌릴 수 없는 동작(삭제·연결 해제). primary와 같은 차콜이므로
          * **색이 아니라 윤곽→채움 형태 전환**으로 구분한다(system.md §2 "채움 vs 윤곽").
          */
         destructive: [
           'border border-[var(--color-danger)] bg-card text-[var(--color-danger)]',
           'hover:border-[var(--color-danger-hover)] hover:bg-[var(--color-danger-hover)] hover:text-primary-foreground',
-          'active:translate-y-px',
           'disabled:border-input disabled:bg-secondary disabled:text-muted-foreground',
         ].join(' '),
       },

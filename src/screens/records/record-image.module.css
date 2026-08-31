@@ -37,8 +37,9 @@
   /* 시트를 끝까지 스크롤했을 때 뒤 화면이 따라 움직이지 않게 한다. */
   overscroll-behavior: contain;
   background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-dialog);
+  /* 그림자 대신 테두리(다른 두 다이얼로그와 동일). */
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
 }
 
 /* 버튼 행(항상 마지막 자식)만 한 단계 더 떼어 "보는 영역"과 "누르는 영역"을 가른다. */
@@ -78,7 +79,9 @@
   margin: 0 auto;
   overflow: hidden;
   aspect-ratio: 4 / 5;
-  background: var(--color-surface-muted);
+  /* 빈 매트는 서피스(흰색/차콜)다. 준비 중 스켈레톤이 Surface Grey 블록이라
+     둘이 색으로 구분된다 — 아래 .skeleton 주석 참고. */
+  background: var(--color-surface);
 }
 
 .canvas {
@@ -109,31 +112,18 @@
 
 /*
  * 준비 중 스켈레톤.
- * 매트와 같은 색으로 두면 "만드는 중"과 "빈 상자"가 화면상 구분되지 않는다(직전 구현의 문제).
- * surface-muted ↔ surface 사이를 훑는 스윕으로 진행 중임을 형태로 알린다 — 색만으로
- * 알리는 게 아니라 움직임이 신호다. 문구는 아래 .live(aria-live)가 따로 전달한다.
+ *
+ * 2026-08-31 기아 재브랜딩: 훑는 그라디언트(shimmer)를 걷어내고 **플랫 블록**으로 바꿨다
+ * (레퍼런스: "로딩 스켈레톤은 Surface Grey 블록, 애니메이션 없음").
+ * 원래 스윕이 있던 이유는 "만드는 중"과 "빈 상자"가 구분되지 않는 문제였는데, 그건
+ * 매트 배경을 서피스로 올려서 **색 대비**로 해결했다(위 .preview) — 빈 매트는 서피스,
+ * 준비 중은 Surface Grey 블록이다. 진행 상황 자체는 색이 아니라 아래 .live(role=status)
+ * 문구가 전달하므로, 애니메이션이 없어도 상태를 알 수 없게 되지 않는다.
  */
 .skeleton {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    100deg,
-    var(--color-surface-muted) 25%,
-    var(--color-surface) 45%,
-    var(--color-surface-muted) 65%
-  );
-  background-size: 300% 100%;
-  animation: previewSweep 1400ms linear infinite;
-}
-
-@keyframes previewSweep {
-  from {
-    background-position: 150% 0;
-  }
-
-  to {
-    background-position: -150% 0;
-  }
+  background: var(--color-surface-muted);
 }
 
 /* 진행/완료/실패 안내(role=status). ui.hint와 같은 층위로 맞춰 잔글씨 tier를 하나로 둔다 —
@@ -148,17 +138,5 @@
   .dialog {
     gap: var(--space-2);
     padding: var(--space-4);
-  }
-}
-
-/* 전정 장애 사용자에게 훑는 애니메이션은 빼고, 두 톤 대비만 남겨 "빈 상자"와 구분한다. */
-@media (prefers-reduced-motion: reduce) {
-  .skeleton {
-    background: linear-gradient(
-      100deg,
-      var(--color-surface-muted) 40%,
-      var(--color-surface) 60%
-    );
-    animation: none;
   }
 }

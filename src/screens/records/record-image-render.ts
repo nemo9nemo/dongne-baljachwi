@@ -86,9 +86,9 @@ const WATERMARK_TEXT = '동네 발자취'
 
 /**
  * "+N" 배지 뒤에 까는 스크림. 사진 밝기를 알 수 없어 팔레트 색으로는 대비를 보장할 수 없다 —
- * `PhotoViewer`의 오버레이 버튼과 같은 이유로 반투명 검정을 쓴다.
+ * `PhotoViewer`의 오버레이 버튼(--color-scrim)과 같은 이유·같은 값의 반투명 차콜을 쓴다.
  */
-const SCRIM = 'rgb(0 0 0 / 62%)'
+const SCRIM = 'rgb(5 20 31 / 62%)'
 
 export type CardPhoto = {
   id: string
@@ -259,13 +259,16 @@ export async function loadCardPhotos(
 }
 
 /**
- * 카드 색 (2026-08-19 사용자 결정).
+ * 카드 색 (2026-08-19 사용자 결정, 2026-08-31 기아 재브랜딩으로 값만 갱신).
  *
- * 카드는 생성 시점의 앱 테마를 따른다 — 다크 모드는 검정 배경 + 흰 테두리, 라이트는 흰
- * 배경 + 검정 테두리. 그래서 시맨틱 토큰이 아니라 **원시 팔레트를 읽되, 현재 테마를 직접
- * 판별해서** 어느 쌍을 쓸지 고른다(시맨틱 `--color-*`를 그대로 쓰지 않는 이유는 라이트의
- * `--color-bg`가 순백이 아니라 `--gray-50`이라 미묘하게 오프화이트가 되기 때문 — 카드는
- * 순수 흑/백을 원한다).
+ * 카드는 생성 시점의 앱 테마를 따른다 — 다크 모드는 어두운 배경 + 흰 테두리, 라이트는 흰
+ * 배경 + 어두운 테두리. 그래서 시맨틱 토큰이 아니라 **원시 팔레트를 읽되, 현재 테마를 직접
+ * 판별해서** 어느 쌍을 쓸지 고른다(시맨틱 `--color-*`를 쓰면 다크에서 서피스/보더가
+ * 뒤집히는 앱 규칙까지 딸려 오는데, 저장된 PNG는 나중에 어느 테마에서 열리든 생성 시점
+ * 모습 그대로여야 한다).
+ *
+ * 재브랜딩으로 "검정"이 `--charcoal`(#05141f)로 바뀌었다 — 이 시스템에 순검정은 없다.
+ * 공유되는 이미지도 앱과 같은 브랜드 색을 써야 하므로 여기도 같이 옮겼다.
  */
 function cardPalette() {
   const root = getComputedStyle(document.documentElement)
@@ -275,7 +278,7 @@ function cardPalette() {
   }
   const dark = window.matchMedia('(prefers-color-scheme: dark)').matches
   const white = read('--white', '#ffffff')
-  const black = read('--black', '#000000')
+  const black = read('--charcoal', '#05141f')
   // "+N" 배지는 항상 반투명 검정 스크림 위에 그린다(SCRIM) — 스크림이 테마와 무관하게
   // 어두우므로 그 위 글자는 테마와 무관하게 항상 흰색이어야 읽힌다. 다크에서 palette.bg(검정)를
   // 쓰면 검정 위에 검정이라 대비 1:1이 된다(review §3.7 D-1).
@@ -284,14 +287,14 @@ function cardPalette() {
     ? {
         bg: black,
         text: white,
-        muted: read('--gray-400', '#a3a3a3'),
+        muted: read('--gray-400', '#9299a0'),
         border: white,
         onScrim,
       }
     : {
         bg: white,
         text: black,
-        muted: read('--gray-600', '#525252'),
+        muted: read('--gray-600', '#697278'),
         border: black,
         onScrim,
       }

@@ -7,11 +7,12 @@
   list-style: none;
 }
 
+/* 카드 위 역 이름은 보조 정보다 — Regular. 굵기 두 단계 원칙에서 Bold는 카드의 주 제목
+   (.date)이 가져간다. */
 .stationLink {
   display: inline-block;
   margin-bottom: var(--space-1);
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
   color: var(--color-text-muted);
 }
 
@@ -25,12 +26,12 @@
   padding: var(--space-3);
   color: var(--color-text);
   /* 카드 전체가 링크다. 전역 `a` 밑줄(index.css)이 카드 안 본문 전체에 그어지면 못 읽는다 —
-     여기서는 카드라는 형태(서피스+테두리+그림자, hover 시 배경 전환)가 클릭 대상임을 알린다. */
+     여기서는 카드라는 형태(테두리 + 15px 반경, hover 시 배경 전환)가 클릭 대상임을 알린다. */
   text-decoration: none;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
+  /* 목록 카드도 "카드"다 — 시스템에서 둥근 요소는 이것뿐이다(15px). 그림자 없음. */
+  border-radius: var(--radius-card);
 }
 
 .card:hover {
@@ -42,7 +43,7 @@
   width: 88px;
   overflow: hidden;
   background: var(--color-surface-muted);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
 }
 
 .thumb {
@@ -73,7 +74,7 @@
 
 .date {
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-bold);
 }
 
 .excerpt {
@@ -98,7 +99,7 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   background: var(--color-surface-muted);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
 }
 
 .author {

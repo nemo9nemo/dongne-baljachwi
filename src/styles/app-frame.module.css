@@ -51,9 +51,10 @@
     max-height: var(--app-frame-max-height);
     overflow-y: auto;
     overscroll-behavior: contain;
+    /* 그림자 없이 떠 보이게 하는 방법: 프레임(흰색/최심부 차콜)과 백드롭(Surface Grey/
+       차콜)의 **색 대비** + 1px 경계. 기아 시스템의 깊이 표현 그대로다. */
     border: 1px solid var(--app-frame-border);
     border-radius: var(--app-frame-radius);
-    box-shadow: var(--shadow-frame);
   }
 
   /* 프레임을 세로로 꽉 채우려면 백드롭이 확정 높이를 가져야 한다

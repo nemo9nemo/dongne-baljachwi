@@ -32,13 +32,14 @@
   flex-direction: column;
   gap: var(--space-3);
   align-items: center;
-  padding: var(--space-5);
+  padding: var(--space-6);
   text-align: center;
   pointer-events: none;
+  /* 지도 위에 뜨는 카드다. 배경(지도 타일)을 예측할 수 없으므로 불투명 서피스 +
+     border-strong으로 경계를 세운다 — 그림자가 없어진 만큼 이 선이 유일한 경계다. */
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-card);
   transform: translate(-50%, -50%);
 }
 
@@ -54,10 +55,10 @@
   gap: var(--space-1);
   min-width: 160px;
   padding: var(--space-3);
+  /* 핀 정보창도 지도 타일 위다 — 같은 이유로 border-strong. */
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-dialog);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
 }
 
 .overlayTitle {
@@ -76,12 +77,12 @@
   min-height: var(--touch-target);
   margin-top: var(--space-1);
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-inverse);
   cursor: pointer;
   background: var(--color-primary);
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
 }
 
 .overlayButton:hover {

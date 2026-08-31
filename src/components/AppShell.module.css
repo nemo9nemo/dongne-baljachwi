@@ -44,14 +44,14 @@
   width: fit-content;
   max-width: calc(100% - var(--space-8));
   margin: 0 auto;
-  padding: var(--space-3) var(--space-5);
+  padding: var(--space-3) var(--space-6);
   font-size: var(--font-size-sm);
   /* 본문 서피스를 뒤집은 조합 — 라이트/다크 어느 쪽이든 배경과 분명히 대비된다. */
   color: var(--color-bg);
   text-align: center;
   background: var(--color-text);
-  border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-dialog);
+  /* 각진 알림 바. 그림자 없이도 차콜 채움 자체가 흰 배경에서 18.6:1로 떠 보인다. */
+  border-radius: var(--radius-control);
 }
 
 /* fixed가 아니라 sticky인 이유: 데스크톱에서 앱이 프레임 카드 안에 들어가는데,
@@ -78,7 +78,9 @@
   justify-content: center;
   min-height: var(--touch-target);
   font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  /* 비활성 탭 = 3차 텍스트(기아 Steel Grey). 활성 탭(차콜 + Bold + 인디케이터)과
+     명확히 갈라지되 본문 대비 하한(4.5:1)은 지킨다 — 라이트 4.91:1 / 다크 6.76:1. */
+  color: var(--color-text-subtle);
   text-decoration: none;
 }
 
@@ -102,5 +104,5 @@
   height: 2px;
   content: '';
   background: var(--color-primary);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
 }

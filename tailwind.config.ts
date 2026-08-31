@@ -50,16 +50,20 @@ export default {
       /*
        * shadcn 기본 테마는 borderRadius를 `calc(var(--radius) - 2px)` 같은 파생 공식으로
        * 만드는데, 이 프로젝트는 "반경도 유한한 단계만"이라는 원칙이 있어(system.md §4)
-       * tokens.css의 --radius-sm/md/lg/pill 네 값을 그대로 매핑한다. 계산식을 쓰지 않는다.
+       * tokens.css 값을 그대로 매핑한다. 계산식을 쓰지 않는다.
+       *
+       * 2026-08-31 기아 재브랜딩: 반경은 두 개뿐이다 — 컨트롤 0px, 카드 15px.
+       * sm/DEFAULT/md는 전부 컨트롤(0), lg/xl은 카드(15px)를 가리킨다. pill(999px)은
+       * 브랜드에서 제거됐고, `rounded-full`은 진짜 원형 도형용 --radius-circle로 남긴다.
        */
       borderRadius: {
         none: '0px',
-        sm: 'var(--radius-sm)',
-        DEFAULT: 'var(--radius-md)',
-        md: 'var(--radius-md)',
-        lg: 'var(--radius-lg)',
-        xl: 'var(--radius-lg)',
-        full: 'var(--radius-pill)',
+        sm: 'var(--radius-control)',
+        DEFAULT: 'var(--radius-control)',
+        md: 'var(--radius-control)',
+        lg: 'var(--radius-card)',
+        xl: 'var(--radius-card)',
+        full: 'var(--radius-circle)',
       },
       fontFamily: {
         sans: 'var(--font-sans)',
@@ -68,12 +72,9 @@ export default {
         numeric: 'var(--font-numeric)',
         mono: 'var(--font-mono)',
       },
-      boxShadow: {
-        button: 'var(--shadow-button)',
-        'button-hover': 'var(--shadow-button-hover)',
-        card: 'var(--shadow-card)',
-        dialog: 'var(--shadow-dialog)',
-      },
+      /* boxShadow 확장은 없다 — 기아 재브랜딩으로 `--shadow-*` 토큰 자체를 삭제했다
+         ("box-shadow: none 전체", 깊이는 배경 대비와 1px 경계가 낸다). 그림자가 필요해
+         보이는 자리가 생기면 그건 대비 설계가 부족하다는 신호다. */
       spacing: {
         // 컨트롤 공통 치수 — ui.module.css가 이미 쓰는 값과 동일 (system.md §4).
         control: 'var(--control-height)',

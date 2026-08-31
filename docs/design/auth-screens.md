@@ -1,3 +1,10 @@
+> ℹ️ **2026-08-31 기아 재브랜딩으로 값이 바뀐 문서입니다.** 화면 구조·상태 규칙·접근성 요구는
+> 그대로 유효하지만 시각 값이 달라졌습니다: 컨트롤 **반경 0px**(알약·12px 없음), 카드 15px,
+> **그림자 전면 제거**, 상단 워시(`--app-screen-wash`) 제거, 폼 라벨·버튼 라벨 **Bold**(중간
+> 굵기 500 토큰 삭제), 제목 자간 normal(`-0.02em` 제거), 버튼 비활성은 "채움 제거"가 아니라
+> **브랜드 색 페이드**(`--color-primary-disabled`)입니다.
+> 현재 기준: `docs/design/system.md` · `docs/design/kia-reference-redesign.md` §5.
+
 # 인증 화면 · 폼 프리미티브 비주얼 스펙
 
 구현: `src/styles/ui.module.css`, `src/components/Wordmark.tsx`,

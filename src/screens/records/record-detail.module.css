@@ -7,18 +7,20 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-6);
   width: 100%;
   max-width: var(--content-max-width);
   margin: 0 auto;
-  padding: var(--space-6) var(--space-6) var(--space-10);
+  padding: var(--space-6) var(--space-6) var(--space-12);
 }
 
 .skeleton {
   flex: 1;
   min-height: 320px;
   background: var(--color-surface-muted);
-  border-radius: var(--radius-lg);
+  /* 로딩 스켈레톤은 플랫 블록이다(기아: shimmer 없음, Surface Grey). 카드가 아니라
+     화면 대역을 대신하는 자리라 반경도 0이다. */
+  border-radius: var(--radius-control);
 }
 
 /* ── 헤더 ────────────────────────────────────────────────────────────── */
@@ -67,13 +69,14 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   background: var(--color-surface-muted);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
 }
 
+/* 노선 색 점 — 재브랜딩 예외 영역(노선 식별). 형태는 원형을 유지한다. */
 .badgeDot {
   width: 8px;
   height: 8px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-circle);
 }
 
 /* ── 메뉴(⋯) ─────────────────────────────────────────────────────────── */
@@ -93,9 +96,10 @@
   width: 160px;
   padding: var(--space-2);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-dialog);
+  /* 열린 메뉴는 콘텐츠 위에 뜨지만 그림자를 쓰지 않는다 — 경계는 이 테두리가 진다.
+     불투명 서피스라 아래 글자가 비치지 않는다. */
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
 }
 
 .menuItem {
@@ -105,7 +109,7 @@
   cursor: pointer;
   background: none;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
 }
 
 .menuItem:hover {
@@ -131,7 +135,7 @@
   padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-sm);
   background: var(--color-surface-muted);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
 }
 
 /* ── 사진 ────────────────────────────────────────────────────────────── */
@@ -148,7 +152,7 @@
 .photoItem {
   overflow: hidden;
   background: var(--color-surface-muted);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   /* width/height 비율로 자리를 미리 잡아 레이아웃 시프트를 0으로 만든다 (§5). */
 }
 
@@ -210,7 +214,7 @@
   cursor: pointer;
   background: var(--color-surface-muted);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
 }
 
 .tagChip:hover {
@@ -251,8 +255,14 @@
   object-fit: contain;
 }
 
+/*
+ * 전체화면 뷰어 안의 글자·버튼은 **테마와 무관하게** 어두운 스크림 위에 놓인다.
+ * 여기에 --color-text-inverse를 쓰면 다크 테마에서 차콜 글자가 차콜 스크림 위에 얹혀
+ * 사실상 사라진다(라이트에서만 흰색이라 우연히 맞았던 것) — 항상 흰색인 --color-on-scrim을
+ * 쓴다. 스크림 자체도 리터럴 rgb(0 0 0 / 40%)에서 토큰(--color-scrim)으로 옮겼다.
+ */
 .viewerFallback {
-  color: var(--color-text-inverse);
+  color: var(--color-on-scrim);
 }
 
 .viewerClose {
@@ -266,11 +276,11 @@
   width: var(--touch-target);
   height: var(--touch-target);
   font-size: var(--font-size-lg);
-  color: var(--color-text-inverse);
+  color: var(--color-on-scrim);
   cursor: pointer;
-  background: rgb(0 0 0 / 40%);
+  background: var(--color-scrim);
   border: 0;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
 }
 
 .viewerNav {
@@ -282,11 +292,11 @@
   justify-content: center;
   width: var(--touch-target);
   height: var(--touch-target);
-  color: var(--color-text-inverse);
+  color: var(--color-on-scrim);
   cursor: pointer;
-  background: rgb(0 0 0 / 40%);
+  background: var(--color-scrim);
   border: 0;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
   transform: translateY(-50%);
 }
 
@@ -309,8 +319,8 @@
   left: 50%;
   padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-xs);
-  color: var(--color-text-inverse);
-  background: rgb(0 0 0 / 40%);
-  border-radius: var(--radius-pill);
+  color: var(--color-on-scrim);
+  background: var(--color-scrim);
+  border-radius: var(--radius-control);
   transform: translateX(-50%);
 }

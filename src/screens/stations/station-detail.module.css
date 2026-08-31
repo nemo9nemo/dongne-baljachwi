@@ -17,13 +17,15 @@
 .headerSkeleton {
   height: 72px;
   background: var(--color-surface-muted);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
 }
 
+/* 기록 카드(RecordCard)를 대신하는 자리라 카드 반경(15px)을 그대로 쓴다 — 스켈레톤과
+   실제 카드의 실루엣이 다르면 도착하는 순간 형태가 튄다. */
 .cardSkeleton {
   height: 88px;
   background: var(--color-surface-muted);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-card);
 }
 
 .header {
@@ -51,7 +53,7 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   background: var(--color-surface-muted);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
 }
 
 /* F-13: 호선 배지를 눌러 노선도로 간다. 모양은 .badge 그대로 두고 "누를 수 있다"는
@@ -64,10 +66,11 @@
   color: var(--color-primary);
 }
 
+/* 노선 색 점 — 재브랜딩 예외 영역. 원형 유지. */
 .badgeDot {
   width: 8px;
   height: 8px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-circle);
 }
 
 .visitSummary {

@@ -43,7 +43,7 @@
 .statSkeleton {
   height: 138px;
   background: var(--color-surface-muted);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
 }
 
 .statList {
@@ -81,7 +81,7 @@
 .chipSkeleton {
   height: 44px;
   background: var(--color-surface-muted);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
 }
 
 .chipList {
@@ -121,13 +121,14 @@
   gap: var(--space-2);
   align-items: center;
   min-height: var(--touch-target);
-  padding: 0 var(--space-4);
+  /* 기아 버튼 규격의 좌우 패딩(24px). 형태는 각진 사각형이다 — 이 브랜드에 pill은 없다. */
+  padding: 0 var(--space-6);
   color: var(--color-text);
   text-decoration: none;
   /* color-mix 미지원 폴백이자, --chip-line-color 가 없는(노선 정보 없는) 추천의 기본값 */
   background: var(--color-surface);
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-control);
 }
 
 .chip:hover {
@@ -145,7 +146,7 @@
 }
 
 .chipName {
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-bold);
 }
 
 .chipLine {
