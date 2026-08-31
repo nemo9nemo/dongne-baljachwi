@@ -195,11 +195,13 @@ async function main() {
     log('Supabase 미설정 — 그룹핑까지만 수행하고 차이 요약은 건너뛴다.');
   }
 
-  const snapshot = groupStations(rows, overrides, (lineCode) => {
-    const name = rows.find((r) => r.lineCode === lineCode)?.lineName ?? lineCode;
-    const meta = lineDisplayMeta(name);
-    return { ...meta, inMvpScope: true };
-  });
+  // 노선명은 그룹핑이 lines.name 으로 채택한 그 문자열을 그대로 받는다. 예전에는 여기서
+  // rows.find() 로 "그 노선의 아무 행"을 다시 찾아 이름을 뽑았는데, 원천이 한 노선번호 아래
+  // 표기를 여러 개 싣는 탓에 채택된 이름과 다른 행이 잡혀 토큰이 어긋났다 (grouping.mjs 주석).
+  const snapshot = groupStations(rows, overrides, (_lineCode, lineName) => ({
+    ...lineDisplayMeta(lineName),
+    inMvpScope: true,
+  }));
   applyLineOrdering(snapshot);
   applyMvpScope(snapshot);
 

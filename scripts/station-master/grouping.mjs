@@ -125,7 +125,7 @@ function buildStationCode(members) {
  *
  * @param {SourceRow[]} rows
  * @param {{ merge: string[][], split: string[][] }} overrides F-04 수동 교정 (원천 역번호 목록)
- * @param {(lineCode: string) => { sortOrder: number, colorToken: string, inMvpScope: boolean }} lineMeta
+ * @param {(lineCode: string, lineName: string) => { sortOrder: number, colorToken: string, inMvpScope: boolean }} lineMeta
  * @returns {MasterSnapshot}
  */
 export function groupStations(rows, overrides, lineMeta) {
@@ -292,7 +292,12 @@ export function groupStations(rows, overrides, lineMeta) {
       stationLineOrigins.push(m);
 
       if (!lines.has(m.lineCode)) {
-        const meta = lineMeta(m.lineCode);
+        // 표시명과 색상 토큰은 **같은 행**에서 나와야 한다. 원천은 한 노선번호 아래 표기가
+        // 여러 개인 경우가 있어(S1109 = "서울 도시철도 9호선" 25행 / "수도권  도시철도 9호선"
+        // 13행, S1107 = "7호선" / "도시철도 7호선", I4101 = "1호선" / "경부선"), 이름은
+        // 이 행에서 뽑고 토큰은 다른 행에서 뽑으면 "이름은 9호선인데 색은 기본 회색"이 된다.
+        // 실제로 2026-08-31 이 불일치로 9호선만 회색으로 그려지고 있었다.
+        const meta = lineMeta(m.lineCode, m.lineName);
         lines.set(m.lineCode, {
           code: m.lineCode,
           name: m.lineName,
