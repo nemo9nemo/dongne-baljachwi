@@ -32,7 +32,9 @@ export function VerifyEmailScreen() {
   // (F-25의 접두사 규칙을 따라 로그아웃 시 함께 지워진다).
   const [remaining, setRemaining] = useState(() => readCooldownRemaining(email))
   const [pending, setPending] = useState(false)
-  const [toast, setToast] = useState<string | null>(null)
+  // 성공/실패를 같은 스타일로 띄우면 "다시 보냈어요"와 "못 보냈어요"가 시각적으로 구분되지
+  // 않는다. 문구와 함께 어느 쪽인지도 들고 있는다.
+  const [toast, setToast] = useState<{ text: string; ok: boolean } | null>(null)
 
   // 의존성을 `remaining`이 아니라 boolean으로 둔다. 숫자를 그대로 넣으면 1초마다
   // 타이머를 해제/재생성하게 된다.
@@ -55,11 +57,11 @@ export function VerifyEmailScreen() {
     })
 
     if (error) {
-      setToast('메일을 다시 보내지 못했어요. 잠시 후 다시 시도해주세요.')
+      setToast({ text: '메일을 다시 보내지 못했어요. 잠시 후 다시 시도해주세요.', ok: false })
     } else {
       window.localStorage.setItem(`${STORAGE_PREFIX}resend.${email}`, String(Date.now()))
       setRemaining(RESEND_COOLDOWN_SEC)
-      setToast('확인 메일을 다시 보냈어요.')
+      setToast({ text: '확인 메일을 다시 보냈어요.', ok: true })
     }
     setPending(false)
   }
@@ -77,15 +79,29 @@ export function VerifyEmailScreen() {
 
       <p className={ui.notice}>메일이 안 보이면 스팸함도 확인해주세요.</p>
 
-      {toast !== null && (
-        <p className={ui.subtitle} role="status" aria-live="polite">
-          {toast}
+      {toast !== null &&
+        (toast.ok ? (
+          <p className={ui.subtitle} role="status" aria-live="polite">
+            {toast.text}
+          </p>
+        ) : (
+          <p className={ui.errorBanner} role="alert">
+            {toast.text}
+          </p>
+        ))}
+
+      {/* 이 화면은 가입 직후 `state.email`을 받아 열린다. 새로고침·북마크로 직접 들어오면
+          주소를 알 방법이 없어 재발송 버튼이 영구 비활성이다 — 왜 못 누르는지 말해준다. */}
+      {email === null && (
+        <p className={ui.hint} id="resend-disabled-reason">
+          이메일 정보가 없어 재발송할 수 없어요. 로그인 화면에서 다시 시도해주세요.
         </p>
       )}
 
       <Button
         type="button"
         disabled={email === null || remaining > 0 || pending}
+        aria-describedby={email === null ? 'resend-disabled-reason' : undefined}
         onClick={() => void handleResend()}
       >
         {remaining > 0 ? `확인 메일 다시 보내기 (${remaining}초)` : '확인 메일 다시 보내기'}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
+import { Input } from '@/components/ui/input'
 import { MAX_TAGS, MAX_TAG_LENGTH, normalizeTag, tagLength, toTagNorm } from '../../lib/tags'
 import styles from './record-editor.module.css'
 import ui from '../../styles/ui.module.css'
@@ -64,13 +65,22 @@ export function TagField({ tags, onChange, suggestions, disabled }: Props) {
       return
     }
 
+    // 아래에서 상한을 채우는 순간 입력이 disabled 되므로 이 분기는 자동완성 버튼 경로에서만
+    // 도달한다(그쪽은 full이어도 눌린다). 입력창 경로의 안내는 아래 추가 시점이 담당한다.
     if (tags.length >= MAX_TAGS) {
       setAnnouncement(`태그는 최대 ${MAX_TAGS}개까지 넣을 수 있어요.`)
       return
     }
 
-    onChange([...tags, tag])
-    setAnnouncement(`${tag} 태그를 추가했어요.`)
+    const next = [...tags, tag]
+    onChange(next)
+    // F-26 상한 안내: 10개를 채우는 **그 순간**에 함께 알린다. 채워진 뒤에는 입력창이
+    // disabled 라 키 입력 자체가 들어오지 않아, 위 분기가 영영 발화되지 않는다.
+    setAnnouncement(
+      next.length >= MAX_TAGS
+        ? `${tag} 태그를 추가했어요. 태그는 최대 ${MAX_TAGS}개까지라 더 넣을 수 없어요.`
+        : `${tag} 태그를 추가했어요.`,
+    )
     setDraft('')
   }
 
@@ -136,9 +146,10 @@ export function TagField({ tags, onChange, suggestions, disabled }: Props) {
         </ul>
       )}
 
-      <input
+      {/* 칩·중복 플래시·자동완성 같은 이 위젯 고유 동작(§9.6이 shadcn 대체를 기각한 이유)은
+          그대로 두고, 입력 컨트롤만 다른 폼과 같은 프리미티브를 쓴다. */}
+      <Input
         id="tag-input"
-        className={ui.input}
         type="text"
         value={draft}
         disabled={disabled || full}
@@ -149,8 +160,11 @@ export function TagField({ tags, onChange, suggestions, disabled }: Props) {
         onChange={(event) => setDraft(event.target.value)}
         onKeyDown={handleKeyDown}
       />
+      {/* 상한에 닿으면 입력이 disabled 라 탭 순서에서 빠진다 — 사유는 이 문구로 남긴다
+          (placeholder는 비활성 입력에서 읽히지 않는다). */}
       <p className={ui.hint} id="tag-hint">
-        Enter로 추가해요. {tags.length}/{MAX_TAGS}
+        {full ? `태그는 최대 ${MAX_TAGS}개까지예요.` : 'Enter로 추가해요.'} {tags.length}/
+        {MAX_TAGS}
       </p>
 
       {matched.length > 0 && (

@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
+import { Input } from '@/components/ui/input'
 import type { StationRow } from '../../lib/station-master'
 import styles from './record-editor.module.css'
 import ui from '../../styles/ui.module.css'
@@ -142,9 +143,11 @@ export function StationPicker({ stations, badgesByStationId, value, onChange, di
           <label className="srOnly" htmlFor="station-search">
             역 이름 검색
           </label>
-          <input
+          {/* 초성 검색·화살표 이동 같은 이 위젯의 로직은 그대로 두고 입력 컨트롤만 shadcn
+              프리미티브를 쓴다 (`docs/design/redesign-resend-reference.md` §9.6이 "다음
+              라운드에 `<Input>`으로만 교체"로 남겨둔 항목). */}
+          <Input
             id="station-search"
-            className={ui.input}
             type="search"
             value={query}
             disabled={disabled}

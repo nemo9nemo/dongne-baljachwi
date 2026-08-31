@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import { signPhotoUrls } from './photo-storage'
+import { signThumbnailUrls } from './photo-storage'
 import type { Mood, Weather } from './database.types'
 
 /**
@@ -114,15 +114,15 @@ export async function fetchRecordCardPage(options: FetchOptions): Promise<Record
   }
 
   // F-04: 대표 사진 = sort_order가 가장 작은 사진. 뷰포트에 들어온 카드만 서명하는 게
-  // 스펙 이상이지만(§6), 페이지당 최대 20장이라 한 번에 배치 서명해도 비용이 작다
-  // (05/06 화면도 같은 단순화를 쓴다).
+  // 스펙 이상이지만(§6), 페이지당 최대 20장이라 한 번에 발급해도 비용이 작다.
+  // 원본이 아니라 **카드 폭에 맞춰 축소된 변환 이미지**를 요청한다 (04 §6).
   const coverOf = (recordId: string): PhotoRow | null => {
     const photos = photosByRecord.get(recordId)
     if (photos === undefined || photos.length === 0) return null
     return photos.reduce((min, p) => (p.sort_order < min.sort_order ? p : min))
   }
   const coverPaths = ids.map(coverOf).filter((p): p is PhotoRow => p !== null).map((p) => p.storage_path)
-  const signed = await signPhotoUrls(coverPaths)
+  const signed = await signThumbnailUrls(coverPaths)
 
   const cards: RecordCard[] = rows.map((row) => {
     const tags = tagsByRecord.get(row.id) ?? []

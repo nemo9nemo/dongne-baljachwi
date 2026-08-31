@@ -1,4 +1,5 @@
 import {
+  Link,
   Navigate,
   Outlet,
   Route,
@@ -7,6 +8,7 @@ import {
   createRoutesFromElements,
 } from 'react-router-dom'
 import { SessionProvider } from './auth/SessionProvider'
+import { useSession } from './auth/session-context'
 import {
   RedirectIfSignedIn,
   RequireAuth,
@@ -54,6 +56,28 @@ function RootFrame() {
         )}
         <Outlet />
       </div>
+    </div>
+  )
+}
+
+/**
+ * 잘못된 경로. 화면마다 `<h1>`이 정확히 하나 있어야 스크린리더의 제목 탐색이 성립하는데
+ * 여기만 본문 한 줄뿐이라 문서 구조가 비어 있었다.
+ *
+ * 돌아갈 곳은 세션 상태가 정한다 — 로그인 상태에서 "로그인" 링크를 주면 막다른 길이고,
+ * 미로그인 상태에서 "홈"을 주면 가드가 다시 로그인으로 튕긴다.
+ */
+function NotFoundScreen() {
+  const session = useSession()
+  return (
+    <div className={ui.centerBox}>
+      <h1 className={ui.title}>없는 페이지예요</h1>
+      <p className={ui.subtitle}>주소가 바뀌었거나 잘못 입력되었을 수 있어요.</p>
+      {session.status === 'signed-in' ? (
+        <Link to="/">홈으로 가기</Link>
+      ) : (
+        <Link to="/login">로그인 화면으로 가기</Link>
+      )}
     </div>
   )
 }
@@ -119,14 +143,7 @@ const router = createBrowserRouter(
         </Route>
       </Route>
 
-      <Route
-        path="*"
-        element={
-          <div className={ui.centerBox}>
-            <p>없는 페이지예요.</p>
-          </div>
-        }
-      />
+      <Route path="*" element={<NotFoundScreen />} />
     </Route>,
   ),
 )

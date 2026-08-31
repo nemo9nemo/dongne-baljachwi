@@ -17,12 +17,22 @@ type LoadState =
   | { kind: 'empty' }
   | { kind: 'error' }
 
+const MINUTES_PER_DAY = 60 * 24
+
+/**
+ * 남은 유효시간 표기. F-11이 7일이라(01 §9, 2026-08-25 확정) 일 단위가 반드시 필요하다 —
+ * 시간만 쓰면 갓 발급한 코드가 "168시간 0분 남음"으로 나온다.
+ * 아래 단위 하나까지만 붙인다(예: "6일 3시간"). 그 아래는 판단에 영향을 주지 않는다.
+ */
 function formatRemaining(expiresAt: string): string {
   const totalMinutes = Math.floor((Date.parse(expiresAt) - Date.now()) / 60000)
   if (totalMinutes <= 0) return '만료됨'
-  const hours = Math.floor(totalMinutes / 60)
+  const days = Math.floor(totalMinutes / MINUTES_PER_DAY)
+  const hours = Math.floor((totalMinutes % MINUTES_PER_DAY) / 60)
   const minutes = totalMinutes % 60
-  return hours > 0 ? `${hours}시간 ${minutes}분 남음` : `${minutes}분 남음`
+  if (days > 0) return `${days}일 ${hours}시간 남음`
+  if (hours > 0) return `${hours}시간 ${minutes}분 남음`
+  return `${minutes}분 남음`
 }
 
 /**
@@ -91,7 +101,7 @@ export function InviteScreen() {
     void load()
   }, [isFull, coupleId, load])
 
-  // 유효기간이 72시간(F-11)이라 1초마다 다시 그릴 이유가 없다. 분 단위 표시에 맞춰
+  // 유효기간이 7일(F-11)이라 1초마다 다시 그릴 이유가 없다. 표시 최소 단위(분)에 맞춰
   // 1분마다만 리렌더한다 — 1초 간격이면 화면 전체가 하루에 수만 번 다시 그려진다.
   useEffect(() => {
     if (state.kind !== 'ready') return
