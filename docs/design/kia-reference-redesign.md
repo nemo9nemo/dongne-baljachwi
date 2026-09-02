@@ -7,6 +7,13 @@
 >
 > 실제 변경분은 `src/styles/tokens.css`(단일 소스) + 각 `*.module.css` + `components/ui/button.tsx`
 > + `tailwind.config.ts`. 토큰 목록·사용처는 `docs/design/system.md`.
+>
+> **사후 조정 (2026-09-02) — 이 문서의 "반경 0" 서술은 더 이상 현행이 아니다.**
+> 사용자가 재브랜딩 결과를 실제로 써 본 뒤 "모서리를 부드럽게" 조정을 요청해
+> `--radius-control`을 **0px → 10px**로 올렸다. 아래 §2.2·§4의 `0`은 원안 기록으로 읽는다.
+> 나머지 원칙(모노크롬, 그림자 없음, 알약 없음, 카드 15px, 굵기 2단계)은 그대로 유효하다.
+> 함께 조정된 것: `<Input>`/`<Textarea>`의 기본·hover·focus 채움 제거(테두리만) —
+> 에러·비활성 배경은 기능적 신호라 남겼다. 현행 스펙은 `docs/design/auth-screens.md` §3.
 
 ---
 
@@ -43,7 +50,7 @@
 
 | 기아 레퍼런스 | 이 프로젝트 |
 |---|---|
-| 버튼 `border-radius: 0`, padding `16px 24px`, height `48px` | `--radius-control: 0px`, `min-h-control`(48px) + `px-6`(24px). `button.tsx` 전 변형 공통 |
+| 버튼 `border-radius: 0`, padding `16px 24px`, height `48px` | `--radius-control`(원안 `0px` → **2026-09-02 `10px`**), `min-h-control`(48px) + `px-6`(24px). `button.tsx` 전 변형 공통 |
 | 카드 `border-radius: 15px` (시스템에서 유일하게 둥근 요소) | `--radius-card: 15px` — `ui.card`, `RecordCard.card`, 다이얼로그 3종, 지도 빈 상태 오버레이, 카드 스켈레톤 |
 | 섹션 `radius: 0` | 입력·배너·칩·태그·메뉴·토스트·FAB·썸네일 전부 `--radius-control`(0) |
 | **그림자 없음** (`box-shadow: none` 전체) | `--shadow-card/dialog/button/button-hover/frame` **토큰 자체를 삭제**. Tailwind `boxShadow` 확장도 삭제. 앱 전체에 `box-shadow` 선언 0개 |

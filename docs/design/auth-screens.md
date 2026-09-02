@@ -65,20 +65,31 @@
 
 ---
 
-## 3. 입력 (`.input`)
+## 3. 입력 — shadcn `<Input>` / `<Textarea>`
+
+> `ui.module.css`의 `.input`은 **2026-09-02에 삭제**했다(참조 0건의 죽은 CSS).
+> 실제로 렌더되는 것은 `src/components/ui/input.tsx` · `textarea.tsx` 하나씩이다.
+
+**2026-09-02 변경 — 채움 제거.** 사용자 요청으로 기본/hover/focus의 배경을 전부 걷어냈다.
+평상시 입력칸은 **테두리만으로** 자기를 드러낸다. 배경이 남은 상태는 에러·비활성 둘뿐인데,
+이 둘은 장식이 아니라 **상태를 알리는 기능적 신호**(각각 테두리색·점선과 짝을 이루는
+두 번째 단서)라서 유지한다 — 지우면 상태 구분이 단서 하나로 줄어든다.
 
 | 상태 | 바닥 | 테두리 | 그 외 |
 |---|---|---|---|
-| 기본 | `--color-field` | 1px `--color-border-strong` | 높이 min 48px(실측 51.6), 패딩 12/16, 반경 12 |
-| hover | `--color-surface` | 동일 | 바닥이 떠오른다 |
-| focus | `--color-surface` | 1px `--color-primary` | + 전역 `:focus-visible` 링(2px `--color-focus`, offset 2) |
+| 기본 | 없음(투명) | 1px `--color-border-strong` | 높이 min 48px, 패딩 12/16, 반경 `--radius-control`(10px) |
+| hover | 없음(투명) | 동일 | 시각 변화 없음 — 커서(`text`)와 포커스가 알린다 |
+| focus | 없음(투명) | 1px `--color-primary` | + 전역 `:focus-visible` 링(2px `--color-focus`, offset 2) |
 | 에러 (`aria-invalid="true"`) | `--color-danger-soft` | 1px `--color-danger` | 화면이 `.error` 문구를 함께 띄운다 |
-| 비활성 | `--color-surface-muted` | 1px **파선** `--color-border-strong` | 글자 muted, `cursor: not-allowed` |
-| 전환 | 배경·테두리 140ms ease | | |
+| 비활성 | `--color-surface-muted`(`bg-secondary`) | 1px **파선** `--color-border-strong` | 글자 muted, `cursor: not-allowed` |
+| 전환 | 배경·테두리 140ms ease (`motion-reduce`에서 없음) | | |
 
 - 포커스 링은 지우지 않는다. 테두리 색 변화는 링을 **보태는** 것이다.
 - 텍스트 입력은 마우스 클릭에도 `:focus-visible`이 걸리므로 링이 항상 뜬다. 의도한 것이다.
-- `.codeInput`은 `.input`에 고정폭·자간 `0.24em`·대문자 변환을 얹은 변형이다 (01 §6).
+- 투명 바닥의 대비: 글자 `--color-text` / 페이지 `--color-bg` = 라이트 18.65 · 다크 19.49,
+  테두리 `--color-border-strong` / `--color-bg` = 라이트 4.91 · 다크 5.05 (UI 기준 3.0).
+  채움이 사라진 뒤에도 테두리만으로 3:1을 크게 넘는다 — 입력칸의 경계는 여전히 보인다.
+- 초대 코드 입력(`.codeInput`)은 `<Input>`에 고정폭·자간 `0.24em`·대문자 변환을 얹는다 (01 §6).
 
 ---
 

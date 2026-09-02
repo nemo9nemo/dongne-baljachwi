@@ -61,7 +61,7 @@
   height: 7px;
   content: '';
   background: var(--color-primary);
-  /* 진짜 원형이어야 하는 몇 안 되는 자리(발자국 점). 컨트롤 반경(0)과 무관하다. */
+  /* 진짜 원형이어야 하는 몇 안 되는 자리(발자국 점). 컨트롤 반경(10px)과 무관하다. */
   border-radius: var(--radius-circle);
 }
 
@@ -111,47 +111,10 @@
   font-weight: var(--font-weight-bold);
 }
 
-.input {
-  /* 터치 타깃 + 상하 여유. 폰트 크기가 바뀌어도 아래로만 늘어난다. */
-  min-height: var(--control-height);
-  padding: var(--space-3) var(--space-4);
-  color: var(--color-text);
-  background: var(--color-field);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-control);
-  transition:
-    background-color 140ms ease,
-    border-color 140ms ease;
-}
-
-.input::placeholder {
-  color: var(--color-text-muted);
-}
-
-/* hover/focus에서 바닥이 서피스로 "떠오른다". 색상 하나만 바꾸는 것보다
-   입력 가능한 자리라는 게 분명해진다. */
-.input:hover:not(:disabled) {
-  background: var(--color-surface);
-}
-
-.input:focus {
-  background: var(--color-surface);
-  border-color: var(--color-primary);
-}
-
-/* 에러는 색만으로 알리지 않는다 — 각 화면이 문구를 함께 띄운다. 여기는 보조 신호. */
-.input[aria-invalid='true'] {
-  background: var(--color-danger-soft);
-  border-color: var(--color-danger);
-}
-
-/* 파선: 비활성을 색 대비에만 의존하지 않고 알린다. */
-.input:disabled {
-  color: var(--color-text-muted);
-  cursor: not-allowed;
-  background: var(--color-surface-muted);
-  border-style: dashed;
-}
+/* 입력 자체(.input)는 여기 없다 — shadcn 마이그레이션에서 `src/components/ui/input.tsx`
+   (+ textarea.tsx)로 옮겨졌고, 화면 코드는 전부 `<Input>`/`<Textarea>`를 쓴다. 남아 있던
+   죽은 클래스(참조 0건, PROGRESS.md §6 No.7)는 2026-09-02에 삭제했다. 상태별 규칙
+   (focus/aria-invalid/disabled)과 감소된 모션 처리도 그쪽에 있다. */
 
 .hint {
   font-size: var(--font-size-xs);
@@ -300,12 +263,4 @@
   min-height: 60vh;
   padding: var(--space-6);
   text-align: center;
-}
-
-/* 이동·부양은 장식이다. 전정 장애 사용자에게는 빼고, 색 변화만 남긴다.
-   (버튼 쪽 같은 처리는 components/ui/button.tsx로 함께 이관됐다) */
-@media (prefers-reduced-motion: reduce) {
-  .input {
-    transition-duration: 1ms;
-  }
 }

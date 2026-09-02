@@ -7,17 +7,51 @@
   list-style: none;
 }
 
-/* 카드 위 역 이름은 보조 정보다 — Regular. 굵기 두 단계 원칙에서 Bold는 카드의 주 제목
-   (.date)이 가져간다. */
+/*
+ * 카드 위 역 이름 (08 F-06: 탭하면 그 역 상세로 간다).
+ *
+ * 2026-09-02: 테두리도 배경도 없는 흐린 텍스트라 카드 안에서 "누를 수 있는 것"으로 읽히지
+ * 않는다는 지적이 있어 **칩 버튼 형태**로 바꿨다. 치수·테두리는 같은 화면의 태그 필터 칩
+ * (timeline.module.css `.chip`)과 맞춘다 — 한 화면에 두 종류의 칩 규격을 두지 않는다.
+ * 높이 44px(--touch-target)는 이 앱의 모든 칩·메뉴 항목이 공유하는 하한이다.
+ *
+ * 굵기는 Regular 그대로다 — 카드의 주 제목은 여전히 .date(Bold)다.
+ * 밑줄은 뺀다: 형태(테두리 + 여백)가 이미 클릭 대상임을 알리고, 전역 링크 밑줄이 칩 안에
+ * 그어지면 버튼이 아니라 밑줄 친 텍스트로 되돌아간다.
+ */
 .stationLink {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
   margin-bottom: var(--space-1);
+  padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+  text-decoration: none;
+  /* 채움 없이 테두리만 — 카드(.card)와 같은 흰 서피스 위에서 칩이 또 하나의 면으로 겹쳐
+     보이지 않게 한다. 상태는 아래 hover에서 면으로 바뀐다. */
+  background: transparent;
+  border: 1px solid var(--color-border-strong);
+  /* 컨트롤 반경(10px)보다 **더 동글게** — 사용자가 역명 칩만 따로 지정한 값이다.
+     퍼센트라 라벨 길이에 따라 가로 반경이 함께 늘어난다(세로는 44px 고정 → 8.8px). */
+  border-radius: 20%;
+  transition:
+    color 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease;
 }
 
 .stationLink:hover {
   color: var(--color-primary);
+  background: var(--color-surface-muted);
+  border-color: var(--color-primary);
+}
+
+/* 색 변화만 남는다(이동·부양 없음)지만, 색 전환도 끄는 편이 일관된다. */
+@media (prefers-reduced-motion: reduce) {
+  .stationLink {
+    transition-duration: 1ms;
+  }
 }
 
 .card {
