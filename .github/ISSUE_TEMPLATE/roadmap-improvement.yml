@@ -1,0 +1,85 @@
+name: 개선 · 버그 · 기능 확인
+description: 사용자 문제, 기대 동작, 완료 조건을 같은 형식으로 등록합니다.
+title: "[작업 ID][우선순위] "
+body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: 분류
+      description: 요청의 주된 성격을 선택합니다.
+      options:
+        - 버그 수정 / 데이터 보호
+        - 사용 흐름 개선
+        - 신규 기능
+        - 사용자 결정 / 기능 확인
+        - 문서 / 운영 개선
+    validations:
+      required: true
+
+  - type: input
+    id: work_id
+    attributes:
+      label: 작업 ID / 중요도
+      description: 실행 계획 ID와 P0·P1·P2 우선순위를 함께 씁니다. 계획 외 작업은 OPS로 시작합니다.
+      placeholder: "D01 · P0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: user_problem
+    attributes:
+      label: 사용자가 겪는 문제
+      description: 실제 화면이나 흐름에서 어떤 불편·오류·미정 사항이 있는지 씁니다.
+      placeholder: "사용자가 어떤 상황에서 무엇을 겪는지 적어 주세요."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: 기대하는 동작 또는 결정 후 동작
+      description: 수정 후 사용자가 보게 될 최종 결과를 씁니다.
+      placeholder: "완료 후 화면과 저장 결과가 어떻게 달라지는지 적어 주세요."
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: 완료 조건
+      description: 검증 가능한 완료 조건을 항목별로 씁니다.
+      placeholder: "- 조건 1\n- 조건 2"
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: 수정 범위
+      description: 포함할 화면·기능·문서와 명시적으로 제외할 범위를 씁니다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: 선행 조건 / 참고 자료
+      description: 선행 작업, 문서 경로, 관련 이슈를 씁니다. 해당 사항이 없으면 '없음'이라고 적습니다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: user_confirmation
+    attributes:
+      label: 사용자 확인이 필요한 사항
+      description: 정책이나 동작 결정이 필요하면 질문과 선택지를 적고, 권장안이 있으면 표시합니다. 없으면 '없음'이라고 적습니다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: verification
+    attributes:
+      label: 검증 방법
+      description: 필요한 자동 검사와 사용자 관점의 확인 절차를 씁니다.
+    validations:
+      required: true
