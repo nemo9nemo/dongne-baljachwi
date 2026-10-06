@@ -64,7 +64,10 @@ type FormValue = {
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
-type LoadState = { kind: 'loading' } | { kind: 'ready' } | { kind: 'failed'; message: string }
+type LoadState =
+  | { kind: 'loading'; scope: string }
+  | { kind: 'ready'; scope: string }
+  | { kind: 'failed'; scope: string; message: string }
 
 type SaveState =
   | { kind: 'idle' }
@@ -80,6 +83,8 @@ export function RecordEditorScreen() {
   const routeRecordId = params.recordId ?? null
   const coupleId = session.couple?.id ?? null
   const today = todayKst()
+  /** 로그인·공간·기록이 바뀐 화면에서 이전 요청 결과를 보이지 않게 하는 조회 식별자. */
+  const loadScope = JSON.stringify([session.userId, coupleId, routeRecordId])
 
   const [form, setForm] = useState<FormValue>(() => {
     const prefilledDate = searchParams.get('date')
@@ -99,7 +104,7 @@ export function RecordEditorScreen() {
   })
   const [photos, setPhotos] = useState<EditorPhoto[]>([])
 
-  const [loadState, setLoadState] = useState<LoadState>({ kind: 'loading' })
+  const [loadState, setLoadState] = useState<LoadState>({ kind: 'loading', scope: loadScope })
   const [saveState, setSaveState] = useState<SaveState>({ kind: 'idle' })
   const [master, setMaster] = useState<StationMaster | null>(null)
   const [lineLinks, setLineLinks] = useState<{ station_id: string; line_id: string }[]>([])
@@ -123,97 +128,142 @@ export function RecordEditorScreen() {
   const dbPhotosRef = useRef<Map<string, string>>(new Map())
   /** 이탈 확인을 건너뛸 때. 저장 성공 직후의 이동이 막히면 안 된다 */
   const skipBlockRef = useRef(false)
+  /** 재시도나 화면 범위 변경 뒤 늦게 끝난 이전 조회 결과를 무효화하는 세대 번호. */
+  const loadGenerationRef = useRef(0)
+
+  /** 범위가 바뀌어 효과가 다시 실행되기 전에도 이전 폼을 렌더링하지 않는다. */
+  const currentLoadState: LoadState =
+    loadState.scope === loadScope ? loadState : { kind: 'loading', scope: loadScope }
 
   const draftKey = `${STORAGE_PREFIX}record-draft.${routeRecordId ?? 'new'}`
 
   // ── 로드 ────────────────────────────────────────────────────────────────
+  /**
+   * 작성·수정에 필요한 역 정보와 기록 스냅샷을 다시 조회한다.
+   * @returns Promise<void>; 필수 조회 성공 또는 화면 오류 상태로 끝난다.
+  */
   const load = useCallback(async () => {
-    setLoadState({ kind: 'loading' })
+    /** 이 요청의 결과를 현재 조회 범위·세대와 비교할 식별 번호. */
+    const loadGeneration = ++loadGenerationRef.current
+    setLoadState({ kind: 'loading', scope: loadScope })
+    setSuggestions([])
     let loaded: StationMaster
     try {
       loaded = await loadStationMaster()
     } catch {
-      setLoadState({ kind: 'failed', message: '역 정보를 불러오지 못했어요.' })
+      if (loadGeneration !== loadGenerationRef.current) return
+      setLoadState({ kind: 'failed', scope: loadScope, message: '역 정보를 불러오지 못했어요.' })
       return
     }
+    if (loadGeneration !== loadGenerationRef.current) return
     setMaster(loaded)
 
     // 호선 배지(F-09)와 태그 자동완성(F-28)은 폼 조작을 막지 않는다. 실패해도 그냥 없이 간다.
-    void loadStationLines(loaded.version).then(setLineLinks, () => setLineLinks([]))
+    void loadStationLines(loaded.version).then(
+      (lines) => {
+        if (loadGeneration === loadGenerationRef.current) setLineLinks(lines)
+      },
+      () => {
+        if (loadGeneration === loadGenerationRef.current) setLineLinks([])
+      },
+    )
     void supabase
       .from('couple_tag_usage')
       .select('tag, usage_count')
       .order('usage_count', { ascending: false })
       .limit(200)
       .then(({ data }) => {
-        if (data !== null) setSuggestions(data.map((row) => row.tag))
-      })
+        if (loadGeneration === loadGenerationRef.current && data !== null) {
+          setSuggestions(data.map((row) => row.tag))
+        }
+      }, () => undefined)
 
     if (routeRecordId === null) {
-      setLoadState({ kind: 'ready' })
+      if (loadGeneration === loadGenerationRef.current) {
+        setLoadState({ kind: 'ready', scope: loadScope })
+      }
       return
     }
 
     // 수정 모드. RLS가 내 커플 행만 돌려주므로 couple_id 조건을 따로 걸지 않는다.
-    const [recordRes, tagRes, photoRes] = await Promise.all([
-      supabase
-        .from('records')
-        .select('id, station_id, visited_on, mood, weather, note')
-        .eq('id', routeRecordId)
-        .maybeSingle(),
-      supabase.from('record_tags').select('tag').eq('record_id', routeRecordId),
-      supabase
-        .from('record_photos')
-        .select('id, storage_path, sort_order, width, height, byte_size, content_type')
-        .eq('record_id', routeRecordId)
-        .order('sort_order'),
-    ])
+    try {
+      const [recordRes, tagRes, photoRes] = await Promise.all([
+        supabase
+          .from('records')
+          .select('id, station_id, visited_on, mood, weather, note')
+          .eq('id', routeRecordId)
+          .maybeSingle(),
+        supabase.from('record_tags').select('tag').eq('record_id', routeRecordId),
+        supabase
+          .from('record_photos')
+          .select('id, storage_path, sort_order, width, height, byte_size, content_type')
+          .eq('record_id', routeRecordId)
+          .order('sort_order'),
+      ])
 
-    if (recordRes.error !== null) {
-      setLoadState({ kind: 'failed', message: '기록을 불러오지 못했어요.' })
-      return
+      if (loadGeneration !== loadGenerationRef.current) return
+      if (recordRes.error !== null) {
+        setLoadState({ kind: 'failed', scope: loadScope, message: '기록을 불러오지 못했어요.' })
+        return
+      }
+      if (recordRes.data === null) {
+        // RLS 특성상 "없는 기록"과 "남의 기록"을 구분할 수 없다 (00 §5).
+        setLoadState({ kind: 'failed', scope: loadScope, message: '기록을 찾을 수 없어요.' })
+        return
+      }
+      if (tagRes.error !== null || photoRes.error !== null) {
+        setLoadState({ kind: 'failed', scope: loadScope, message: '기록 내용을 불러오지 못했어요.' })
+        return
+      }
+
+      const row = recordRes.data
+      const loadedForm: FormValue = {
+        stationId: row.station_id,
+        visitedOn: row.visited_on,
+        mood: row.mood,
+        weather: row.weather,
+        note: row.note ?? '',
+        tags: tagRes.data.map((tag) => tag.tag),
+      }
+      const photoRows = photoRes.data
+      /** URL 발급 실패는 사진 삭제로 취급하지 않고 사진 메타데이터를 그대로 둔다. */
+      let signed = new Map<string, string>()
+      try {
+        signed = await signPhotoUrls(photoRows.map((photo) => photo.storage_path))
+      } catch {
+        // 사진 URL은 보조 데이터이므로 사진 자리만 대체 표시한다.
+      }
+      if (loadGeneration !== loadGenerationRef.current) return
+
+      const loadedPhotos: EditorPhoto[] = photoRows.map((photo) => ({
+        kind: 'existing',
+        id: photo.id,
+        storagePath: photo.storage_path,
+        width: photo.width,
+        height: photo.height,
+        byteSize: photo.byte_size,
+        contentType: photo.content_type,
+        url: signed.get(photo.storage_path) ?? null,
+        dbSortOrder: photo.sort_order,
+      }))
+      setForm(loadedForm)
+      baselineRef.current = loadedForm
+      dbPhotosRef.current = new Map(photoRows.map((photo) => [photo.id, photo.storage_path]))
+      setPhotos(loadedPhotos)
+      photoBaselineRef.current = loadedPhotos.map((photo) => photo.id).join(',')
+      setLoadState({ kind: 'ready', scope: loadScope })
+    } catch {
+      if (loadGeneration === loadGenerationRef.current) {
+        setLoadState({ kind: 'failed', scope: loadScope, message: '기록 내용을 불러오지 못했어요.' })
+      }
     }
-    if (recordRes.data === null) {
-      // RLS 특성상 "없는 기록"과 "남의 기록"을 구분할 수 없다 (00 §5).
-      setLoadState({ kind: 'failed', message: '기록을 찾을 수 없어요.' })
-      return
-    }
-
-    const row = recordRes.data
-    const loadedForm: FormValue = {
-      stationId: row.station_id,
-      visitedOn: row.visited_on,
-      mood: row.mood,
-      weather: row.weather,
-      note: row.note ?? '',
-      tags: (tagRes.data ?? []).map((tag) => tag.tag),
-    }
-    setForm(loadedForm)
-    baselineRef.current = loadedForm
-
-    const photoRows = photoRes.data ?? []
-    dbPhotosRef.current = new Map(photoRows.map((photo) => [photo.id, photo.storage_path]))
-    // 서명 URL은 한 번에 발급받는다(왕복 1회). 실패하면 그 자리만 대체 표시된다.
-    const signed = await signPhotoUrls(photoRows.map((photo) => photo.storage_path))
-    const loadedPhotos: EditorPhoto[] = photoRows.map((photo) => ({
-      kind: 'existing',
-      id: photo.id,
-      storagePath: photo.storage_path,
-      width: photo.width,
-      height: photo.height,
-      byteSize: photo.byte_size,
-      contentType: photo.content_type,
-      url: signed.get(photo.storage_path) ?? null,
-      dbSortOrder: photo.sort_order,
-    }))
-    setPhotos(loadedPhotos)
-    photoBaselineRef.current = loadedPhotos.map((photo) => photo.id).join(',')
-
-    setLoadState({ kind: 'ready' })
-  }, [routeRecordId])
+  }, [loadScope, routeRecordId])
 
   useEffect(() => {
     void load()
+    return () => {
+      loadGenerationRef.current += 1
+    }
   }, [load])
 
   // ── 오프라인 (§5: 입력은 되지만 저장 버튼에 사유 표시) ──────────────────
@@ -255,7 +305,7 @@ export function RecordEditorScreen() {
   // ── 임시 저장(초안) — §5 ────────────────────────────────────────────────
   // 사진 파일은 넣지 않는다(용량). 저장 실패·앱 종료 후 재진입에서 일기를 지키는 게 목적이다.
   useEffect(() => {
-    if (loadState.kind !== 'ready') return
+    if (currentLoadState.kind !== 'ready') return
     const raw = window.localStorage.getItem(draftKey)
     if (raw === null) return
     try {
@@ -282,10 +332,10 @@ export function RecordEditorScreen() {
     }
     // 의존성에 form/baseline을 **의도적으로 넣지 않는다**. 진입 시 1회만 물어봐야 하는데
     // form이 들어가면 타이핑할 때마다 제안 배너가 되살아난다.
-  }, [loadState.kind, draftKey])
+  }, [currentLoadState.kind, draftKey])
 
   useEffect(() => {
-    if (loadState.kind !== 'ready' || !dirty) return
+    if (currentLoadState.kind !== 'ready' || !dirty) return
     // 키 입력마다 직렬화하면 긴 일기에서 입력이 끊긴다 (§6 입력 지연 50ms).
     const timer = window.setTimeout(() => {
       try {
@@ -295,7 +345,7 @@ export function RecordEditorScreen() {
       }
     }, 600)
     return () => window.clearTimeout(timer)
-  }, [form, dirty, loadState.kind, draftKey])
+  }, [form, dirty, currentLoadState.kind, draftKey])
 
   // ── 파생 데이터 ─────────────────────────────────────────────────────────
   const stationById = useMemo(
@@ -325,7 +375,7 @@ export function RecordEditorScreen() {
   const saving = saveState.kind !== 'idle'
   // `stationId`가 있어도 마스터에 없는 역(URL로 들어온 오타·삭제된 역)이면 저장할 수 없다 —
   // 서버 FK가 거부할 요청을 보내 놓고 실패 배너로 알리는 것보다 버튼을 막고 사유를 보여준다.
-  const canSave = selectedStation !== null && online && !saving && loadState.kind === 'ready'
+  const canSave = selectedStation !== null && online && !saving && currentLoadState.kind === 'ready'
 
   // ── 저장 ────────────────────────────────────────────────────────────────
 
@@ -553,7 +603,7 @@ export function RecordEditorScreen() {
     items[next]?.focus()
   }
 
-  if (loadState.kind === 'loading') {
+  if (currentLoadState.kind === 'loading') {
     return (
       <div className={styles.screen}>
         {/* §5 수정 초기 로딩: 폼 전체 스켈레톤 */}
@@ -565,10 +615,10 @@ export function RecordEditorScreen() {
     )
   }
 
-  if (loadState.kind === 'failed') {
+  if (currentLoadState.kind === 'failed') {
     return (
       <div className={ui.centerBox}>
-        <p>{loadState.message}</p>
+        <p>{currentLoadState.message}</p>
         <Button type="button" variant="default" onClick={() => void load()}>
           다시 시도
         </Button>
