@@ -136,3 +136,13 @@
 .fab:hover {
   background: var(--color-primary-hover);
 }
+
+.filters summary { min-height: var(--touch-target); display: flex; align-items: center; cursor: pointer; color: var(--color-text-muted); font-size: var(--font-size-sm); }
+.filters summary::after { content: "＋"; margin-left: auto; }
+.filters[open] summary::after { content: "−"; }
+.searchFilters { display: grid; gap: var(--space-3); margin-bottom: var(--space-4); }
+.searchFilters label { display: grid; gap: var(--space-1); color: var(--color-text-muted); font-size: var(--font-size-sm); min-width: 0; }
+.searchFilters input { width: 100%; min-width: 0; border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-text); padding: var(--space-2); font: inherit; }
+.dateFilters { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-3); }
+.monthPicker { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-4); }
+.monthPicker button { padding: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-text); }

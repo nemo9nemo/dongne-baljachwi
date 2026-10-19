@@ -80,23 +80,18 @@ select test.raises(
 select test.as_user('00000000-0000-0000-0000-0000000000d1');
 select test.seed_station('S-0001', '테스트역');
 
-with ins as (
-  insert into public.records (couple_id, station_id, visited_on, author_id)
-  select public.current_couple_id(), s.id, current_date + 1,
-         '00000000-0000-0000-0000-0000000000d1'
-  from public.stations s where s.code = 'S-0001'
-  returning 1
-)
-select test.eq('records_visited_on_not_future: KST 새벽의 "오늘" 방문 기록을 허용한다',
-  (select count(*) from ins)::text, '1');
+-- D03 전환 후에는 브라우저의 실제 쓰기 경로로 날짜 계약을 검사한다.
+select test.ok('records_visited_on_not_future: KST 새벽의 "오늘" 방문 기록을 허용한다',
+  public.save_record_v2('00000000-0000-0000-0000-0000000000d4',
+    '00000000-0000-0000-0000-0000000000d5',true,null,
+    (select id from public.stations where code='S-0001'),(now() at time zone 'Asia/Seoul')::date,null,null,null,'{}')->>'record_id' is not null);
 
 select test.raises(
   'records_visited_on_not_future: 이틀 뒤 방문은 거부한다',
-  format($q$insert into public.records (couple_id, station_id, visited_on, author_id)
-            select public.current_couple_id(), s.id, %L::date, %L
-            from public.stations s where s.code = 'S-0001'$q$,
-         current_date + 2, '00000000-0000-0000-0000-0000000000d1'),
-  '23514');
+  format($q$select public.save_record_v2('00000000-0000-0000-0000-0000000000d6',
+    '00000000-0000-0000-0000-0000000000d7',true,null,
+    (select id from public.stations where code='S-0001'),%L::date,null,null,null,'{}')$q$, (now() at time zone 'Asia/Seoul')::date + 1),
+  'P0001','%INVALID_DATE%');
 
 -- ── 4. 불변식 ──────────────────────────────────────────────────────────────
 -- 실행 시각이 언제든(새벽이든 아니든) 성립해야 하는 성질. 이게 깨지면 어떤 타임존

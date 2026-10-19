@@ -8,6 +8,7 @@ import { readStateFlag } from '../../lib/router-state'
 import { findScrollParent, screenCache, scopeToCouple } from '../../lib/screen-cache'
 import { RecordCard } from '../../components/RecordCard'
 import { useSession } from '../../auth/session-context'
+import { useRevalidation } from '../../lib/revalidation'
 import { useLineMapData } from '../lines/line-map-data'
 import { formatVisitedOn } from '../../lib/format-date'
 import { Button } from '@/components/ui/button'
@@ -36,9 +37,15 @@ type ListState = 'loading' | 'ready' | 'failed'
 
 export function StationDetailScreen() {
   const { stationId } = useParams()
+  const session = useSession()
+  return <StationDetail key={JSON.stringify([session.userId, session.couple?.id, stationId])} />
+}
+function StationDetail() {
+  const { stationId } = useParams()
   const navigate = useNavigate()
   const navigationType = useNavigationType()
   const location = useLocation()
+  const entryNavigation = useRef({ type: navigationType, state: location.state }).current
   const session = useSession()
   const { master } = useLineMapData()
 
@@ -57,6 +64,11 @@ export function StationDetailScreen() {
   const rootRef = useRef<HTMLDivElement>(null)
   const sentinelRef = useRef<HTMLButtonElement>(null)
   const scrollParentRef = useRef<HTMLElement | null>(null)
+  const summaryGeneration = useRef(0)
+  const listGeneration = useRef(0)
+  const moreBusy = useRef(false)
+  const invalidateSummary = useCallback(() => { summaryGeneration.current++ }, [])
+  const invalidateList = useCallback(() => { listGeneration.current++ }, [])
 
   useEffect(() => {
     if (master.kind !== 'ready') return
@@ -64,7 +76,8 @@ export function StationDetailScreen() {
   }, [master])
 
   const loadSummary = useCallback(() => {
-    if (stationId === undefined) return
+    const request = ++summaryGeneration.current
+    if (stationId === undefined || session.userId === null || session.couple?.id === undefined) return
     setSummaryState('loading')
     // `.maybeSingle()`이 아니라 일반 조회 + 첫 행을 쓴다. 미방문 역(0행)에서 `.maybeSingle()`은
     // PostgREST가 406으로 응답한 뒤 supabase-js가 그걸 null로 눕혀주는 방식이라, 정상 상황인데도
@@ -75,6 +88,7 @@ export function StationDetailScreen() {
       .select('visit_count, last_visited_on')
       .eq('station_id', stationId)
       .then(({ data, error }) => {
+        if (request !== summaryGeneration.current) return
         if (error !== null) {
           setSummaryState('failed')
           return
@@ -83,35 +97,42 @@ export function StationDetailScreen() {
         setSummary(row === undefined ? { visitCount: 0, lastVisitedOn: '' } : { visitCount: row.visit_count, lastVisitedOn: row.last_visited_on })
         setSummaryState('ready')
       })
-  }, [stationId])
+  }, [stationId, session.userId, session.couple?.id])
 
   const loadList = useCallback(async () => {
-    if (stationId === undefined) return
+    const request = ++listGeneration.current
+    if (stationId === undefined || session.userId === null || session.couple?.id === undefined) return
+    moreBusy.current = false
+    setLoadingMore(false)
     setListState('loading')
     setMoreError(false)
     try {
       const page = await fetchRecordCardPage({ stationId })
+      if (request !== listGeneration.current) return
       setCards(page.cards)
       setCursor(page.nextCursor)
       setHasMore(page.hasMore)
       setListState('ready')
     } catch {
+      if (request !== listGeneration.current) return
       setListState('failed')
     }
-  }, [stationId])
+  }, [stationId, session.userId, session.couple?.id])
 
-  useEffect(loadSummary, [loadSummary])
+  useEffect(() => { loadSummary(); return invalidateSummary }, [loadSummary, invalidateSummary])
+  const refresh = useCallback(() => { loadSummary(); void loadList() }, [loadSummary, loadList])
+  useRevalidation(refresh)
 
   const coupleId = session.couple?.id ?? null
   useEffect(() => {
     // 캐시는 화면 밖에 산다 — 읽기 전에 소유 커플을 맞춘다 (01 AC-15).
-    scopeToCouple(coupleId)
+    scopeToCouple(coupleId, session.userId)
     // AC-12: POP(뒤로가기)이고 같은 역의 캐시가 있으면 재조회 없이 목록·스크롤을 되살린다.
     // 08과 같은 규칙이다. `navigationType`을 의존성에 넣지 않는 이유도 같다 — 마운트마다
     // 한 번만 의미가 있고, 넣으면 "역만 바뀐" 재실행에서 오래된 POP 판정이 다시 걸린다.
     // `restoreList`: 06이 삭제 후 `replace`로 돌려보낸 경우. POP은 아니지만 캐시는 방금
     // 그 카드를 뺀 최신 상태다 (AC-07 + AC-12를 동시에 만족시킨다).
-    const restoreAllowed = navigationType === 'POP' || readStateFlag(location.state, 'restoreList')
+    const restoreAllowed = entryNavigation.type === 'POP' || readStateFlag(entryNavigation.state, 'restoreList')
     const cached = screenCache.station
     if (restoreAllowed && cached !== null && cached.stationId === stationId) {
       setCards(cached.cards)
@@ -125,10 +146,11 @@ export function StationDetailScreen() {
         if (parent !== null) parent.scrollTop = savedTop
         else window.scrollTo(0, savedTop)
       })
-      return
+      return invalidateList
     }
     void loadList()
-  }, [loadList, stationId, coupleId])
+    return invalidateList
+  }, [loadList, stationId, coupleId, session.userId, invalidateList, entryNavigation])
 
   useEffect(() => {
     scrollParentRef.current = findScrollParent(rootRef.current)
@@ -137,6 +159,7 @@ export function StationDetailScreen() {
   // 상태가 바뀔 때마다 캐시를 최신으로 유지한다. 실제 스크롤 위치는 언마운트 시점에 채운다.
   useEffect(() => {
     if (stationId === undefined) return
+    if (listState !== 'ready') return
     screenCache.station = {
       stationId,
       cards,
@@ -144,7 +167,7 @@ export function StationDetailScreen() {
       hasMore,
       scrollTop: screenCache.station?.scrollTop ?? 0,
     }
-  }, [stationId, cards, cursor, hasMore])
+  }, [stationId, cards, cursor, hasMore, listState])
 
   useEffect(() => {
     return () => {
@@ -166,20 +189,25 @@ export function StationDetailScreen() {
   }, [])
 
   const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore || cursor === null || stationId === undefined) return
+    if (moreBusy.current || loadingMore || listState !== 'ready' || !hasMore || cursor === null || stationId === undefined) return
+    moreBusy.current = true
+    const request = listGeneration.current
     setLoadingMore(true)
     setMoreError(false)
     try {
       const page = await fetchRecordCardPage({ stationId, cursor })
+      if (request !== listGeneration.current) return
       setCards((prev) => [...prev, ...page.cards])
       setCursor(page.nextCursor)
       setHasMore(page.hasMore)
     } catch {
+      if (request !== listGeneration.current) return
       setMoreError(true)
     } finally {
-      setLoadingMore(false)
+      moreBusy.current = false
+      if (request === listGeneration.current) setLoadingMore(false)
     }
-  }, [loadingMore, hasMore, cursor, stationId])
+  }, [loadingMore, hasMore, cursor, stationId, listState])
 
   useEffect(() => {
     const target = sentinelRef.current

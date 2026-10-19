@@ -1,379 +1,201 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { lineMap, stationGeometryByCode, lineCodeByStationCode } from '../../data/line-map'
+import { lineMap, stationGeometryByCode, lineCodesByStationCode } from '../../data/line-map'
 import type { LineRow } from '../../lib/station-master'
+import { searchStations } from '../../lib/station-search'
 import { useLineMapData } from './line-map-data'
+import { useSession } from '../../auth/session-context'
 import { LineMapCanvas } from './LineMapCanvas'
 import type { LineMapCanvasHandle, LineMapTransform, MapLine, MapStation } from './LineMapCanvas'
 import styles from './line-map.module.css'
-import ui from '../../styles/ui.module.css'
 
-/**
- * 노선도 화면 (`docs/specs/03-line-map.md`). 앱의 기본 화면.
- *
- * 이번 라운드 범위는 **2호선 파일럿**이다. 좌표 파일(`src/data/line-map/`)에는 본선 43역 +
- * 성수지선 4역 + 신정지선 3역만 있고, 나머지 노선은 좌표가 없어 그리지 않는다. 그래서
- * §5 마지막 행("좌표 미보유 역 존재 → 하단 안내")이 지금은 상시 표시된다 — 의도된 상태다.
- *
- * 미구현(다음 라운드): AC-11 1,100역 성능 프로파일 — 좌표 파일이 50역뿐이라 지금은
- * 측정 자체가 성립하지 않는다. 좌표를 채운 뒤 프로파일링해야 한다.
- */
+type MapData = ReturnType<typeof useLineMapData>
+let savedViewport: { scope: string; lineId: string; transform: LineMapTransform; revision: string } | null = null
 
-/**
- * F-21 / AC-08 (07 F-12·AC-06 도 같은 요구): 노선도 뷰포트 보존소.
- *
- * 이 화면은 역 상세 드릴다운·하단 탭 전환·지도 보기 전환 어느 쪽으로 나가도 **컴포넌트가
- * 실제로 언마운트된다**(react-router 데이터 라우터). 그래서 state 도 ref 도 못 쓰고,
- * 생명주기 밖인 모듈 스코프에 둔다.
- *
- * sessionStorage·URL 쿼리로 올리지 않는 이유: 03 §7 확장 포인트가 뷰포트를 "화면 내 보존"
- * 으로 못박았고 "지금은 URL에 넣지 않는다"고 명시했다. 새로고침 후 리셋되는 것이 스펙대로다
- * (AC-15 — 결함이 아니다).
- *
- * `lineId` 를 함께 들고 있는 이유는 F-21a 때문이다 — 보존 단위가 `{필터, 뷰포트}` 한 쌍이라,
- * 필터가 그대로면 사용자가 잡아둔 화면이 이기고, 필터가 바뀌었으면 F-14 의 자동 이동/확대가
- * 이긴다. 필터별로 각각 기억하지 않고 마지막 한 쌍만 들고 있다.
- */
-let savedViewport: { lineId: string; transform: LineMapTransform } | null = null
-
-/**
- * 셀렉트박스 한 항목.
- *
- * DB 에는 `2호선`이라는 이름의 `lines` 행이 셋(본선·성수지선·신정지선) 있다. 그대로 뿌리면
- * "2호선"이 세 번 나온다. 그래서 **이름이 같은 노선을 한 항목으로 묶고**, 선택 시 그 집합
- * 전체를 강조 대상으로 삼는다. §7 확장 포인트가 필터를 "선택된 노선 집합 → 강조 대상 역
- * 집합"으로 다루라고 한 것과 같은 구조다.
- */
-type LineOption = {
-  /** URL 쿼리에 실리는 값. 그룹 내 최소 `lines.code` (F-15) */
-  id: string
-  label: string
-  codes: string[]
+type LineOption = { id: string; label: string; codes: string[]; color: string }
+const LINE_NAMES: Record<string, string> = {
+  'line-bundang': '수인·분당선', 'line-airport': '공항철도', 'line-incheon1': '인천1호선',
+  'line-incheon2': '인천2호선', 'line-sillim': '신림선', 'line-gimpo': '김포골드라인',
+  'line-uisinseol': '우이신설선', 'line-uijeongbu': '의정부경전철',
 }
-
 function buildLineOptions(lines: LineRow[]): LineOption[] {
-  const byName = new Map<string, { sortOrder: number; codes: string[] }>()
-  for (const line of lines) {
-    const found = byName.get(line.name)
-    if (found === undefined) byName.set(line.name, { sortOrder: line.sort_order, codes: [line.code] })
-    else found.codes.push(line.code)
+  const groups = new Map<string, { order: number; name: string; codes: string[] }>()
+  for (const l of lines.filter(l => l.is_active)) {
+    const found = groups.get(l.color_token)
+    if (found) { found.codes.push(l.code); found.order = Math.min(found.order, l.sort_order) }
+    else groups.set(l.color_token, { order: l.sort_order, name: l.name, codes: [l.code] })
   }
-  return [...byName.entries()]
-    // F-11: 순서는 `lines.sort_order` 가 정한다. 프론트에 호선 목록을 하드코딩하지 않는다.
-    .sort((a, b) => a[1].sortOrder - b[1].sortOrder || a[0].localeCompare(b[0], 'ko'))
-    .map(([label, group]) => {
-      const codes = [...group.codes].sort()
-      return { id: codes[0]!, label, codes }
-    })
-}
-
-/** 라벨 줄바꿈. 5자를 넘으면 두 줄로 쪼갠다 — 역 간격(약 66단위)보다 넓어지면 이웃과 겹친다. */
-function splitLabel(name: string): string[] {
-  if (name.length <= 5) return [name]
-  const head = Math.ceil(name.length / 2)
-  return [name.slice(0, head), name.slice(head)]
+  return [...groups].sort((a, b) => a[1].order - b[1].order).map(([token, group]) => ({
+    id: [...group.codes].sort()[0], codes: group.codes, color: `var(--${token})`,
+    label: /^line-[1-9]$/.test(token) ? `${token.slice(-1)}호선` : LINE_NAMES[token] ?? group.name,
+  }))
 }
 
 export function LineMapScreen() {
+  return <LineMapView {...useLineMapData()} />
+}
+
+/** 네트워크와 분리해 실제 전체 도식을 같은 렌더러로 검증할 수 있게 한다. */
+export function LineMapView({ master, visits, reloadMaster, reloadVisits }: MapData) {
+  const session = useSession()
+  const scope = JSON.stringify([session.userId, session.couple?.id])
   const navigate = useNavigate()
   const canvasRef = useRef<LineMapCanvasHandle>(null)
-  // 07(지도 보기)과 마스터·방문 집계를 공유한다 — 토글 전환 시 네트워크 요청 0회가 목표다.
-  const { master, visits, reloadMaster: loadMaster, reloadVisits: loadVisits } = useLineMapData()
+  const searchRef = useRef<HTMLInputElement>(null)
+  const resultsRef = useRef<HTMLUListElement>(null)
   const [searchParams, setSearchParams] = useSearchParams()
-  const [showMissing, setShowMissing] = useState(false)
   const selectedId = searchParams.get('line') ?? ''
-
+  const [query, setQuery] = useState('')
+  const [pendingFocus, setPendingFocus] = useState<string | null>(null)
+  const [ambiguous, setAmbiguous] = useState<MapStation[]>([])
   const masterData = master.kind === 'ready' ? master.master : null
-  const visitCountByStationId = useMemo(
-    () => (visits.kind === 'ready' ? new Map(visits.rows.map((r) => [r.station_id, r.visit_count])) : null),
-    [visits],
-  )
-  const options = useMemo(
-    () => (masterData === null ? [] : buildLineOptions(masterData.lines)),
-    [masterData],
-  )
-  const selected = options.find((o) => o.id === selectedId) ?? null
+  const counts = useMemo(() => visits.kind === 'ready' ? new Map(visits.rows.map(r => [r.station_id, r.visit_count])) : null, [visits])
+  const options = useMemo(() => masterData ? buildLineOptions(masterData.lines) : [], [masterData])
+  const selected = options.find(o => o.codes.includes(selectedId)) ?? null
+  const selectedCodes = useMemo(() => selected ? new Set(selected.codes) : null, [selected])
+  const drawable = useMemo(() => new Set(lineMap.lines.map(l => l.lineCode)), [])
+  const selectedHasGeometry = selected === null || selected.codes.some(code => drawable.has(code))
 
-  /** 선택된 그룹 중 **도식 좌표가 있는** 노선. 비어 있으면 아직 안 그려지는 호선이다. */
-  const selectedDrawableCodes = useMemo(() => {
-    if (selected === null) return null
-    const drawn = new Set(lineMap.lines.map((l) => l.lineCode))
-    const codes = selected.codes.filter((c) => drawn.has(c))
-    return codes.length === 0 ? null : new Set(codes)
-  }, [selected])
-
-  /**
-   * 렌더 대상 계산. 마스터 944행 × 도식 50역 조인이라 매 렌더 다시 돌리면 안 된다.
-   * 방문 집계가 도착하면 여기만 다시 돌고, 캔버스의 변환 상태(ref)는 건드리지 않는다.
-   */
   const view = useMemo(() => {
-    if (masterData === null) return null
-    const stationByCode = new Map(masterData.stations.map((s) => [s.code, s]))
-    const colorByLineCode = new Map(masterData.lines.map((l) => [l.code, `var(--${l.color_token})`]))
-    const visitCounts = visitCountByStationId
-
-    const lines: MapLine[] = lineMap.lines.map((line) => ({
-      code: line.lineCode,
-      points: line.polyline.map(([x, y]) => `${x},${y}`).join(' '),
-      color: colorByLineCode.get(line.lineCode) ?? 'var(--line-default)',
-      dimmed: selectedDrawableCodes !== null && !selectedDrawableCodes.has(line.lineCode),
-    }))
-
+    if (!masterData) return null
+    const rows = new Map(masterData.stations.map(s => [s.code, s]))
+    const colors = new Map(masterData.lines.map(l => [l.code, `var(--${l.color_token})`]))
+    const lines: MapLine[] = lineMap.lines.map(l => ({ code: l.id, points: l.polyline.map(p => p.join(',')).join(' '),
+      color: colors.get(l.lineCode) ?? 'var(--line-default)', dimmed: selectedCodes !== null && !selectedCodes.has(l.lineCode) }))
     const stations: MapStation[] = []
     for (const geom of lineMap.stations) {
-      const row = stationByCode.get(geom.stationCode)
-      // 좌표는 있는데 마스터에 없는 역 = 정합성 깨짐. CI 가 잡아야 할 상황이라 여기서는 건너뛴다.
-      if (row === undefined || !row.is_active) continue
-      const lineCode = lineCodeByStationCode.get(geom.stationCode)
-      stations.push({
-        code: geom.stationCode,
-        id: row.id,
-        name: row.name_short,
-        x: geom.x,
-        y: geom.y,
-        labelAnchor: geom.labelAnchor,
-        isTransfer: row.is_transfer,
-        // F-08: 기록은 물리 역 단위다. 환승역은 소속 호선 전부에서 같은 방문 상태로 보인다.
-        visitCount: visitCounts?.get(row.id) ?? 0,
-        color:
-          lineCode === undefined
-            ? 'var(--line-default)'
-            : (colorByLineCode.get(lineCode) ?? 'var(--line-default)'),
-        dimmed:
-          selectedDrawableCodes !== null &&
-          (lineCode === undefined || !selectedDrawableCodes.has(lineCode)),
-        labelLines: splitLabel(row.name_short),
-      })
+      const row = rows.get(geom.stationCode)
+      if (!row?.is_active) continue
+      const memberships = lineCodesByStationCode.get(geom.stationCode) ?? []
+      const stationColors = [...new Set(memberships.map(code => colors.get(code) ?? 'var(--line-default)'))]
+      stations.push({ code: row.code, id: row.id, name: row.name_short, x: geom.x, y: geom.y,
+        labelAnchor: geom.labelAnchor, labelPriority: geom.labelPriority, labelOffset: geom.labelOffset,
+        labelLines: geom.labelLines ?? [row.name_short], isTransfer: stationColors.length > 1,
+        visitCount: counts === null ? null : counts.get(row.id) ?? 0,
+        color: stationColors[0] ?? 'var(--line-default)', colors: stationColors,
+        dimmed: selectedCodes !== null && !memberships.some(code => selectedCodes.has(code)) })
     }
-    return { lines, stations }
-  }, [masterData, visitCountByStationId, selectedDrawableCodes])
+    // 지리 위치를 안내하는 지도가 아닌, 도식 방향을 읽기 위한 한강 단서다.
+    const riverAnchors: [string, number, number][] = [['홍대입구', -180, -120], ['합정', -110, 5], ['여의나루', 0, -50], ['동작', 0, -65], ['옥수', 60, 70], ['잠실나루', 130, -80]]
+    const river = riverAnchors.flatMap(([name, dx, dy]) => { const s = stations.find(s => s.name === name); return s ? [`${s.x + dx},${s.y + dy}`] : [] }).join(' ')
+    return { lines, stations, river }
+  }, [masterData, counts, selectedCodes])
+  const results = useMemo(() => searchStations(masterData?.stations ?? [], query), [masterData, query])
+  const missing = useMemo(() => masterData?.stations.filter(s => s.is_active && s.in_mvp_scope && !stationGeometryByCode.has(s.code)) ?? [], [masterData])
+  const totalVisited = counts === null ? null : view?.stations.filter(s => (counts.get(s.id) ?? 0) > 0).length ?? 0
+  const mounted = view !== null
 
-  /** 좌표가 없어 노선도에 못 그리는 역 (§2.2 / §5). 2호선 파일럿 동안은 대부분이 여기 들어온다. */
-  const missing = useMemo(() => {
-    if (masterData === null) return []
-    return masterData.stations
-      .filter((s) => s.is_active && !stationGeometryByCode.has(s.code))
-      .sort((a, b) => a.name.localeCompare(b.name, 'ko'))
-  }, [masterData])
-
-  // F-14: 필터를 걸면 해당 호선이 화면에 차도록 이동/확대한다. 화면이 그대로면 뭐가 바뀐 건지 모른다.
-  // 의존성에 `view` 자체를 넣으면 방문 집계가 도착할 때마다 사용자가 잡아둔 화면이 튄다 —
-  // 캔버스가 마운트됐는지 여부(boolean)만 본다.
-  const canvasMounted = view !== null
-  // useEffect 가 아니라 useLayoutEffect 인 이유: passive effect 는 **페인트 이후**에 돈다.
-  // 그러면 복원/자동확대 직전 상태(=전체 보기)가 한 프레임 그려졌다가 튀는 게 눈에 보인다.
-  // 여기서 부른 변환은 캔버스 내부에서 rAF 로 커밋되는데, 레이아웃 단계에서 예약된 rAF 는
-  // 같은 프레임의 페인트 전에 실행되므로 잘못된 뷰포트가 한 번도 그려지지 않는다.
+  // 스펙 03 F-21: 같은 필터/같은 도식 버전이면 복원을 자동 맞춤보다 우선한다.
   useLayoutEffect(() => {
     const canvas = canvasRef.current
-    if (canvas === null) return
-
-    // F-21 / AC-08: 같은 필터 상태로 되돌아온 것이면 보존해 둔 뷰포트가 최우선이다
-    // (F-21 > F-09·F-14). 이 분기가 없으면 재마운트마다 아래 reset()/fitTo() 가 돌아
-    // 사용자가 확대해 둔 화면이 매번 전체 보기로 튕겨 나간다.
-    //
-    // 소비 후 비우는(1회용) 이유: 마스터 재적재 등으로 이 effect 가 마운트 도중 다시 돌 때,
-    // 남아 있는 값이 그 사이 사용자가 움직여 놓은 화면을 되감아 버린다. 복원은 "돌아왔을 때
-    // 한 번"이지 "필터 계산이 갱신될 때마다"가 아니다.
-    if (savedViewport !== null && savedViewport.lineId === selectedId) {
-      canvas.setTransform(savedViewport.transform)
-      savedViewport = null
-      return
+    if (!canvas) return
+    setAmbiguous([])
+    if (savedViewport?.scope === scope && savedViewport.lineId === selectedId && savedViewport.revision === lineMap.revision) {
+      canvas.setTransform(savedViewport.transform); savedViewport = null; return
     }
-
-    // F-21a / AC-16: 필터가 저장 시점과 다르면 복원을 포기하고 여기(F-09 전체 보기 /
-    // F-14 호선 맞춤)로 폴백한다. 버려진 뷰포트는 필터를 되돌려도 되살아나지 않는데,
-    // 아래 보존 effect 의 cleanup 이 이 effect 본문보다 **먼저** 돌아(정리 → 실행 순서)
-    // selectedId 가 바뀌는 순간 savedViewport 가 직전 필터의 값으로 덮이기 때문이다.
-    if (selectedDrawableCodes === null) {
-      canvas.reset()
-      return
-    }
-    const pts = lineMap.lines
-      .filter((l) => selectedDrawableCodes.has(l.lineCode))
-      .flatMap((l) => l.polyline)
-    if (pts.length === 0) return
-    const xs = pts.map((p) => p[0])
-    const ys = pts.map((p) => p[1])
-    const pad = 60
-    canvas.fitTo({
-      x: Math.min(...xs) - pad,
-      y: Math.min(...ys) - pad,
-      width: Math.max(...xs) - Math.min(...xs) + pad * 2,
-      height: Math.max(...ys) - Math.min(...ys) + pad * 2,
-    })
-  }, [selectedDrawableCodes, canvasMounted, selectedId])
-
-  /**
-   * F-21 / AC-08: 화면을 떠날 때 `{필터, 변환값}` 을 **1회만** 읽어 보존한다.
-   *
-   * 팬/줌 중에는 저장하지 않는다. LineMapCanvas 는 변환을 state 로 올리지 않는 설계인데
-   * (그쪽 §성능 설계 주석), 매 프레임 여기로 끌어올리면 그 이점이 그대로 사라진다.
-   *
-   * useEffect 가 아니라 useLayoutEffect 인 이유: 언마운트 시 자식의 useImperativeHandle
-   * 핸들은 커밋의 mutation 단계에서 떨어지고, 그건 passive effect(useEffect) 정리보다
-   * **먼저**다. useEffect 로 두면 cleanup 시점에 canvasRef.current 가 이미 null 이라
-   * 아무것도 저장하지 못한다. 더해서 핸들을 본문에서 지역 변수로 붙잡아 정리 순서에
-   * 아예 기대지 않는다 — 핸들은 떨어진 뒤에도 캔버스의 변환 ref 를 그대로 읽는다.
-   */
+    savedViewport = null
+    if (!selectedCodes || !selectedHasGeometry) { canvas.reset(); return }
+    const points = lineMap.lines.filter(l => selectedCodes.has(l.lineCode)).flatMap(l => l.polyline)
+    const xs = points.map(p => p[0]), ys = points.map(p => p[1])
+    canvas.fitTo({ x: Math.min(...xs) - 60, y: Math.min(...ys) - 60,
+      width: Math.max(...xs) - Math.min(...xs) + 120, height: Math.max(...ys) - Math.min(...ys) + 120 })
+  }, [mounted, selectedId, selectedCodes, selectedHasGeometry, scope])
   useLayoutEffect(() => {
     const canvas = canvasRef.current
-    if (canvas === null) return
-    return () => {
-      savedViewport = { lineId: selectedId, transform: canvas.getTransform() }
-    }
-  }, [canvasMounted, selectedId])
+    if (!canvas) return
+    return () => { savedViewport = { scope, lineId: selectedId, transform: canvas.getTransform(), revision: lineMap.revision } }
+  }, [mounted, selectedId, scope])
+  useLayoutEffect(() => {
+    if (!pendingFocus || !canvasRef.current) return
+    canvasRef.current.focusOn(pendingFocus); setPendingFocus(null)
+  }, [pendingFocus, selectedId, mounted])
 
-  const goStation = useCallback(
-    (stationId: string) => navigate(`/stations/${stationId}`),
-    [navigate],
-  )
+  const goStation = useCallback((id: string) => navigate(`/stations/${id}`), [navigate])
+  function showOnMap(code: string) {
+    setQuery(''); setAmbiguous([])
+    const next = new URLSearchParams(searchParams); next.delete('line')
+    setSearchParams(next, { replace: true }); setPendingFocus(code)
+  }
+  function selectLine(id: string) {
+    const next = new URLSearchParams(searchParams)
+    if (id) next.set('line', id); else next.delete('line')
+    setSearchParams(next, { replace: true })
+  }
 
-  const totalVisited = visitCountByStationId?.size ?? 0
-
-  return (
-    <div className={styles.screen}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>노선도</h1>
-        <div className={styles.headerControls}>
-          <label className="srOnly" htmlFor="line-filter">
-            호선 필터
-          </label>
-          <select
-            id="line-filter"
-            className={styles.select}
-            value={selectedId}
-            disabled={options.length === 0}
-            onChange={(e) => {
-              const next = new URLSearchParams(searchParams)
-              // F-15: 새로고침·뒤로가기 후에도 선택이 유지되도록 URL 에 담는다.
-              if (e.target.value === '') next.delete('line')
-              else next.set('line', e.target.value)
-              setSearchParams(next, { replace: true })
-            }}
-          >
-            <option value="">전체</option>
-            {options.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-          {/* F-23: 노선도 ↔ 지도 보기 토글 */}
-          <Link className={styles.toggleLink} to="/map">
-            지도 보기
-          </Link>
-        </div>
-      </header>
-
-      {master.kind === 'failed' && (
-        <div className={styles.banner} role="alert">
-          <span>역 정보를 불러오지 못했습니다.</span>
-          <button type="button" className={styles.bannerButton} onClick={loadMaster}>
-            다시 시도
-          </button>
-        </div>
-      )}
-
-      {/* AC-10: 방문 집계만 실패하면 노선도는 살려둔다. 화면 전체를 죽이지 않는다 (§2.2). */}
-      {visits.kind === 'failed' && (
-        <div className={styles.banner} role="alert">
-          <span>방문 정보를 불러오지 못했어요.</span>
-          <button type="button" className={styles.bannerButton} onClick={loadVisits}>
-            다시 시도
-          </button>
-        </div>
-      )}
-
-      {masterData?.stale === true && (
-        <div className={styles.banner}>
-          <span>오프라인 — 저장된 역 정보로 표시 중이에요.</span>
-        </div>
-      )}
-
-      {/* 조사(은/는)를 붙이려면 노선명의 받침을 따져야 한다. 노선명은 DB가 주는 값이라
-          규칙을 프론트에 두지 않고, 조사가 필요 없는 문장으로 쓴다. */}
-      {selected !== null && selectedDrawableCodes === null && (
-        <p className={styles.notice}>{selected.label} — 노선도에 아직 준비되지 않았어요.</p>
-      )}
-
-      <div className={styles.canvasWrap}>
-        {view === null ? (
-          <div className={styles.skeleton} aria-hidden="true" />
-        ) : (
-          <>
-            <LineMapCanvas
-              ref={canvasRef}
-              width={lineMap.viewBox.width}
-              height={lineMap.viewBox.height}
-              lines={view.lines}
-              stations={view.stations}
-              onSelectStation={goStation}
-            />
-            <div className={styles.zoomControls}>
-              <button
-                type="button"
-                className={styles.zoomButton}
-                aria-label="확대"
-                onClick={() => canvasRef.current?.zoomBy(1.5)}
-              >
-                +
-              </button>
-              <button
-                type="button"
-                className={styles.zoomButton}
-                aria-label="축소"
-                onClick={() => canvasRef.current?.zoomBy(1 / 1.5)}
-              >
-                −
-              </button>
-              {/* F-22: 길을 잃었을 때의 탈출구 */}
-              <button
-                type="button"
-                className={styles.zoomButton}
-                aria-label="전체 보기로 리셋"
-                onClick={() => canvasRef.current?.reset()}
-              >
-                ⤢
-              </button>
-            </div>
-          </>
-        )}
+  return <div className={`${styles.screen} ${styles.mapScreen}`}>
+    <header className={styles.mapHeader}>
+      <div><p className={styles.eyebrow}>동네 발자취 · 수도권</p><h1 className={styles.mapTitle}>노선도</h1></div>
+      <div className={styles.headerControls}>
+        <Link className={styles.toggleLink} to="/map">지도 보기</Link>
+        <Link className={styles.addRecord} to="/records/new">+ 기록 남기기</Link>
       </div>
-
-      <footer className={styles.footer}>
-        {/* AC-09: 기록 0건이면 전 역이 빈 원이고, 첫 기록을 유도하는 안내가 보인다. */}
-        {visits.kind === 'ready' && totalVisited === 0 && (
-          <p className={styles.emptyHint}>
-            아직 발자취가 없어요. <Link to="/records/new">첫 발자취를 남겨보세요</Link>
-          </p>
-        )}
-
-        {missing.length > 0 && (
-          <details
-            className={styles.missing}
-            open={showMissing}
-            onToggle={(e) => setShowMissing(e.currentTarget.open)}
-          >
-            <summary>노선도에 아직 표시되지 않은 역 {missing.length}개</summary>
-            {/* 열었을 때만 마운트한다. 지금은 894개라 항상 그리면 첫 렌더가 그만큼 느려진다.
-                좌표를 채워 갈수록 줄어드는 목록이라 가상화는 아직 넣지 않았다. */}
-            {showMissing && (
-              <ul className={styles.missingList}>
-                {missing.map((s) => (
-                  <li key={s.code}>
-                    <Link to={`/stations/${s.id}`}>{s.name}</Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </details>
-        )}
-
-        {master.kind === 'failed' && (
-          <p className={ui.hint}>노선도를 그리려면 역 정보가 필요해요.</p>
-        )}
-      </footer>
+    </header>
+    {master.kind === 'failed' && <div className={styles.banner} role="alert"><span>역 정보를 불러오지 못했습니다.</span><button className={styles.bannerButton} onClick={reloadMaster}>다시 시도</button></div>}
+    {visits.kind === 'failed' && <div className={styles.banner} role="alert"><span>방문 정보를 불러오지 못했어요.</span><button className={styles.bannerButton} onClick={reloadVisits}>다시 시도</button></div>}
+    {masterData?.stale && <div className={styles.banner}>오프라인 — 저장된 역 정보로 표시 중이에요.</div>}
+    <div className={styles.mapWorkspace}>
+      <aside className={styles.sidebar} aria-label="노선도 탐색">
+        <div className={styles.searchArea}>
+          <label className="srOnly" htmlFor="station-search">역 이름 또는 초성 검색</label>
+          <input ref={searchRef} id="station-search" className={styles.searchInput} type="search" placeholder="어느 역을 찾고 있나요?" autoComplete="off"
+            value={query} disabled={!masterData} aria-controls={query.trim() ? 'station-search-results' : undefined}
+            onChange={e => setQuery(e.target.value)} onKeyDown={e => {
+              if (e.nativeEvent.isComposing) return
+              if (e.key === 'Escape') setQuery('')
+              if (e.key === 'ArrowDown') { e.preventDefault(); resultsRef.current?.querySelector<HTMLElement>('a')?.focus() }
+              if (e.key === 'Enter' && results[0]) goStation(results[0].id)
+            }} />
+          {query.trim() && <div className={styles.searchDropdown}>
+            <p className={styles.searchMeta} role="status">{results.length ? `${results.length}개 역 · 역 이름을 누르면 기록을 볼 수 있어요` : '검색 결과가 없어요. 다른 역 이름으로 찾아보세요.'}</p>
+            <ul id="station-search-results" ref={resultsRef} className={styles.searchResults} onKeyDown={e => {
+              if (e.key === 'Escape') { setQuery(''); searchRef.current?.focus() }
+            }}>
+              {results.map(s => <li key={s.code}>
+                <Link to={`/stations/${s.id}`}><strong>{s.name_short}</strong><span>{stationGeometryByCode.has(s.code) ? '역 기록 보기' : s.in_mvp_scope ? '도식 준비 중 · 기록 보기' : '표시 범위 밖 · 기록 보기'}</span></Link>
+                {stationGeometryByCode.has(s.code) && <button type="button" onClick={() => showOnMap(s.code)} aria-label={`${s.name_short} 노선도에서 보기`}>지도에서 보기</button>}
+              </li>)}
+            </ul>
+          </div>}
+        </div>
+        <div className={styles.filterRow}>
+          <label htmlFor="line-filter" className={styles.filterLabel}>노선</label>
+          <select id="line-filter" className={styles.select} value={selected?.id ?? ''} disabled={!options.length} onChange={e => selectLine(e.target.value)}>
+            <option value="">전체 노선</option>{options.filter(o => o.codes.some(c => drawable.has(c))).map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+          </select>
+          <button type="button" className={styles.textButton} onClick={() => { selectLine(''); canvasRef.current?.reset() }}>전체 보기</button>
+        </div>
+        <div className={styles.mapSummary}>
+          <p className={styles.summaryLabel}>내가 남긴 발자취</p>
+          <p className={styles.summaryCount}>{totalVisited === null ? '—' : totalVisited}<span> / {view?.stations.length ?? '—'}개 역</span></p>
+          <p className={styles.summaryHint}>{visits.kind === 'ready' ? '다녀온 역을 눌러 그날의 기록을 만나보세요.' : visits.kind === 'failed' ? '방문 정보를 다시 불러와 주세요.' : '방문 정보를 확인하고 있어요.'}</p>
+        </div>
+        <div className={styles.quickStations}>
+          <p className={styles.summaryLabel}>바로 둘러보기</p>
+          <div>{['홍대입구', '강남', '잠실', '서울'].map(name => { const station = view?.stations.find(s => s.name === name)
+            return station ? <button key={name} type="button" onClick={() => showOnMap(station.code)}>{name === '서울' ? '서울역' : name}</button> : null })}</div>
+        </div>
+        <div className={styles.sidebarLegend}><p className={styles.summaryLabel}>노선 안내</p><div className={styles.lineLegend}>{options.filter(o => o.codes.some(c => drawable.has(c))).map(o => <button key={o.id} type="button" onClick={() => selectLine(o.id)} aria-pressed={selected?.id === o.id}><i style={{ background: o.color }} />{o.label}</button>)}</div></div>
+        {visits.kind === 'ready' && totalVisited === 0 && <p className={styles.firstRecord}><Link to="/records/new">첫 발자취 남기기 →</Link></p>}
+        {missing.length > 0 && <p className={styles.scopeNote}>도식 준비 중인 역 {missing.length}개도 검색해서 기록할 수 있어요.</p>}
+      </aside>
+      <div className={styles.canvasWrap}>
+        {!selectedHasGeometry && <p className={styles.mapHint}>{selected?.label} 노선도는 준비 중이에요.</p>}
+        {view ? <>
+          <LineMapCanvas ref={canvasRef} width={lineMap.viewBox.width} height={lineMap.viewBox.height} lines={view.lines} stations={view.stations}
+            riverPoints={view.river} onSelectStation={goStation} onAmbiguous={setAmbiguous} />
+          <div className={styles.mapHint}>확대하거나 역 이름으로 찾아보세요</div>
+          <details className={styles.legend}><summary>표시 안내</summary><div><p><span className={styles.legendVisit}>✓</span> 방문한 역</p><p>○ 일반역 · ◉ 환승역</p><p>정확한 방문 횟수는 확대해서 확인해요.</p>{visits.kind !== 'ready' && <p role="status">방문 정보 {visits.kind === 'failed' ? '미확인' : '확인 중'}</p>}</div></details>
+          <div className={styles.zoomControls}>
+            <button type="button" className={styles.zoomButton} aria-label="확대" onClick={() => canvasRef.current?.zoomBy(1.6)}>+</button>
+            <button type="button" className={styles.zoomButton} aria-label="축소" onClick={() => canvasRef.current?.zoomBy(1 / 1.6)}>−</button>
+            <button type="button" className={styles.zoomButton} aria-label="전체 보기로 리셋" onClick={() => canvasRef.current?.reset()}>⤢</button>
+          </div>
+          {ambiguous.length > 0 && <section className={styles.stationCandidates} aria-label="겹친 역 선택">
+            <div><strong>어느 역을 찾으세요?</strong><button aria-label="역 선택 닫기" onClick={() => setAmbiguous([])}>닫기</button></div>
+            {ambiguous.map(s => <button key={s.code} onClick={() => goStation(s.id)}>{s.name} · 기록 보기</button>)}
+          </section>}
+        </> : <div className={styles.skeleton} role="status">{master.kind === 'failed' ? '역 정보를 다시 불러와 주세요.' : '노선도를 준비하고 있어요.'}</div>}
+      </div>
     </div>
-  )
+  </div>
 }

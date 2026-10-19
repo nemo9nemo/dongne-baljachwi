@@ -17,6 +17,7 @@ import type { Mood, Weather } from './database.types'
 const PAGE_SIZE = 20
 
 export type RecordCard = {
+  placeName?: string | null
   id: string
   stationId: string
   /** `YYYY-MM-DD` */
@@ -42,7 +43,11 @@ export type RecordCardPage = {
   hasMore: boolean
 }
 
-type FetchOptions = {
+export type FetchOptions = {
+  query?: string | null
+  start?: string | null
+  end?: string | null
+  jump?: string | null
   /** 08 F-19: 매칭은 tag_norm 기준(대소문자 무시) */
   tagNorm?: string | null
   /** 04가 이 모듈을 쓸 때 걸 필터. 08은 쓰지 않는다 */
@@ -51,43 +56,22 @@ type FetchOptions = {
 }
 
 /** `(visited_on, id) < (cursor)` — `ORDER BY visited_on DESC, id DESC` 키셋 조건 (F-04) */
-function cursorFilter(cursor: CardCursor): string {
-  return `visited_on.lt.${cursor.visitedOn},and(visited_on.eq.${cursor.visitedOn},id.lt.${cursor.id})`
-}
-
 export async function fetchRecordCardPage(options: FetchOptions): Promise<RecordCardPage> {
   const tagNorm = options.tagNorm ?? null
   const stationId = options.stationId ?? null
   const cursor = options.cursor ?? null
 
-  // 태그 필터가 있으면 후보 record_id를 먼저 구한다. couple_tag_usage.usage_count로
-  // 이미 규모가 짐작되는 값이라(수백 건 이하) id만 받는 이 조회는 가볍다.
-  let candidateIds: string[] | null = null
-  if (tagNorm !== null) {
-    const tagRes = await supabase.from('record_tags').select('record_id').eq('tag_norm', tagNorm)
-    if (tagRes.error !== null) throw tagRes.error
-    candidateIds = (tagRes.data ?? []).map((row) => row.record_id)
-    if (candidateIds.length === 0) return { cards: [], nextCursor: null, hasMore: false }
-  }
-
-  // 04 §4.1: 목록은 `records`가 아니라 목록 전용 뷰를 읽는다 — 이 뷰에는 note 전문 컬럼이
-  // 아예 없어서, 실수로 전문을 select 할 경로 자체가 없다. 뷰는 단순 투영이라 아래
-  // 필터/정렬(station_id, 키셋, order)이 records의 인덱스를 그대로 탄다.
-  let query = supabase
-    .from('record_cards')
-    .select('id, station_id, visited_on, mood, weather, note_excerpt, author_id')
-
-  if (stationId !== null) query = query.eq('station_id', stationId)
-  if (candidateIds !== null) query = query.in('id', candidateIds)
-  if (cursor !== null) query = query.or(cursorFilter(cursor))
-
-  const recordsRes = await query
-    .order('visited_on', { ascending: false })
-    .order('id', { ascending: false })
-    .limit(PAGE_SIZE)
+  // D10: 서버에서 태그 EXISTS·검색·기간·키셋을 함께 적용하고 일기 발췌문만 반환한다.
+  const recordsRes = await supabase.rpc('query_record_cards', {
+    p_query: options.query ?? null, p_station_id: stationId, p_tag_norm: tagNorm,
+    p_start: options.start ?? null, p_end: options.end ?? null, p_jump: options.jump ?? null,
+    p_cursor_date: cursor?.visitedOn ?? null, p_cursor_id: cursor?.id ?? null, p_limit: PAGE_SIZE + 1,
+  })
   if (recordsRes.error !== null) throw recordsRes.error
 
-  const rows = recordsRes.data ?? []
+  if (!Array.isArray(recordsRes.data)) throw new Error('기록 목록 응답을 확인하지 못했어요.')
+  const hasMore = recordsRes.data.length > PAGE_SIZE
+  const rows = recordsRes.data.slice(0, PAGE_SIZE)
   if (rows.length === 0) return { cards: [], nextCursor: null, hasMore: false }
   const ids = rows.map((row) => row.id)
 
@@ -137,6 +121,7 @@ export async function fetchRecordCardPage(options: FetchOptions): Promise<Record
       mood: row.mood,
       weather: row.weather,
       noteExcerpt: row.note_excerpt,
+      placeName: row.place_name,
       authorId: row.author_id,
       photoCount: photosByRecord.get(row.id)?.length ?? 0,
       coverPhoto:
@@ -159,6 +144,6 @@ export async function fetchRecordCardPage(options: FetchOptions): Promise<Record
     nextCursor: last === undefined ? null : { visitedOn: last.visited_on, id: last.id },
     // 정확히 PAGE_SIZE개가 왔으면 다음 페이지가 있다고 가정한다. 틀려도 빈 응답 1회로
     // 끝난다 — offset 방식과 달리 틀린 추정의 비용이 요청 1회뿐이다.
-    hasMore: rows.length === PAGE_SIZE,
+    hasMore,
   }
 }

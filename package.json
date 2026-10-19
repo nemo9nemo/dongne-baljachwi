@@ -10,8 +10,15 @@
     "preview": "vite preview",
     "stations:load": "node --env-file-if-exists=.env.local scripts/load-station-master.mjs",
     "line-map:seed": "node --env-file-if-exists=.env.local scripts/seed-line-map.mjs",
+    "line-map:build": "node scripts/build-line-map.mjs",
+    "line-map:check": "node scripts/build-line-map.mjs --check && node scripts/verify-line-map.mjs --offline",
+    "test:line-map": "node --test tests/line-map/line-map.test.mjs",
     "verify:line-map": "node --env-file-if-exists=.env.local scripts/verify-line-map.mjs",
-    "test:db": "node supabase/tests/run.mjs"
+    "test:db": "node supabase/tests/run.mjs",
+    "test:browser": "node tests/browser/run-with-server.mjs",
+    "service:inspect": "node --env-file-if-exists=.env.local scripts/inspect-service.mjs",
+    "design:verify": "node tests/design/mockup.mjs",
+    "photos:cleanup": "node --env-file-if-exists=.env.local scripts/cleanup-photos.mjs"
   },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",
@@ -36,6 +43,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",
     "oxlint": "^1.75.0",
+    "playwright": "^1.62.1",
     "typescript": "~6.0.2",
     "vite": "^8.2.0"
   }

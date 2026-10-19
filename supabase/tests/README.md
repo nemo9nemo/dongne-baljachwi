@@ -6,9 +6,15 @@ npm run test:db -- couple-link   # 파일명 부분 일치로 골라 실행
 ```
 
 Docker 도 Supabase CLI 도 필요 없다. 인메모리 Postgres(PGlite)를 띄우고
-`supabase/migrations/*.sql` 을 이름순으로 **그대로** 적용한 뒤 테스트 SQL을 돌린다.
+`supabase/migrations/*.sql` 을 이름순으로 **그대로** 적용하며 테스트 SQL을 돌린다.
 마이그레이션 적용이 실패하면 그 자리에서 멈춘다 — 즉 이 명령은 "마이그레이션이 맨
 Postgres 에 처음부터 적용되는가"까지 같이 검증한다.
+
+2026-10-15 쓰기 계약 전환부터 `30-records`(직접 쓰기)와 `60-upsert-record`(구 RPC)는
+전환 전 계약 이력으로 먼저 실행한다. 그 뒤 실제 전환 마이그레이션을 적용하고 나머지
+기존 검사 및 `80-record-write`를 현재 권한으로 실행한다. 테스트 때문에 회수한 권한을
+다시 부여하지 않는다. 출력 마지막에 현재 스키마 검사와 이력 검사 수를 구분한다.
+`npm run test:db -- record-write`로 최신 쓰기 계약만 실행할 수 있다.
 
 ## 파일
 
@@ -23,6 +29,7 @@ Postgres 에 처음부터 적용되는가"까지 같이 검증한다.
 | `50-station-master.test.sql` | `apply_station_master` 멱등성 · 폐역 처리 · `master_version` · 배치 권한 |
 | `60-upsert-record.test.sql` | `upsert_record` 신규/수정 · 서버 검증 7종 · 태그 정규화·중복·전체 교체 |
 | `70-record-cards.test.sql` | `record_cards` 뷰 — note 200자 서버 절단 · 컬럼 계약 · security_invoker · 조회 전용 권한 |
+| `80-record-write.test.sql` | D01–D04 스냅샷·버전·사진 목록 롤백·영수증·생성 ID 재사용·직접 쓰기 차단 |
 
 ## 테스트 작성 규칙
 
@@ -39,3 +46,4 @@ Postgres 에 처음부터 적용되는가"까지 같이 검증한다.
 - **PostgREST 응답 봉투** (에러가 `message` 필드에 어떻게 실리는지). SQL 레이어의 sqlstate/메시지까지만
   검증한다.
 - **Storage 서비스** (서명 URL, 업로드 파이프라인). 스텁은 `storage.objects` 행 수준의 RLS 만 재현한다.
+- 실제 여러 DB 연결의 동시 스케줄링. 같은 기준 버전의 경합은 순차 요청으로 재현한다.

@@ -1,0 +1,39 @@
+name: Photo cleanup
+on:
+  schedule:
+    - cron: '20 18 * * *'
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: 'Run deletion after reviewing the dry-run count'
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: photo-cleanup
+  cancel-in-progress: false
+jobs:
+  cleanup:
+    if: vars.PHOTO_CLEANUP_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Inspect or process one bounded cleanup batch
+        run: |
+          if [ "$EVENT" = "schedule" ] || [ "$APPLY" = "true" ]; then
+            npm run photos:cleanup -- --apply
+          else
+            npm run photos:cleanup
+          fi
+        env:
+          EVENT: ${{ github.event_name }}
+          APPLY: ${{ inputs.apply }}
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

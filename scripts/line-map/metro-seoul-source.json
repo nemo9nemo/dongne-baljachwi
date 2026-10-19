@@ -1,0 +1,10018 @@
+{
+  "source": "Existing station master and geometry; route corrections reviewed against Seoul Metro 2025-09-29 map",
+  "reviewedOn": "2026-10-06",
+  "stations": [
+    {
+      "stationCode": "S-I4101-0132",
+      "x": 3452,
+      "y": 2983.5,
+      "labelAnchor": "top",
+      "name": "시청",
+      "lat": 37.5643725,
+      "lng": 126.976239
+    },
+    {
+      "stationCode": "S-S1102-0202",
+      "x": 3470.8,
+      "y": 2966.8,
+      "labelAnchor": "top",
+      "name": "을지로입구",
+      "lat": 37.565998,
+      "lng": 126.982569
+    },
+    {
+      "stationCode": "S-I1103-0330",
+      "x": 3507.6,
+      "y": 2969.1,
+      "labelAnchor": "top",
+      "name": "을지로3가",
+      "lat": 37.5662955,
+      "lng": 126.9917445
+    },
+    {
+      "stationCode": "S-S1102-0204",
+      "x": 3631.3,
+      "y": 2966.7,
+      "labelAnchor": "top",
+      "name": "을지로4가",
+      "lat": 37.5669455,
+      "lng": 126.9978745
+    },
+    {
+      "stationCode": "S-I1104-0422",
+      "x": 3690.7,
+      "y": 2965.6,
+      "labelAnchor": "top",
+      "name": "동대문역사문화공원",
+      "lat": 37.565144,
+      "lng": 127.007407
+    },
+    {
+      "stationCode": "S-S1102-0206",
+      "x": 3779,
+      "y": 2969.4,
+      "labelAnchor": "top",
+      "name": "신당",
+      "lat": 37.5659245,
+      "lng": 127.01779195
+    },
+    {
+      "stationCode": "S-S1102-0207",
+      "x": 3801.8,
+      "y": 2992.2,
+      "labelAnchor": "top",
+      "name": "상왕십리",
+      "lat": 37.564444,
+      "lng": 127.029322
+    },
+    {
+      "stationCode": "S-I4102-1013",
+      "x": 3878.1,
+      "y": 2992.2,
+      "labelAnchor": "top",
+      "name": "왕십리",
+      "lat": 37.56149995,
+      "lng": 127.037858875
+    },
+    {
+      "stationCode": "S-S1102-0209",
+      "x": 3913.7,
+      "y": 3027.1,
+      "labelAnchor": "top",
+      "name": "한양대",
+      "lat": 37.555758,
+      "lng": 127.0436594
+    },
+    {
+      "stationCode": "S-S1102-0210",
+      "x": 3959.5,
+      "y": 3072.3,
+      "labelAnchor": "top",
+      "name": "뚝섬",
+      "lat": 37.54718,
+      "lng": 127.047413
+    },
+    {
+      "stationCode": "S-S1102-0211",
+      "x": 4005.7,
+      "y": 3118,
+      "labelAnchor": "right",
+      "name": "성수",
+      "lat": 37.544628,
+      "lng": 127.055983
+    },
+    {
+      "stationCode": "S-S1102-0212",
+      "x": 4046.2,
+      "y": 3158,
+      "labelAnchor": "right",
+      "name": "건대입구",
+      "lat": 37.540645,
+      "lng": 127.070167
+    },
+    {
+      "stationCode": "S-S1102-0213",
+      "x": 4120.5,
+      "y": 3232.3,
+      "labelAnchor": "right",
+      "name": "구의",
+      "lat": 37.537157,
+      "lng": 127.0862124
+    },
+    {
+      "stationCode": "S-S1102-0214",
+      "x": 4120.6,
+      "y": 3280,
+      "labelAnchor": "right",
+      "name": "강변",
+      "lat": 37.535161,
+      "lng": 127.094684
+    },
+    {
+      "stationCode": "S-S1102-0215",
+      "x": 4120.7,
+      "y": 3341.6,
+      "labelAnchor": "right",
+      "name": "잠실나루",
+      "lat": 37.520688,
+      "lng": 127.103836
+    },
+    {
+      "stationCode": "S-S1102-0216",
+      "x": 4120.8,
+      "y": 3376.4,
+      "labelAnchor": "right",
+      "name": "잠실",
+      "lat": 37.513977,
+      "lng": 127.102198
+    },
+    {
+      "stationCode": "S-S1102-0217",
+      "x": 4040.5,
+      "y": 3456.7,
+      "labelAnchor": "right",
+      "name": "잠실새내",
+      "lat": 37.511653,
+      "lng": 127.086224
+    },
+    {
+      "stationCode": "S-S1102-0218",
+      "x": 3980.6,
+      "y": 3516.7,
+      "labelAnchor": "right",
+      "name": "종합운동장",
+      "lat": 37.511142,
+      "lng": 127.075379
+    },
+    {
+      "stationCode": "S-S1102-0219",
+      "x": 3949.2,
+      "y": 3548.1,
+      "labelAnchor": "bottom",
+      "name": "삼성",
+      "lat": 37.508827,
+      "lng": 127.063203
+    },
+    {
+      "stationCode": "S-I4105-1023",
+      "x": 3930.5,
+      "y": 3566.8,
+      "labelAnchor": "bottom",
+      "name": "선릉",
+      "lat": 37.504368,
+      "lng": 127.0485575
+    },
+    {
+      "stationCode": "S-S1102-0221",
+      "x": 3829.7,
+      "y": 3667.6,
+      "labelAnchor": "bottom",
+      "name": "역삼",
+      "lat": 37.500658,
+      "lng": 127.03643
+    },
+    {
+      "stationCode": "S-I11D1-D007",
+      "x": 3793.9,
+      "y": 3667.7,
+      "labelAnchor": "bottom",
+      "name": "강남",
+      "lat": 37.4977177198936,
+      "lng": 127.027914468765
+    },
+    {
+      "stationCode": "S-I1103-0340",
+      "x": 3703.7,
+      "y": 3672.5,
+      "labelAnchor": "bottom",
+      "name": "교대",
+      "lat": 37.4935085,
+      "lng": 127.0141135
+    },
+    {
+      "stationCode": "S-S1102-0224",
+      "x": 3677,
+      "y": 3674,
+      "labelAnchor": "bottom",
+      "name": "서초",
+      "lat": 37.49191,
+      "lng": 127.007685
+    },
+    {
+      "stationCode": "S-S1102-0225",
+      "x": 3588.7,
+      "y": 3675.5,
+      "labelAnchor": "bottom",
+      "name": "방배",
+      "lat": 37.481469,
+      "lng": 126.997627
+    },
+    {
+      "stationCode": "S-I1104-0433",
+      "x": 3535.7,
+      "y": 3677,
+      "labelAnchor": "bottom",
+      "name": "사당",
+      "lat": 37.4763995,
+      "lng": 126.9816335
+    },
+    {
+      "stationCode": "S-S1102-0227",
+      "x": 3462.4,
+      "y": 3676.9,
+      "labelAnchor": "bottom",
+      "name": "낙성대",
+      "lat": 37.47713,
+      "lng": 126.963583
+    },
+    {
+      "stationCode": "S-S1102-0228",
+      "x": 3398.4,
+      "y": 3676.9,
+      "labelAnchor": "bottom",
+      "name": "서울대입구",
+      "lat": 37.481233,
+      "lng": 126.952745
+    },
+    {
+      "stationCode": "S-S1102-0229",
+      "x": 3328.3,
+      "y": 3676.9,
+      "labelAnchor": "bottom",
+      "name": "봉천",
+      "lat": 37.482416,
+      "lng": 126.941696
+    },
+    {
+      "stationCode": "S-L11SL-S408",
+      "x": 3267.6,
+      "y": 3616.2,
+      "labelAnchor": "bottom",
+      "name": "신림",
+      "lat": 37.4845533775,
+      "lng": 126.92959146
+    },
+    {
+      "stationCode": "S-S1102-0231",
+      "x": 3226.1,
+      "y": 3574.7,
+      "labelAnchor": "bottom",
+      "name": "신대방",
+      "lat": 37.487604,
+      "lng": 126.913479
+    },
+    {
+      "stationCode": "S-S1102-0232",
+      "x": 3180.4,
+      "y": 3528.9,
+      "labelAnchor": "bottom",
+      "name": "구로디지털단지",
+      "lat": 37.4852931,
+      "lng": 126.901456
+    },
+    {
+      "stationCode": "S-S1102-0233",
+      "x": 3124.3,
+      "y": 3472.8,
+      "labelAnchor": "left",
+      "name": "대림",
+      "lat": 37.4931333,
+      "lng": 126.89598815
+    },
+    {
+      "stationCode": "S-I4101-1007",
+      "x": 3085.4,
+      "y": 3433.8,
+      "labelAnchor": "left",
+      "name": "신도림",
+      "lat": 37.508899,
+      "lng": 126.8913675
+    },
+    {
+      "stationCode": "S-S1102-0235",
+      "x": 3085.4,
+      "y": 3373.9,
+      "labelAnchor": "left",
+      "name": "문래",
+      "lat": 37.517993,
+      "lng": 126.894766
+    },
+    {
+      "stationCode": "S-S1102-0236",
+      "x": 3085.4,
+      "y": 3303.3,
+      "labelAnchor": "left",
+      "name": "영등포구청",
+      "lat": 37.5249875,
+      "lng": 126.8958245
+    },
+    {
+      "stationCode": "S-S1102-0237",
+      "x": 3085.4,
+      "y": 3222.4,
+      "labelAnchor": "left",
+      "name": "당산",
+      "lat": 37.5343255,
+      "lng": 126.9024165
+    },
+    {
+      "stationCode": "S-S1102-0238",
+      "x": 3085.3,
+      "y": 3151.6,
+      "labelAnchor": "left",
+      "name": "합정",
+      "lat": 37.549529,
+      "lng": 126.9140515
+    },
+    {
+      "stationCode": "S-I28A1-A03",
+      "x": 3174.2,
+      "y": 3062.7,
+      "labelAnchor": "left",
+      "name": "홍대입구",
+      "lat": 37.5573563433333,
+      "lng": 126.925656633333
+    },
+    {
+      "stationCode": "S-S1102-0240",
+      "x": 3209,
+      "y": 3032.9,
+      "labelAnchor": "top",
+      "name": "신촌",
+      "lat": 37.555153,
+      "lng": 126.93689
+    },
+    {
+      "stationCode": "S-S1102-0241",
+      "x": 3249.1,
+      "y": 2997.8,
+      "labelAnchor": "top",
+      "name": "이대",
+      "lat": 37.556734,
+      "lng": 126.945897
+    },
+    {
+      "stationCode": "S-S1102-0242",
+      "x": 3276.7,
+      "y": 2973.2,
+      "labelAnchor": "top",
+      "name": "아현",
+      "lat": 37.557407,
+      "lng": 126.956079
+    },
+    {
+      "stationCode": "S-S1102-0243",
+      "x": 3329,
+      "y": 2977.7,
+      "labelAnchor": "top",
+      "name": "충정로",
+      "lat": 37.5599015,
+      "lng": 126.963619
+    },
+    {
+      "stationCode": "S-S1121-2111",
+      "x": 4082.8,
+      "y": 3063,
+      "labelAnchor": "right",
+      "name": "용답",
+      "lat": 37.562066,
+      "lng": 127.05087863
+    },
+    {
+      "stationCode": "S-S1121-2112",
+      "x": 4125.1,
+      "y": 3020.7,
+      "labelAnchor": "right",
+      "name": "신답",
+      "lat": 37.569847,
+      "lng": 127.047048
+    },
+    {
+      "stationCode": "S-S1121-2113",
+      "x": 4156,
+      "y": 2989.9,
+      "labelAnchor": "right",
+      "name": "용두",
+      "lat": 37.574012,
+      "lng": 127.03811
+    },
+    {
+      "stationCode": "S-I4101-0126",
+      "x": 4176.4,
+      "y": 2969.5,
+      "labelAnchor": "right",
+      "name": "신설동",
+      "lat": 37.5757866666667,
+      "lng": 127.024363
+    },
+    {
+      "stationCode": "S-S1122-2341",
+      "x": 3020.4,
+      "y": 3473.8,
+      "labelAnchor": "bottom",
+      "name": "도림천",
+      "lat": 37.5145589,
+      "lng": 126.882586
+    },
+    {
+      "stationCode": "S-S1122-2342",
+      "x": 2960.1,
+      "y": 3473.8,
+      "labelAnchor": "bottom",
+      "name": "양천구청",
+      "lat": 37.5123294,
+      "lng": 126.865593
+    },
+    {
+      "stationCode": "S-S1122-2343",
+      "x": 2894.6,
+      "y": 3473.8,
+      "labelAnchor": "bottom",
+      "name": "신정네거리",
+      "lat": 37.520218,
+      "lng": 126.852849
+    },
+    {
+      "stationCode": "S-I1103-0352",
+      "x": 4417.1,
+      "y": 3508,
+      "labelAnchor": "right",
+      "name": "오금",
+      "lat": 37.502258,
+      "lng": 127.1280225
+    },
+    {
+      "stationCode": "S-I1103-0351",
+      "x": 4379.4,
+      "y": 3545.8,
+      "labelAnchor": "right",
+      "name": "경찰병원",
+      "lat": 37.495754,
+      "lng": 127.124198
+    },
+    {
+      "stationCode": "S-I1103-0350",
+      "x": 4334.9,
+      "y": 3590.3,
+      "labelAnchor": "top",
+      "name": "가락시장",
+      "lat": 37.492661,
+      "lng": 127.1179895
+    },
+    {
+      "stationCode": "S-I1103-0349",
+      "x": 4233.1,
+      "y": 3590.3,
+      "labelAnchor": "top",
+      "name": "수서",
+      "lat": 37.4875665,
+      "lng": 127.101521
+    },
+    {
+      "stationCode": "S-I1103-0348",
+      "x": 4127.8,
+      "y": 3590.3,
+      "labelAnchor": "top",
+      "name": "일원",
+      "lat": 37.48389,
+      "lng": 127.08416
+    },
+    {
+      "stationCode": "S-I1103-0347",
+      "x": 4127.8,
+      "y": 3556.5,
+      "labelAnchor": "right",
+      "name": "대청",
+      "lat": 37.493607,
+      "lng": 127.079526
+    },
+    {
+      "stationCode": "S-I1103-0346",
+      "x": 4057.2,
+      "y": 3485.9,
+      "labelAnchor": "top",
+      "name": "학여울",
+      "lat": 37.496787,
+      "lng": 127.0708601
+    },
+    {
+      "stationCode": "S-I1103-0345",
+      "x": 4011.6,
+      "y": 3531.5,
+      "labelAnchor": "top",
+      "name": "대치",
+      "lat": 37.494601,
+      "lng": 127.063449
+    },
+    {
+      "stationCode": "S-I1103-0344",
+      "x": 3979.9,
+      "y": 3563.3,
+      "labelAnchor": "top",
+      "name": "도곡",
+      "lat": 37.4910215,
+      "lng": 127.0555435
+    },
+    {
+      "stationCode": "S-I1103-0343",
+      "x": 3919.2,
+      "y": 3624,
+      "labelAnchor": "top",
+      "name": "매봉",
+      "lat": 37.487114,
+      "lng": 127.046907
+    },
+    {
+      "stationCode": "S-I1103-0342",
+      "x": 3835.3,
+      "y": 3624,
+      "labelAnchor": "top",
+      "name": "양재",
+      "lat": 37.4845167619794,
+      "lng": 127.034164726261
+    },
+    {
+      "stationCode": "S-I1103-0341",
+      "x": 3703.7,
+      "y": 3624,
+      "labelAnchor": "top",
+      "name": "남부터미널",
+      "lat": 37.48494,
+      "lng": 127.016289
+    },
+    {
+      "stationCode": "S-I1103-0339",
+      "x": 4076.4,
+      "y": 3683.4,
+      "labelAnchor": "bottom",
+      "name": "고속터미널",
+      "lat": 37.5047576666667,
+      "lng": 127.004671666667
+    },
+    {
+      "stationCode": "S-I1103-0338",
+      "x": 4228.4,
+      "y": 3683.4,
+      "labelAnchor": "right",
+      "name": "잠원",
+      "lat": 37.512989,
+      "lng": 127.011613
+    },
+    {
+      "stationCode": "S-I1103-0337",
+      "x": 4308.9,
+      "y": 3602.9,
+      "labelAnchor": "right",
+      "name": "신사",
+      "lat": 37.5162816316565,
+      "lng": 127.020003958363
+    },
+    {
+      "stationCode": "S-I1103-0336",
+      "x": 4308.9,
+      "y": 3436.8,
+      "labelAnchor": "right",
+      "name": "압구정",
+      "lat": 37.526169,
+      "lng": 127.028502
+    },
+    {
+      "stationCode": "S-I1103-0335",
+      "x": 4308.9,
+      "y": 3318.2,
+      "labelAnchor": "right",
+      "name": "옥수",
+      "lat": 37.5410835,
+      "lng": 127.0180005
+    },
+    {
+      "stationCode": "S-I1103-0334",
+      "x": 4222.4,
+      "y": 3231.7,
+      "labelAnchor": "right",
+      "name": "금호",
+      "lat": 37.548269,
+      "lng": 127.015785
+    },
+    {
+      "stationCode": "S-I1103-0333",
+      "x": 4123.1,
+      "y": 3132.4,
+      "labelAnchor": "right",
+      "name": "약수",
+      "lat": 37.5543205,
+      "lng": 127.0105475
+    },
+    {
+      "stationCode": "S-I1103-0332",
+      "x": 3959.7,
+      "y": 2969.1,
+      "labelAnchor": "top",
+      "name": "동대입구",
+      "lat": 37.55906,
+      "lng": 127.005273
+    },
+    {
+      "stationCode": "S-I1103-0331",
+      "x": 3714.1,
+      "y": 2969.1,
+      "labelAnchor": "top",
+      "name": "충무로",
+      "lat": 37.561367,
+      "lng": 126.994373
+    },
+    {
+      "stationCode": "S-I1103-0329",
+      "x": 3570.1,
+      "y": 2906.6,
+      "labelAnchor": "top",
+      "name": "종로3가",
+      "lat": 37.571504,
+      "lng": 126.991459666667
+    },
+    {
+      "stationCode": "S-I1103-0328",
+      "x": 3570.1,
+      "y": 2932.6,
+      "labelAnchor": "top",
+      "name": "안국",
+      "lat": 37.576562,
+      "lng": 126.98547
+    },
+    {
+      "stationCode": "S-I1103-0327",
+      "x": 3500.7,
+      "y": 2932.6,
+      "labelAnchor": "top",
+      "name": "경복궁",
+      "lat": 37.575844,
+      "lng": 126.973576
+    },
+    {
+      "stationCode": "S-I1103-0326",
+      "x": 3461.5,
+      "y": 2932.6,
+      "labelAnchor": "top",
+      "name": "독립문",
+      "lat": 37.574534,
+      "lng": 126.957902
+    },
+    {
+      "stationCode": "S-I1103-0325",
+      "x": 3391.1,
+      "y": 2862.2,
+      "labelAnchor": "right",
+      "name": "무악재",
+      "lat": 37.582658,
+      "lng": 126.950131
+    },
+    {
+      "stationCode": "S-I1103-0324",
+      "x": 3347.6,
+      "y": 2818.6,
+      "labelAnchor": "right",
+      "name": "홍제",
+      "lat": 37.588851,
+      "lng": 126.944092
+    },
+    {
+      "stationCode": "S-I1103-0323",
+      "x": 3279.1,
+      "y": 2750.2,
+      "labelAnchor": "right",
+      "name": "녹번",
+      "lat": 37.600882,
+      "lng": 126.935758
+    },
+    {
+      "stationCode": "S-I1103-0322",
+      "x": 3221.8,
+      "y": 2692.8,
+      "labelAnchor": "right",
+      "name": "불광",
+      "lat": 37.6105365,
+      "lng": 126.9298435
+    },
+    {
+      "stationCode": "S-I1103-0321",
+      "x": 3172.9,
+      "y": 2644,
+      "labelAnchor": "right",
+      "name": "연신내",
+      "lat": 37.618889,
+      "lng": 126.920681
+    },
+    {
+      "stationCode": "S-I1103-0320",
+      "x": 3172.9,
+      "y": 2481.5,
+      "labelAnchor": "right",
+      "name": "구파발",
+      "lat": 37.636612,
+      "lng": 126.918827
+    },
+    {
+      "stationCode": "S-I1103-0319",
+      "x": 3172.9,
+      "y": 2365.2,
+      "labelAnchor": "right",
+      "name": "지축",
+      "lat": 37.6481325,
+      "lng": 126.9137485
+    },
+    {
+      "stationCode": "S-I4106-1950",
+      "x": 3049.7,
+      "y": 2365.2,
+      "labelAnchor": "top",
+      "name": "삼송역",
+      "lat": 37.653096,
+      "lng": 126.895559
+    },
+    {
+      "stationCode": "S-I4106-1948",
+      "x": 2918.9,
+      "y": 2365.2,
+      "labelAnchor": "top",
+      "name": "원흥역",
+      "lat": 37.650709,
+      "lng": 126.873239
+    },
+    {
+      "stationCode": "S-I4106-1951",
+      "x": 2731.9,
+      "y": 2365.2,
+      "labelAnchor": "top",
+      "name": "원당역",
+      "lat": 37.653103,
+      "lng": 126.842891
+    },
+    {
+      "stationCode": "S-I4106-1952",
+      "x": 2690.7,
+      "y": 2406.4,
+      "labelAnchor": "top",
+      "name": "화정역",
+      "lat": 37.634708,
+      "lng": 126.832503
+    },
+    {
+      "stationCode": "S-I4106-1953",
+      "x": 2488.8,
+      "y": 2406.4,
+      "labelAnchor": "top",
+      "name": "대곡역",
+      "lat": 37.631629,
+      "lng": 126.810350666667
+    },
+    {
+      "stationCode": "S-I4106-1954",
+      "x": 2466.3,
+      "y": 2383.9,
+      "labelAnchor": "top",
+      "name": "백석역",
+      "lat": 37.642973,
+      "lng": 126.788109
+    },
+    {
+      "stationCode": "S-I4106-1955",
+      "x": 2397.1,
+      "y": 2314.7,
+      "labelAnchor": "right",
+      "name": "마두역",
+      "lat": 37.652185,
+      "lng": 126.777641
+    },
+    {
+      "stationCode": "S-I4106-1956",
+      "x": 2354.2,
+      "y": 2271.8,
+      "labelAnchor": "right",
+      "name": "정발산역",
+      "lat": 37.659709,
+      "lng": 126.773254
+    },
+    {
+      "stationCode": "S-I4106-1957",
+      "x": 2279.2,
+      "y": 2196.8,
+      "labelAnchor": "top",
+      "name": "주엽역",
+      "lat": 37.670138,
+      "lng": 126.761232
+    },
+    {
+      "stationCode": "S-I4106-1958",
+      "x": 2229.6,
+      "y": 2147.2,
+      "labelAnchor": "top",
+      "name": "대화역",
+      "lat": 37.675883,
+      "lng": 126.747756
+    },
+    {
+      "stationCode": "S-I1104-0434",
+      "x": 3637.9,
+      "y": 3779.2,
+      "labelAnchor": "right",
+      "name": "남태령",
+      "lat": 37.464339,
+      "lng": 126.989081
+    },
+    {
+      "stationCode": "S-I1104-0432",
+      "x": 2969.4,
+      "y": 3683.4,
+      "labelAnchor": "bottom",
+      "name": "총신대입구",
+      "lat": 37.4863895,
+      "lng": 126.9820375
+    },
+    {
+      "stationCode": "S-I1104-0431",
+      "x": 2950.4,
+      "y": 3669.3,
+      "labelAnchor": "left",
+      "name": "동작",
+      "lat": 37.5032225,
+      "lng": 126.9792245
+    },
+    {
+      "stationCode": "S-I1104-0429",
+      "x": 2731.3,
+      "y": 3450.2,
+      "labelAnchor": "left",
+      "name": "신용산",
+      "lat": 37.52909,
+      "lng": 126.96788
+    },
+    {
+      "stationCode": "S-I1104-0430",
+      "x": 2731.3,
+      "y": 3341,
+      "labelAnchor": "left",
+      "name": "이촌",
+      "lat": 37.52919,
+      "lng": 126.9679818
+    },
+    {
+      "stationCode": "S-I1104-0428",
+      "x": 2754.1,
+      "y": 3318.3,
+      "labelAnchor": "left",
+      "name": "삼각지",
+      "lat": 37.53501,
+      "lng": 126.973494
+    },
+    {
+      "stationCode": "S-I1104-0427",
+      "x": 2754.1,
+      "y": 3106.4,
+      "labelAnchor": "left",
+      "name": "숙대입구",
+      "lat": 37.5447834,
+      "lng": 126.9721
+    },
+    {
+      "stationCode": "S-I1104-0426",
+      "x": 2870.6,
+      "y": 2989.9,
+      "labelAnchor": "left",
+      "name": "서울",
+      "lat": 37.55468821,
+      "lng": 126.971490075
+    },
+    {
+      "stationCode": "S-I1104-0425",
+      "x": 3010.2,
+      "y": 2989.9,
+      "labelAnchor": "top",
+      "name": "회현",
+      "lat": 37.558698,
+      "lng": 126.978346
+    },
+    {
+      "stationCode": "S-I1104-0424",
+      "x": 3693.3,
+      "y": 2989.9,
+      "labelAnchor": "top",
+      "name": "명동",
+      "lat": 37.560955,
+      "lng": 126.986271
+    },
+    {
+      "stationCode": "S-I1104-0421",
+      "x": 3746.7,
+      "y": 3021.7,
+      "labelAnchor": "top",
+      "name": "동대문",
+      "lat": 37.571318,
+      "lng": 127.00997
+    },
+    {
+      "stationCode": "S-I1104-0420",
+      "x": 3673.6,
+      "y": 2948.6,
+      "labelAnchor": "right",
+      "name": "혜화",
+      "lat": 37.582116,
+      "lng": 127.001929
+    },
+    {
+      "stationCode": "S-I1104-0419",
+      "x": 3673.6,
+      "y": 2884.2,
+      "labelAnchor": "top",
+      "name": "한성대입구",
+      "lat": 37.58838,
+      "lng": 127.005951
+    },
+    {
+      "stationCode": "S-I1104-0418",
+      "x": 3757.2,
+      "y": 2800.7,
+      "labelAnchor": "top",
+      "name": "성신여대입구",
+      "lat": 37.592676,
+      "lng": 127.016734
+    },
+    {
+      "stationCode": "S-I1104-0417",
+      "x": 3858.8,
+      "y": 2699.1,
+      "labelAnchor": "right",
+      "name": "길음",
+      "lat": 37.603387,
+      "lng": 127.025053
+    },
+    {
+      "stationCode": "S-I1104-0416",
+      "x": 3858.8,
+      "y": 2656.9,
+      "labelAnchor": "right",
+      "name": "미아사거리",
+      "lat": 37.613276,
+      "lng": 127.030083
+    },
+    {
+      "stationCode": "S-I1104-0415",
+      "x": 3858.8,
+      "y": 2556.8,
+      "labelAnchor": "right",
+      "name": "미아",
+      "lat": 37.626435,
+      "lng": 127.026151
+    },
+    {
+      "stationCode": "S-I1104-0414",
+      "x": 3858.8,
+      "y": 2482.4,
+      "labelAnchor": "right",
+      "name": "수유",
+      "lat": 37.637727,
+      "lng": 127.025371
+    },
+    {
+      "stationCode": "S-I1104-0413",
+      "x": 3930.5,
+      "y": 2410.7,
+      "labelAnchor": "top",
+      "name": "쌍문",
+      "lat": 37.648274,
+      "lng": 127.034381
+    },
+    {
+      "stationCode": "S-I1104-0412",
+      "x": 4004.2,
+      "y": 2337,
+      "labelAnchor": "top",
+      "name": "창동",
+      "lat": 37.653248,
+      "lng": 127.0479835
+    },
+    {
+      "stationCode": "S-I1104-0411",
+      "x": 4104.4,
+      "y": 2337,
+      "labelAnchor": "top",
+      "name": "노원",
+      "lat": 37.655376,
+      "lng": 127.061869
+    },
+    {
+      "stationCode": "S-I1104-0410",
+      "x": 4144.2,
+      "y": 2297.2,
+      "labelAnchor": "right",
+      "name": "상계",
+      "lat": 37.660576,
+      "lng": 127.073199
+    },
+    {
+      "stationCode": "S-I1104-0409",
+      "x": 4199.1,
+      "y": 2242.3,
+      "labelAnchor": "right",
+      "name": "불암산",
+      "lat": 37.67009,
+      "lng": 127.079004
+    },
+    {
+      "stationCode": "S-I28K1-1762",
+      "x": 2061.1,
+      "y": 4534.4,
+      "labelAnchor": "right",
+      "name": "오이도역",
+      "lat": 37.361773,
+      "lng": 126.738437
+    },
+    {
+      "stationCode": "S-I28K1-1761",
+      "x": 2061.1,
+      "y": 4560.4,
+      "labelAnchor": "right",
+      "name": "정왕역",
+      "lat": 37.351816,
+      "lng": 126.742844
+    },
+    {
+      "stationCode": "S-I28K1-1760",
+      "x": 2211.7,
+      "y": 4711,
+      "labelAnchor": "top",
+      "name": "능길역",
+      "lat": 37.337488,
+      "lng": 126.767306
+    },
+    {
+      "stationCode": "S-I28K1-1759",
+      "x": 2319.5,
+      "y": 4818.8,
+      "labelAnchor": "top",
+      "name": "안산역",
+      "lat": 37.327006,
+      "lng": 126.788748
+    },
+    {
+      "stationCode": "S-I28K1-1758",
+      "x": 2411,
+      "y": 4910.3,
+      "labelAnchor": "top",
+      "name": "초지역",
+      "lat": 37.3204163333333,
+      "lng": 126.806784333333
+    },
+    {
+      "stationCode": "S-I28K1-1757",
+      "x": 2528.1,
+      "y": 4910.3,
+      "labelAnchor": "top",
+      "name": "고잔역",
+      "lat": 37.316821,
+      "lng": 126.823094
+    },
+    {
+      "stationCode": "S-I28K1-1756",
+      "x": 2647.9,
+      "y": 4910.3,
+      "labelAnchor": "top",
+      "name": "중앙역",
+      "lat": 37.316055,
+      "lng": 126.838532
+    },
+    {
+      "stationCode": "S-I28K1-1755",
+      "x": 2700.7,
+      "y": 4963.1,
+      "labelAnchor": "top",
+      "name": "한대앞역",
+      "lat": 37.309835,
+      "lng": 126.853581
+    },
+    {
+      "stationCode": "S-I4103-1754",
+      "x": 2737.6,
+      "y": 5000,
+      "labelAnchor": "top",
+      "name": "상록수역",
+      "lat": 37.302845,
+      "lng": 126.866533
+    },
+    {
+      "stationCode": "S-I4103-1753",
+      "x": 2993.1,
+      "y": 5000,
+      "labelAnchor": "top",
+      "name": "반월역",
+      "lat": 37.312244,
+      "lng": 126.903684
+    },
+    {
+      "stationCode": "S-I4103-1752",
+      "x": 3133.6,
+      "y": 4859.5,
+      "labelAnchor": "right",
+      "name": "대야미역",
+      "lat": 37.328304,
+      "lng": 126.917161
+    },
+    {
+      "stationCode": "S-I4103-1763",
+      "x": 3133.6,
+      "y": 4642.3,
+      "labelAnchor": "right",
+      "name": "수리산역",
+      "lat": 37.350297,
+      "lng": 126.925537
+    },
+    {
+      "stationCode": "S-I4103-1751",
+      "x": 3186.6,
+      "y": 4589.2,
+      "labelAnchor": "right",
+      "name": "산본역",
+      "lat": 37.358019,
+      "lng": 126.932969
+    },
+    {
+      "stationCode": "S-I4101-1708",
+      "x": 3297.2,
+      "y": 4478.6,
+      "labelAnchor": "right",
+      "name": "금정역",
+      "lat": 37.371957,
+      "lng": 126.943511
+    },
+    {
+      "stationCode": "S-I4103-1457",
+      "x": 3297.2,
+      "y": 4331.2,
+      "labelAnchor": "right",
+      "name": "범계역",
+      "lat": 37.389783,
+      "lng": 126.950752
+    },
+    {
+      "stationCode": "S-I4103-1456",
+      "x": 3367,
+      "y": 4331.2,
+      "labelAnchor": "top",
+      "name": "평촌역",
+      "lat": 37.394346,
+      "lng": 126.963881
+    },
+    {
+      "stationCode": "S-I4103-1455",
+      "x": 3449,
+      "y": 4249.3,
+      "labelAnchor": "right",
+      "name": "인덕원역",
+      "lat": 37.401901,
+      "lng": 126.976718
+    },
+    {
+      "stationCode": "S-I4103-1454",
+      "x": 3587.4,
+      "y": 4110.8,
+      "labelAnchor": "right",
+      "name": "정부과천청사역",
+      "lat": 37.426445,
+      "lng": 126.989802
+    },
+    {
+      "stationCode": "S-I4103-1453",
+      "x": 3648.1,
+      "y": 4050.2,
+      "labelAnchor": "top",
+      "name": "과천역",
+      "lat": 37.432805,
+      "lng": 126.996404
+    },
+    {
+      "stationCode": "S-I4103-1452",
+      "x": 3677.5,
+      "y": 4050.2,
+      "labelAnchor": "right",
+      "name": "대공원역",
+      "lat": 37.435724,
+      "lng": 127.006474
+    },
+    {
+      "stationCode": "S-I4103-1451",
+      "x": 3677.5,
+      "y": 3952.2,
+      "labelAnchor": "right",
+      "name": "경마공원역",
+      "lat": 37.443987,
+      "lng": 127.007899
+    },
+    {
+      "stationCode": "S-I4103-1450",
+      "x": 3632.6,
+      "y": 3907.3,
+      "labelAnchor": "right",
+      "name": "선바위역",
+      "lat": 37.451854,
+      "lng": 127.002164
+    },
+    {
+      "stationCode": "S-S1107-3763",
+      "x": 1662.5,
+      "y": 3445.2,
+      "labelAnchor": "top",
+      "name": "석남",
+      "lat": 37.5067095,
+      "lng": 126.6762585
+    },
+    {
+      "stationCode": "S-S1107-3762",
+      "x": 1840,
+      "y": 3445.2,
+      "labelAnchor": "top",
+      "name": "산곡",
+      "lat": 37.508547,
+      "lng": 126.70351
+    },
+    {
+      "stationCode": "S-S1107-3761",
+      "x": 1930.2,
+      "y": 3445.2,
+      "labelAnchor": "top",
+      "name": "부평구청",
+      "lat": 37.5081455,
+      "lng": 126.7209515
+    },
+    {
+      "stationCode": "S-S1107-3760",
+      "x": 2009.3,
+      "y": 3445.2,
+      "labelAnchor": "top",
+      "name": "굴포천",
+      "lat": 37.50695,
+      "lng": 126.731481
+    },
+    {
+      "stationCode": "S-S1107-3759",
+      "x": 2074.2,
+      "y": 3445.2,
+      "labelAnchor": "top",
+      "name": "삼산체육관",
+      "lat": 37.506431,
+      "lng": 126.742081
+    },
+    {
+      "stationCode": "S-S1107-3758",
+      "x": 2141.1,
+      "y": 3445.2,
+      "labelAnchor": "top",
+      "name": "상동",
+      "lat": 37.505769,
+      "lng": 126.753081
+    },
+    {
+      "stationCode": "S-S1107-3757",
+      "x": 2205.8,
+      "y": 3445.2,
+      "labelAnchor": "top",
+      "name": "부천시청",
+      "lat": 37.504611,
+      "lng": 126.763561
+    },
+    {
+      "stationCode": "S-S1107-3756",
+      "x": 2281.8,
+      "y": 3445.2,
+      "labelAnchor": "top",
+      "name": "신중동",
+      "lat": 37.503081,
+      "lng": 126.776161
+    },
+    {
+      "stationCode": "S-S1107-3755",
+      "x": 2347.6,
+      "y": 3445.2,
+      "labelAnchor": "top",
+      "name": "춘의",
+      "lat": 37.50365,
+      "lng": 126.787069
+    },
+    {
+      "stationCode": "S-I41WS-1982",
+      "x": 2478.9,
+      "y": 3445.2,
+      "labelAnchor": "top",
+      "name": "부천종합운동장",
+      "lat": 37.5056165,
+      "lng": 126.797424
+    },
+    {
+      "stationCode": "S-S1107-3753",
+      "x": 2504.9,
+      "y": 3445.2,
+      "labelAnchor": "top",
+      "name": "까치울",
+      "lat": 37.506236,
+      "lng": 126.81095
+    },
+    {
+      "stationCode": "S-I1101-1821",
+      "x": 2587.5,
+      "y": 3527.8,
+      "labelAnchor": "top",
+      "name": "온수",
+      "lat": 37.492163,
+      "lng": 126.8233465
+    },
+    {
+      "stationCode": "S-S1107-0749",
+      "x": 2661.4,
+      "y": 3601.7,
+      "labelAnchor": "top",
+      "name": "천왕",
+      "lat": 37.486699,
+      "lng": 126.838684
+    },
+    {
+      "stationCode": "S-S1107-0748",
+      "x": 2733.8,
+      "y": 3674,
+      "labelAnchor": "top",
+      "name": "광명사거리",
+      "lat": 37.47927,
+      "lng": 126.854854
+    },
+    {
+      "stationCode": "S-S1107-0747",
+      "x": 2834.5,
+      "y": 3674,
+      "labelAnchor": "top",
+      "name": "철산",
+      "lat": 37.47616,
+      "lng": 126.868217
+    },
+    {
+      "stationCode": "S-I4101-1702",
+      "x": 2923.1,
+      "y": 3674,
+      "labelAnchor": "top",
+      "name": "가산디지털단지",
+      "lat": 37.480972,
+      "lng": 126.882666
+    },
+    {
+      "stationCode": "S-S1107-0745",
+      "x": 2967.8,
+      "y": 3629.4,
+      "labelAnchor": "top",
+      "name": "남구로",
+      "lat": 37.486181,
+      "lng": 126.887372
+    },
+    {
+      "stationCode": "S-S1107-0743",
+      "x": 3101.7,
+      "y": 3495.4,
+      "labelAnchor": "right",
+      "name": "신풍",
+      "lat": 37.500107,
+      "lng": 126.909806
+    },
+    {
+      "stationCode": "S-L11SL-S404",
+      "x": 3101.7,
+      "y": 3537.3,
+      "labelAnchor": "right",
+      "name": "보라매",
+      "lat": 37.5001143545,
+      "lng": 126.920298932
+    },
+    {
+      "stationCode": "S-S1107-0741",
+      "x": 3138.9,
+      "y": 3574.4,
+      "labelAnchor": "right",
+      "name": "신대방삼거리",
+      "lat": 37.499717,
+      "lng": 126.928218
+    },
+    {
+      "stationCode": "S-S1107-0740",
+      "x": 3120.5,
+      "y": 3556,
+      "labelAnchor": "top",
+      "name": "장승배기",
+      "lat": 37.504845,
+      "lng": 126.939025
+    },
+    {
+      "stationCode": "S-S1107-0739",
+      "x": 3175.8,
+      "y": 3611.4,
+      "labelAnchor": "top",
+      "name": "상도",
+      "lat": 37.50279,
+      "lng": 126.947949
+    },
+    {
+      "stationCode": "S-S1107-0738",
+      "x": 3247.8,
+      "y": 3683.4,
+      "labelAnchor": "top",
+      "name": "숭실대입구",
+      "lat": 37.496258,
+      "lng": 126.953649
+    },
+    {
+      "stationCode": "S-S1107-0737",
+      "x": 3435.6,
+      "y": 3683.4,
+      "labelAnchor": "top",
+      "name": "남성",
+      "lat": 37.484688,
+      "lng": 126.971108
+    },
+    {
+      "stationCode": "S-S1107-0736",
+      "x": 3491.3,
+      "y": 3683.4,
+      "labelAnchor": "top",
+      "name": "이수",
+      "lat": 37.485258,
+      "lng": 126.981766
+    },
+    {
+      "stationCode": "S-S1107-0735",
+      "x": 3618.8,
+      "y": 3683.4,
+      "labelAnchor": "top",
+      "name": "내방",
+      "lat": 37.48764,
+      "lng": 126.993541
+    },
+    {
+      "stationCode": "S-S1107-0733",
+      "x": 3930.8,
+      "y": 3683.4,
+      "labelAnchor": "top",
+      "name": "반포",
+      "lat": 37.508171,
+      "lng": 127.011717
+    },
+    {
+      "stationCode": "S-I11D1-D005",
+      "x": 4012.5,
+      "y": 3601.6,
+      "labelAnchor": "top",
+      "name": "논현",
+      "lat": 37.5111116923189,
+      "lng": 127.021375403566
+    },
+    {
+      "stationCode": "S-S1107-0731",
+      "x": 4087.5,
+      "y": 3526.6,
+      "labelAnchor": "right",
+      "name": "학동",
+      "lat": 37.514262,
+      "lng": 127.031738
+    },
+    {
+      "stationCode": "S-I4105-1849",
+      "x": 4150.1,
+      "y": 3464.1,
+      "labelAnchor": "right",
+      "name": "강남구청",
+      "lat": 37.5168785,
+      "lng": 127.0413975
+    },
+    {
+      "stationCode": "S-S1107-0729",
+      "x": 4169.6,
+      "y": 3444.6,
+      "labelAnchor": "right",
+      "name": "청담",
+      "lat": 37.519097,
+      "lng": 127.051851
+    },
+    {
+      "stationCode": "S-S1107-0728",
+      "x": 4169.6,
+      "y": 3281.5,
+      "labelAnchor": "right",
+      "name": "자양",
+      "lat": 37.531558,
+      "lng": 127.066714
+    },
+    {
+      "stationCode": "S-S1107-0726",
+      "x": 4080.5,
+      "y": 3158,
+      "labelAnchor": "top",
+      "name": "어린이대공원",
+      "lat": 37.547962,
+      "lng": 127.07465
+    },
+    {
+      "stationCode": "S-S1105-0544",
+      "x": 4158.8,
+      "y": 3079.7,
+      "labelAnchor": "right",
+      "name": "군자",
+      "lat": 37.5571265,
+      "lng": 127.0795215
+    },
+    {
+      "stationCode": "S-S1107-0724",
+      "x": 4181.3,
+      "y": 3057.3,
+      "labelAnchor": "right",
+      "name": "중곡",
+      "lat": 37.565877,
+      "lng": 127.084291
+    },
+    {
+      "stationCode": "S-S1107-0723",
+      "x": 4181.3,
+      "y": 2989.1,
+      "labelAnchor": "right",
+      "name": "용마산",
+      "lat": 37.573752,
+      "lng": 127.086802
+    },
+    {
+      "stationCode": "S-S1107-0722",
+      "x": 4181.3,
+      "y": 2921.7,
+      "labelAnchor": "right",
+      "name": "사가정",
+      "lat": 37.580912,
+      "lng": 127.088502
+    },
+    {
+      "stationCode": "S-S1107-0721",
+      "x": 4181.3,
+      "y": 2860.4,
+      "labelAnchor": "right",
+      "name": "면목",
+      "lat": 37.588671,
+      "lng": 127.087503
+    },
+    {
+      "stationCode": "S-I4108-1202",
+      "x": 4181.3,
+      "y": 2809.7,
+      "labelAnchor": "right",
+      "name": "상봉",
+      "lat": 37.5958936666667,
+      "lng": 127.085704666667
+    },
+    {
+      "stationCode": "S-S1107-0719",
+      "x": 4104.4,
+      "y": 2732.8,
+      "labelAnchor": "right",
+      "name": "중화",
+      "lat": 37.602604,
+      "lng": 127.079254
+    },
+    {
+      "stationCode": "S-S1107-0718",
+      "x": 4104.4,
+      "y": 2692,
+      "labelAnchor": "right",
+      "name": "먹골",
+      "lat": 37.610638,
+      "lng": 127.077719
+    },
+    {
+      "stationCode": "S-S1106-0645",
+      "x": 4104.4,
+      "y": 2612.7,
+      "labelAnchor": "right",
+      "name": "태릉입구",
+      "lat": 37.617919,
+      "lng": 127.075051
+    },
+    {
+      "stationCode": "S-S1107-0716",
+      "x": 4104.4,
+      "y": 2571.8,
+      "labelAnchor": "right",
+      "name": "공릉",
+      "lat": 37.625642,
+      "lng": 127.072969
+    },
+    {
+      "stationCode": "S-S1107-0715",
+      "x": 4104.4,
+      "y": 2488.7,
+      "labelAnchor": "right",
+      "name": "하계",
+      "lat": 37.636363,
+      "lng": 127.067999
+    },
+    {
+      "stationCode": "S-S1107-0714",
+      "x": 4104.4,
+      "y": 2420.6,
+      "labelAnchor": "right",
+      "name": "중계",
+      "lat": 37.645052,
+      "lng": 127.064084
+    },
+    {
+      "stationCode": "S-S1107-0712",
+      "x": 4041.1,
+      "y": 2273.8,
+      "labelAnchor": "right",
+      "name": "마들",
+      "lat": 37.664985,
+      "lng": 127.057701
+    },
+    {
+      "stationCode": "S-S1107-0711",
+      "x": 4041.1,
+      "y": 2127.6,
+      "labelAnchor": "right",
+      "name": "수락산",
+      "lat": 37.677804,
+      "lng": 127.055314
+    },
+    {
+      "stationCode": "S-I4102-1903",
+      "x": 4004.2,
+      "y": 2090.6,
+      "labelAnchor": "right",
+      "name": "도봉산",
+      "lat": 37.689367,
+      "lng": 127.0462975
+    },
+    {
+      "stationCode": "S-S1107-0709",
+      "x": 4053.4,
+      "y": 2041.5,
+      "labelAnchor": "right",
+      "name": "장암",
+      "lat": 37.70015,
+      "lng": 127.053126
+    },
+    {
+      "stationCode": "S-I4101-1750",
+      "x": 2919.9,
+      "y": 4186.6,
+      "labelAnchor": "top",
+      "name": "광명역",
+      "lat": 37.415995,
+      "lng": 126.884523
+    },
+    {
+      "stationCode": "S-I4101-1705",
+      "x": 3005.2,
+      "y": 4186.6,
+      "labelAnchor": "top",
+      "name": "관악역",
+      "lat": 37.419578,
+      "lng": 126.908476
+    },
+    {
+      "stationCode": "S-I4101-1706",
+      "x": 3122.1,
+      "y": 4303.4,
+      "labelAnchor": "right",
+      "name": "안양역",
+      "lat": 37.401929,
+      "lng": 126.922647
+    },
+    {
+      "stationCode": "S-I4101-1707",
+      "x": 3230.7,
+      "y": 4412.1,
+      "labelAnchor": "right",
+      "name": "명학역",
+      "lat": 37.384435,
+      "lng": 126.935579
+    },
+    {
+      "stationCode": "S-I4101-1709",
+      "x": 3297.2,
+      "y": 4654.3,
+      "labelAnchor": "right",
+      "name": "군포역",
+      "lat": 37.353732,
+      "lng": 126.948517
+    },
+    {
+      "stationCode": "S-I4101-1729",
+      "x": 3297.2,
+      "y": 4737.2,
+      "labelAnchor": "right",
+      "name": "당정역",
+      "lat": 37.34338,
+      "lng": 126.948388
+    },
+    {
+      "stationCode": "S-I4101-1710",
+      "x": 3297.2,
+      "y": 4994.5,
+      "labelAnchor": "right",
+      "name": "의왕역",
+      "lat": 37.320648,
+      "lng": 126.948099
+    },
+    {
+      "stationCode": "S-I4101-1711",
+      "x": 3396.5,
+      "y": 5093.7,
+      "labelAnchor": "right",
+      "name": "성균관대역",
+      "lat": 37.300344,
+      "lng": 126.970861
+    },
+    {
+      "stationCode": "S-I4101-1712",
+      "x": 3515.2,
+      "y": 5212.4,
+      "labelAnchor": "right",
+      "name": "화서역",
+      "lat": 37.28399,
+      "lng": 126.989581
+    },
+    {
+      "stationCode": "S-I4101-1713",
+      "x": 3645.5,
+      "y": 5342.7,
+      "labelAnchor": "right",
+      "name": "수원역",
+      "lat": 37.266162,
+      "lng": 126.9999515
+    },
+    {
+      "stationCode": "S-I4101-1715",
+      "x": 3762.9,
+      "y": 5460.2,
+      "labelAnchor": "right",
+      "name": "세류역",
+      "lat": 37.244102,
+      "lng": 127.013772
+    },
+    {
+      "stationCode": "S-I4101-1716",
+      "x": 3762.9,
+      "y": 5792.6,
+      "labelAnchor": "right",
+      "name": "병점역",
+      "lat": 37.206821,
+      "lng": 127.033268
+    },
+    {
+      "stationCode": "S-I4101-1749",
+      "x": 3882.8,
+      "y": 5912.5,
+      "labelAnchor": "right",
+      "name": "서동탄역",
+      "lat": 37.195675,
+      "lng": 127.051893
+    },
+    {
+      "stationCode": "S-I4101-1717",
+      "x": 3821.1,
+      "y": 5974.2,
+      "labelAnchor": "right",
+      "name": "세마역",
+      "lat": 37.187288,
+      "lng": 127.043279
+    },
+    {
+      "stationCode": "S-I4101-1718",
+      "x": 3925.8,
+      "y": 6078.9,
+      "labelAnchor": "right",
+      "name": "오산대역",
+      "lat": 37.169401,
+      "lng": 127.063081
+    },
+    {
+      "stationCode": "S-I4101-1719",
+      "x": 3925.8,
+      "y": 6282.5,
+      "labelAnchor": "right",
+      "name": "오산역",
+      "lat": 37.145472,
+      "lng": 127.066708
+    },
+    {
+      "stationCode": "S-I4101-1720",
+      "x": 3925.8,
+      "y": 6557.4,
+      "labelAnchor": "right",
+      "name": "진위역",
+      "lat": 37.109771,
+      "lng": 127.062342
+    },
+    {
+      "stationCode": "S-I4101-1721",
+      "x": 3925.8,
+      "y": 6824.5,
+      "labelAnchor": "right",
+      "name": "송탄역",
+      "lat": 37.075376,
+      "lng": 127.054397
+    },
+    {
+      "stationCode": "S-I4101-1722",
+      "x": 3925.8,
+      "y": 6964.4,
+      "labelAnchor": "right",
+      "name": "서정리역",
+      "lat": 37.056459,
+      "lng": 127.052844
+    },
+    {
+      "stationCode": "S-I4101-1723",
+      "x": 3925.8,
+      "y": 7191,
+      "labelAnchor": "right",
+      "name": "평택지제역",
+      "lat": 37.018822,
+      "lng": 127.070269
+    },
+    {
+      "stationCode": "S-I4101-1724",
+      "x": 3510.3,
+      "y": 7606.4,
+      "labelAnchor": "right",
+      "name": "평택역",
+      "lat": 36.990559,
+      "lng": 127.085496
+    },
+    {
+      "stationCode": "S-I4101-1704",
+      "x": 3510.3,
+      "y": 4130.7,
+      "labelAnchor": "right",
+      "name": "석수역",
+      "lat": 37.435161,
+      "lng": 126.902233
+    },
+    {
+      "stationCode": "S-I4101-1703",
+      "x": 3120.5,
+      "y": 3740.9,
+      "labelAnchor": "right",
+      "name": "금천구청역",
+      "lat": 37.45576,
+      "lng": 126.894344
+    },
+    {
+      "stationCode": "S-I4101-1714",
+      "x": 2923.1,
+      "y": 3740.9,
+      "labelAnchor": "right",
+      "name": "독산역",
+      "lat": 37.465994,
+      "lng": 126.889508
+    },
+    {
+      "stationCode": "S-I4101-1701",
+      "x": 2923.1,
+      "y": 3433.8,
+      "labelAnchor": "right",
+      "name": "구로역",
+      "lat": 37.503178,
+      "lng": 126.882037
+    },
+    {
+      "stationCode": "S-I4101-1006",
+      "x": 3003.1,
+      "y": 3351.5,
+      "labelAnchor": "top",
+      "name": "영등포역",
+      "lat": 37.515756,
+      "lng": 126.907411
+    },
+    {
+      "stationCode": "S-I4101-1032",
+      "x": 3003.1,
+      "y": 3429.1,
+      "labelAnchor": "right",
+      "name": "신길",
+      "lat": 37.517324,
+      "lng": 126.9163145
+    },
+    {
+      "stationCode": "S-I4101-1005",
+      "x": 3045.6,
+      "y": 3481.6,
+      "labelAnchor": "right",
+      "name": "대방",
+      "lat": 37.513116083,
+      "lng": 126.9258618905
+    },
+    {
+      "stationCode": "S-I4101-1004",
+      "x": 3062.8,
+      "y": 3501.1,
+      "labelAnchor": "right",
+      "name": "노량진",
+      "lat": 37.5138695,
+      "lng": 126.941294
+    },
+    {
+      "stationCode": "S-I4101-1003",
+      "x": 3062.7,
+      "y": 3205.5,
+      "labelAnchor": "right",
+      "name": "용산역",
+      "lat": 37.52989,
+      "lng": 126.964775
+    },
+    {
+      "stationCode": "S-I4101-1002",
+      "x": 3275.1,
+      "y": 2993.4,
+      "labelAnchor": "right",
+      "name": "남영역",
+      "lat": 37.540597,
+      "lng": 126.971171
+    },
+    {
+      "stationCode": "S-I4101-0131",
+      "x": 3549.5,
+      "y": 2886,
+      "labelAnchor": "top",
+      "name": "종각",
+      "lat": 37.570203,
+      "lng": 126.983116
+    },
+    {
+      "stationCode": "S-I4101-0129",
+      "x": 3633.3,
+      "y": 2908.2,
+      "labelAnchor": "top",
+      "name": "종로5가",
+      "lat": 37.570971,
+      "lng": 127.0019
+    },
+    {
+      "stationCode": "S-I4101-0127",
+      "x": 3800.8,
+      "y": 2967.7,
+      "labelAnchor": "top",
+      "name": "동묘앞",
+      "lat": 37.57277,
+      "lng": 127.0160625
+    },
+    {
+      "stationCode": "S-I4101-0125",
+      "x": 3823,
+      "y": 2976.9,
+      "labelAnchor": "top",
+      "name": "제기동",
+      "lat": 37.578116,
+      "lng": 127.034902
+    },
+    {
+      "stationCode": "S-I4101-0124",
+      "x": 3980.8,
+      "y": 2984.1,
+      "labelAnchor": "top",
+      "name": "청량리",
+      "lat": 37.5802446666667,
+      "lng": 127.046909333333
+    },
+    {
+      "stationCode": "S-I4102-1916",
+      "x": 4004.2,
+      "y": 80,
+      "labelAnchor": "right",
+      "name": "소요산역",
+      "lat": 37.948608,
+      "lng": 127.061007
+    },
+    {
+      "stationCode": "S-I4102-1915",
+      "x": 4004.2,
+      "y": 243.7,
+      "labelAnchor": "right",
+      "name": "동두천역",
+      "lat": 37.927569,
+      "lng": 127.054825
+    },
+    {
+      "stationCode": "S-I4102-1914",
+      "x": 4004.2,
+      "y": 344.6,
+      "labelAnchor": "right",
+      "name": "보산역",
+      "lat": 37.914268,
+      "lng": 127.057134
+    },
+    {
+      "stationCode": "S-I4102-1913",
+      "x": 4004.2,
+      "y": 438.2,
+      "labelAnchor": "right",
+      "name": "동두천중앙역",
+      "lat": 37.901818,
+      "lng": 127.056528
+    },
+    {
+      "stationCode": "S-I4102-1912",
+      "x": 4004.2,
+      "y": 521.2,
+      "labelAnchor": "right",
+      "name": "지행역",
+      "lat": 37.892361,
+      "lng": 127.055734
+    },
+    {
+      "stationCode": "S-I4102-1911",
+      "x": 4004.2,
+      "y": 888.7,
+      "labelAnchor": "right",
+      "name": "덕정역",
+      "lat": 37.843216,
+      "lng": 127.061511
+    },
+    {
+      "stationCode": "S-I4102-1910",
+      "x": 4004.2,
+      "y": 1085.1,
+      "labelAnchor": "right",
+      "name": "덕계역",
+      "lat": 37.818761,
+      "lng": 127.056676
+    },
+    {
+      "stationCode": "S-I4102-1909",
+      "x": 4004.2,
+      "y": 1419,
+      "labelAnchor": "right",
+      "name": "양주역",
+      "lat": 37.774281,
+      "lng": 127.044719
+    },
+    {
+      "stationCode": "S-I4102-1908",
+      "x": 4004.2,
+      "y": 1540,
+      "labelAnchor": "right",
+      "name": "녹양역",
+      "lat": 37.759416,
+      "lng": 127.042272
+    },
+    {
+      "stationCode": "S-I4102-1907",
+      "x": 4004.2,
+      "y": 1623,
+      "labelAnchor": "right",
+      "name": "가능역",
+      "lat": 37.748362,
+      "lng": 127.044251
+    },
+    {
+      "stationCode": "S-I4102-1906",
+      "x": 4004.2,
+      "y": 1705,
+      "labelAnchor": "right",
+      "name": "의정부역",
+      "lat": 37.73873,
+      "lng": 127.045891
+    },
+    {
+      "stationCode": "S-I4102-1905",
+      "x": 4004.2,
+      "y": 1807.1,
+      "labelAnchor": "right",
+      "name": "회룡",
+      "lat": 37.724544775,
+      "lng": 127.0470527
+    },
+    {
+      "stationCode": "S-I4102-1904",
+      "x": 4004.2,
+      "y": 1920.2,
+      "labelAnchor": "right",
+      "name": "망월사역",
+      "lat": 37.710499,
+      "lng": 127.047361
+    },
+    {
+      "stationCode": "S-I4102-1902",
+      "x": 4004.2,
+      "y": 2158.3,
+      "labelAnchor": "right",
+      "name": "도봉역",
+      "lat": 37.679441,
+      "lng": 127.045521
+    },
+    {
+      "stationCode": "S-I4102-1901",
+      "x": 4004.2,
+      "y": 2248,
+      "labelAnchor": "right",
+      "name": "방학역",
+      "lat": 37.667471,
+      "lng": 127.044295
+    },
+    {
+      "stationCode": "S-I4102-1021",
+      "x": 4004.2,
+      "y": 2441.5,
+      "labelAnchor": "right",
+      "name": "녹천역",
+      "lat": 37.644599,
+      "lng": 127.051406
+    },
+    {
+      "stationCode": "S-I4102-1020",
+      "x": 4066,
+      "y": 2503.3,
+      "labelAnchor": "right",
+      "name": "월계역",
+      "lat": 37.633114,
+      "lng": 127.058835
+    },
+    {
+      "stationCode": "S-I4102-1019",
+      "x": 4066,
+      "y": 2565.9,
+      "labelAnchor": "right",
+      "name": "광운대역",
+      "lat": 37.6237016666667,
+      "lng": 127.061928333333
+    },
+    {
+      "stationCode": "S-I4102-1018",
+      "x": 4070,
+      "y": 2647.1,
+      "labelAnchor": "right",
+      "name": "석계",
+      "lat": 37.6150715,
+      "lng": 127.065758
+    },
+    {
+      "stationCode": "S-I4102-1017",
+      "x": 4073.5,
+      "y": 2768.8,
+      "labelAnchor": "right",
+      "name": "신이문역",
+      "lat": 37.601829,
+      "lng": 127.067347
+    },
+    {
+      "stationCode": "S-I4102-1016",
+      "x": 4058.6,
+      "y": 2783.7,
+      "labelAnchor": "right",
+      "name": "외대앞역",
+      "lat": 37.596157,
+      "lng": 127.063572
+    },
+    {
+      "stationCode": "S-I4102-1015",
+      "x": 4062.1,
+      "y": 2902.7,
+      "labelAnchor": "right",
+      "name": "회기역",
+      "lat": 37.589702,
+      "lng": 127.057936
+    },
+    {
+      "stationCode": "S-I4102-1012",
+      "x": 4007.3,
+      "y": 2999.5,
+      "labelAnchor": "top",
+      "name": "응봉역",
+      "lat": 37.550433,
+      "lng": 127.034824
+    },
+    {
+      "stationCode": "S-I4102-1010",
+      "x": 4118,
+      "y": 3318.2,
+      "labelAnchor": "top",
+      "name": "한남역",
+      "lat": 37.529361,
+      "lng": 127.008984
+    },
+    {
+      "stationCode": "S-I4102-1009",
+      "x": 3522.5,
+      "y": 3913.7,
+      "labelAnchor": "top",
+      "name": "서빙고역",
+      "lat": 37.51961,
+      "lng": 126.988358
+    },
+    {
+      "stationCode": "S-I4102-1008",
+      "x": 3062.7,
+      "y": 3453.9,
+      "labelAnchor": "top",
+      "name": "이촌역",
+      "lat": 37.522476,
+      "lng": 126.973816
+    },
+    {
+      "stationCode": "S-I1101-1813",
+      "x": 2842,
+      "y": 3527.8,
+      "labelAnchor": "top",
+      "name": "구일역",
+      "lat": 37.495973,
+      "lng": 126.869201
+    },
+    {
+      "stationCode": "S-I1101-1801",
+      "x": 2778.3,
+      "y": 3527.8,
+      "labelAnchor": "top",
+      "name": "개봉역",
+      "lat": 37.494698,
+      "lng": 126.858504
+    },
+    {
+      "stationCode": "S-I1101-1802",
+      "x": 2693.1,
+      "y": 3527.8,
+      "labelAnchor": "top",
+      "name": "오류동역",
+      "lat": 37.4944,
+      "lng": 126.844551
+    },
+    {
+      "stationCode": "S-I1101-1803",
+      "x": 2525.9,
+      "y": 3589.3,
+      "labelAnchor": "top",
+      "name": "역곡역",
+      "lat": 37.48514,
+      "lng": 126.811622
+    },
+    {
+      "stationCode": "S-I1101-4804",
+      "x": 2478.9,
+      "y": 3589.3,
+      "labelAnchor": "top",
+      "name": "소사역",
+      "lat": 37.482755,
+      "lng": 126.7953597
+    },
+    {
+      "stationCode": "S-I1101-1804",
+      "x": 2314.2,
+      "y": 3589.3,
+      "labelAnchor": "top",
+      "name": "부천역",
+      "lat": 37.484066,
+      "lng": 126.782779
+    },
+    {
+      "stationCode": "S-I1101-1822",
+      "x": 2204.6,
+      "y": 3589.3,
+      "labelAnchor": "top",
+      "name": "중동역",
+      "lat": 37.486664,
+      "lng": 126.764474
+    },
+    {
+      "stationCode": "S-I1101-1805",
+      "x": 2130.6,
+      "y": 3589.2,
+      "labelAnchor": "top",
+      "name": "송내역",
+      "lat": 37.487626,
+      "lng": 126.753045
+    },
+    {
+      "stationCode": "S-I1101-1815",
+      "x": 2052,
+      "y": 3589.2,
+      "labelAnchor": "top",
+      "name": "부개역",
+      "lat": 37.488479,
+      "lng": 126.740549
+    },
+    {
+      "stationCode": "S-I1101-1806",
+      "x": 1930.2,
+      "y": 3589.1,
+      "labelAnchor": "top",
+      "name": "부평",
+      "lat": 37.489999,
+      "lng": 126.7240105
+    },
+    {
+      "stationCode": "S-I1101-1807",
+      "x": 1867.5,
+      "y": 3651.8,
+      "labelAnchor": "right",
+      "name": "백운역",
+      "lat": 37.483301,
+      "lng": 126.707179
+    },
+    {
+      "stationCode": "S-I1101-1808",
+      "x": 1867.5,
+      "y": 3688.1,
+      "labelAnchor": "right",
+      "name": "동암역",
+      "lat": 37.470835,
+      "lng": 126.703016
+    },
+    {
+      "stationCode": "S-I1101-1816",
+      "x": 1810,
+      "y": 3745.6,
+      "labelAnchor": "top",
+      "name": "간석역",
+      "lat": 37.464689,
+      "lng": 126.693408
+    },
+    {
+      "stationCode": "S-I1101-1809",
+      "x": 1680.7,
+      "y": 3745.6,
+      "labelAnchor": "top",
+      "name": "주안",
+      "lat": 37.4651053333333,
+      "lng": 126.680148333333
+    },
+    {
+      "stationCode": "S-I1101-1823",
+      "x": 1609.1,
+      "y": 3745.6,
+      "labelAnchor": "top",
+      "name": "도화역",
+      "lat": 37.466154,
+      "lng": 126.66846
+    },
+    {
+      "stationCode": "S-I1101-1810",
+      "x": 1539.6,
+      "y": 3745.6,
+      "labelAnchor": "top",
+      "name": "제물포역",
+      "lat": 37.466809,
+      "lng": 126.657165
+    },
+    {
+      "stationCode": "S-I1101-1817",
+      "x": 1463.4,
+      "y": 3745.6,
+      "labelAnchor": "top",
+      "name": "도원역",
+      "lat": 37.468604,
+      "lng": 126.642824
+    },
+    {
+      "stationCode": "S-I1101-1811",
+      "x": 1380.2,
+      "y": 3662.4,
+      "labelAnchor": "top",
+      "name": "동인천역",
+      "lat": 37.475414,
+      "lng": 126.632598
+    },
+    {
+      "stationCode": "S-I1101-1812",
+      "x": 1293.4,
+      "y": 3662.4,
+      "labelAnchor": "top",
+      "name": "인천역",
+      "lat": 37.476364,
+      "lng": 126.6171798
+    },
+    {
+      "stationCode": "S-S1105-0558",
+      "x": 5020.3,
+      "y": 3255.7,
+      "labelAnchor": "top",
+      "name": "하남검단산",
+      "lat": 37.539729,
+      "lng": 127.223427
+    },
+    {
+      "stationCode": "S-S1105-0557",
+      "x": 4907.7,
+      "y": 3255.7,
+      "labelAnchor": "top",
+      "name": "하남시청",
+      "lat": 37.541723,
+      "lng": 127.206901
+    },
+    {
+      "stationCode": "S-S1105-0556",
+      "x": 4907.7,
+      "y": 3173.5,
+      "labelAnchor": "right",
+      "name": "하남풍산",
+      "lat": 37.552201,
+      "lng": 127.203897
+    },
+    {
+      "stationCode": "S-S1105-0555",
+      "x": 4846.5,
+      "y": 3112.3,
+      "labelAnchor": "top",
+      "name": "미사",
+      "lat": 37.56309,
+      "lng": 127.192954
+    },
+    {
+      "stationCode": "S-S1105-0554",
+      "x": 4731.9,
+      "y": 3112.3,
+      "labelAnchor": "top",
+      "name": "강일",
+      "lat": 37.557521,
+      "lng": 127.176018
+    },
+    {
+      "stationCode": "S-S1105-0553",
+      "x": 4672.6,
+      "y": 3112.3,
+      "labelAnchor": "top",
+      "name": "상일동",
+      "lat": 37.556714,
+      "lng": 127.166381
+    },
+    {
+      "stationCode": "S-S1105-0552",
+      "x": 4589.1,
+      "y": 3112.3,
+      "labelAnchor": "top",
+      "name": "고덕",
+      "lat": 37.555002,
+      "lng": 127.154214
+    },
+    {
+      "stationCode": "S-S1105-0551",
+      "x": 4527.2,
+      "y": 3174.2,
+      "labelAnchor": "right",
+      "name": "명일",
+      "lat": 37.551317,
+      "lng": 127.144002
+    },
+    {
+      "stationCode": "S-S1105-0550",
+      "x": 4527.2,
+      "y": 3209.8,
+      "labelAnchor": "right",
+      "name": "굽은다리",
+      "lat": 37.545442,
+      "lng": 127.142844
+    },
+    {
+      "stationCode": "S-S1105-0549",
+      "x": 4527.2,
+      "y": 3274.4,
+      "labelAnchor": "right",
+      "name": "길동",
+      "lat": 37.538022,
+      "lng": 127.140085
+    },
+    {
+      "stationCode": "S-S1105-0548",
+      "x": 4481.6,
+      "y": 3274.4,
+      "labelAnchor": "right",
+      "name": "강동",
+      "lat": 37.53581,
+      "lng": 127.13249
+    },
+    {
+      "stationCode": "S-S1105-P549",
+      "x": 4481.6,
+      "y": 3343.3,
+      "labelAnchor": "right",
+      "name": "둔촌동",
+      "lat": 37.527787,
+      "lng": 127.136219
+    },
+    {
+      "stationCode": "S-S1105-P550",
+      "x": 4481.6,
+      "y": 3443.6,
+      "labelAnchor": "right",
+      "name": "올림픽공원",
+      "lat": 37.516164,
+      "lng": 127.130645
+    },
+    {
+      "stationCode": "S-S1105-P551",
+      "x": 4437.4,
+      "y": 3487.8,
+      "labelAnchor": "right",
+      "name": "방이",
+      "lat": 37.508752,
+      "lng": 127.126054
+    },
+    {
+      "stationCode": "S-S1105-P553",
+      "x": 4473.9,
+      "y": 3564.8,
+      "labelAnchor": "top",
+      "name": "개롱",
+      "lat": 37.498097,
+      "lng": 127.134817
+    },
+    {
+      "stationCode": "S-S1105-P554",
+      "x": 4494.3,
+      "y": 3585.1,
+      "labelAnchor": "top",
+      "name": "거여",
+      "lat": 37.493208,
+      "lng": 127.143983
+    },
+    {
+      "stationCode": "S-S1105-P555",
+      "x": 4664.2,
+      "y": 3585.1,
+      "labelAnchor": "right",
+      "name": "마천",
+      "lat": 37.494972,
+      "lng": 127.152784
+    },
+    {
+      "stationCode": "S-S1105-0547",
+      "x": 4387.9,
+      "y": 3308.8,
+      "labelAnchor": "right",
+      "name": "천호",
+      "lat": 37.538243,
+      "lng": 127.123359
+    },
+    {
+      "stationCode": "S-S1105-0546",
+      "x": 4284.8,
+      "y": 3205.8,
+      "labelAnchor": "top",
+      "name": "광나루",
+      "lat": 37.545301,
+      "lng": 127.103478
+    },
+    {
+      "stationCode": "S-S1105-0545",
+      "x": 4214.5,
+      "y": 3135.5,
+      "labelAnchor": "top",
+      "name": "아차산",
+      "lat": 37.552005,
+      "lng": 127.089609
+    },
+    {
+      "stationCode": "S-S1105-0543",
+      "x": 4064.6,
+      "y": 3079.7,
+      "labelAnchor": "top",
+      "name": "장한평",
+      "lat": 37.561438,
+      "lng": 127.064601
+    },
+    {
+      "stationCode": "S-S1105-0542",
+      "x": 4032.5,
+      "y": 3047.6,
+      "labelAnchor": "right",
+      "name": "답십리",
+      "lat": 37.566833,
+      "lng": 127.05266
+    },
+    {
+      "stationCode": "S-S1105-0541",
+      "x": 4032.5,
+      "y": 2992.2,
+      "labelAnchor": "top",
+      "name": "마장",
+      "lat": 37.566066,
+      "lng": 127.042921
+    },
+    {
+      "stationCode": "S-S1105-0539",
+      "x": 3986.8,
+      "y": 3001.8,
+      "labelAnchor": "top",
+      "name": "행당",
+      "lat": 37.557297,
+      "lng": 127.029482
+    },
+    {
+      "stationCode": "S-S1105-0538",
+      "x": 3962.3,
+      "y": 3001.2,
+      "labelAnchor": "top",
+      "name": "신금호",
+      "lat": 37.554504,
+      "lng": 127.020403
+    },
+    {
+      "stationCode": "S-S1105-0537",
+      "x": 3935.1,
+      "y": 2968.1,
+      "labelAnchor": "top",
+      "name": "청구",
+      "lat": 37.560229,
+      "lng": 127.013783
+    },
+    {
+      "stationCode": "S-S1105-0533",
+      "x": 3493.8,
+      "y": 2906.6,
+      "labelAnchor": "top",
+      "name": "광화문",
+      "lat": 37.571645,
+      "lng": 126.976568
+    },
+    {
+      "stationCode": "S-S1105-0532",
+      "x": 3400.1,
+      "y": 2906.6,
+      "labelAnchor": "top",
+      "name": "서대문",
+      "lat": 37.565812,
+      "lng": 126.966639
+    },
+    {
+      "stationCode": "S-S1105-0530",
+      "x": 3123.3,
+      "y": 2975.9,
+      "labelAnchor": "top",
+      "name": "애오개",
+      "lat": 37.553592,
+      "lng": 126.956733
+    },
+    {
+      "stationCode": "S-I28A1-A02",
+      "x": 3106.6,
+      "y": 2992.6,
+      "labelAnchor": "top",
+      "name": "공덕",
+      "lat": 37.543254625,
+      "lng": 126.9516214
+    },
+    {
+      "stationCode": "S-S1105-0528",
+      "x": 3003.1,
+      "y": 3096.1,
+      "labelAnchor": "right",
+      "name": "마포",
+      "lat": 37.539718,
+      "lng": 126.946043
+    },
+    {
+      "stationCode": "S-S1105-0527",
+      "x": 3003.1,
+      "y": 3324.4,
+      "labelAnchor": "right",
+      "name": "여의나루",
+      "lat": 37.527045,
+      "lng": 126.932807
+    },
+    {
+      "stationCode": "S-S1105-0526",
+      "x": 3003.1,
+      "y": 3374,
+      "labelAnchor": "right",
+      "name": "여의도",
+      "lat": 37.521711,
+      "lng": 126.9242425
+    },
+    {
+      "stationCode": "S-S1105-0524",
+      "x": 3085.4,
+      "y": 3346.8,
+      "labelAnchor": "right",
+      "name": "영등포시장",
+      "lat": 37.52276,
+      "lng": 126.905143
+    },
+    {
+      "stationCode": "S-S1105-0522",
+      "x": 2950.1,
+      "y": 3303.3,
+      "labelAnchor": "top",
+      "name": "양평",
+      "lat": 37.525614,
+      "lng": 126.886177
+    },
+    {
+      "stationCode": "S-S1105-0521",
+      "x": 2882.2,
+      "y": 3303.3,
+      "labelAnchor": "top",
+      "name": "오목교",
+      "lat": 37.524557,
+      "lng": 126.875049
+    },
+    {
+      "stationCode": "S-S1105-0520",
+      "x": 2819.6,
+      "y": 3303.3,
+      "labelAnchor": "top",
+      "name": "목동",
+      "lat": 37.526088,
+      "lng": 126.864296
+    },
+    {
+      "stationCode": "S-S1105-0519",
+      "x": 2768.5,
+      "y": 3303.3,
+      "labelAnchor": "top",
+      "name": "신정",
+      "lat": 37.525001,
+      "lng": 126.856176
+    },
+    {
+      "stationCode": "S-S1105-0518",
+      "x": 2718.4,
+      "y": 3253.2,
+      "labelAnchor": "right",
+      "name": "까치산",
+      "lat": 37.5322,
+      "lng": 126.84645
+    },
+    {
+      "stationCode": "S-S1105-0517",
+      "x": 2665.7,
+      "y": 3200.5,
+      "labelAnchor": "right",
+      "name": "화곡",
+      "lat": 37.541585,
+      "lng": 126.840436
+    },
+    {
+      "stationCode": "S-S1105-0516",
+      "x": 2665.7,
+      "y": 3130.6,
+      "labelAnchor": "right",
+      "name": "우장산",
+      "lat": 37.548864,
+      "lng": 126.83633
+    },
+    {
+      "stationCode": "S-S1105-0514",
+      "x": 2665.7,
+      "y": 3050.3,
+      "labelAnchor": "right",
+      "name": "마곡",
+      "lat": 37.55865,
+      "lng": 126.837693
+    },
+    {
+      "stationCode": "S-S1105-0515",
+      "x": 2638.1,
+      "y": 3022.7,
+      "labelAnchor": "top",
+      "name": "발산",
+      "lat": 37.558692,
+      "lng": 126.837633
+    },
+    {
+      "stationCode": "S-S1105-0513",
+      "x": 2556.2,
+      "y": 3022.7,
+      "labelAnchor": "top",
+      "name": "송정",
+      "lat": 37.561201,
+      "lng": 126.812052
+    },
+    {
+      "stationCode": "S-I28A1-A05",
+      "x": 2478,
+      "y": 2944.5,
+      "labelAnchor": "right",
+      "name": "김포공항",
+      "lat": 37.562153884,
+      "lng": 126.80206784
+    },
+    {
+      "stationCode": "S-S1105-0511",
+      "x": 2478,
+      "y": 2918.5,
+      "labelAnchor": "right",
+      "name": "개화산",
+      "lat": 37.572458,
+      "lng": 126.806838
+    },
+    {
+      "stationCode": "S-S1105-0510",
+      "x": 2503.9,
+      "y": 2892.6,
+      "labelAnchor": "right",
+      "name": "방화",
+      "lat": 37.577669,
+      "lng": 126.812822
+    },
+    {
+      "stationCode": "S-I41K2-1311",
+      "x": 4290.7,
+      "y": 2700.2,
+      "labelAnchor": "top",
+      "name": "신내",
+      "lat": 37.612713,
+      "lng": 127.1038015
+    },
+    {
+      "stationCode": "S-S1106-0647",
+      "x": 4230.5,
+      "y": 2640.1,
+      "labelAnchor": "top",
+      "name": "봉화산",
+      "lat": 37.617429,
+      "lng": 127.0912326
+    },
+    {
+      "stationCode": "S-S1106-0646",
+      "x": 4203.1,
+      "y": 2612.7,
+      "labelAnchor": "top",
+      "name": "화랑대",
+      "lat": 37.619875,
+      "lng": 127.084106
+    },
+    {
+      "stationCode": "S-S1106-0643",
+      "x": 4020.2,
+      "y": 2696.9,
+      "labelAnchor": "top",
+      "name": "돌곶이",
+      "lat": 37.610522,
+      "lng": 127.056419
+    },
+    {
+      "stationCode": "S-S1106-0642",
+      "x": 3979,
+      "y": 2738,
+      "labelAnchor": "top",
+      "name": "상월곡",
+      "lat": 37.606392,
+      "lng": 127.048509
+    },
+    {
+      "stationCode": "S-S1106-0641",
+      "x": 3932,
+      "y": 2785.1,
+      "labelAnchor": "right",
+      "name": "월곡",
+      "lat": 37.60192,
+      "lng": 127.041492
+    },
+    {
+      "stationCode": "S-S1106-0640",
+      "x": 3932,
+      "y": 2862.9,
+      "labelAnchor": "right",
+      "name": "고려대",
+      "lat": 37.59034,
+      "lng": 127.03626
+    },
+    {
+      "stationCode": "S-S1106-0639",
+      "x": 3845.6,
+      "y": 2949.3,
+      "labelAnchor": "top",
+      "name": "안암",
+      "lat": 37.586261,
+      "lng": 127.02903
+    },
+    {
+      "stationCode": "S-L11UI-S121",
+      "x": 3757.5,
+      "y": 2949.3,
+      "labelAnchor": "top",
+      "name": "보문",
+      "lat": 37.585468,
+      "lng": 127.019556
+    },
+    {
+      "stationCode": "S-S1106-0637",
+      "x": 3739.1,
+      "y": 2967.7,
+      "labelAnchor": "right",
+      "name": "창신",
+      "lat": 37.579772,
+      "lng": 127.015246
+    },
+    {
+      "stationCode": "S-S1106-0632",
+      "x": 3897.7,
+      "y": 2907,
+      "labelAnchor": "top",
+      "name": "버티고개",
+      "lat": 37.547933,
+      "lng": 127.006948
+    },
+    {
+      "stationCode": "S-S1106-0631",
+      "x": 3924.9,
+      "y": 2934.3,
+      "labelAnchor": "top",
+      "name": "한강진",
+      "lat": 37.53956,
+      "lng": 127.001729
+    },
+    {
+      "stationCode": "S-S1106-0630",
+      "x": 3837.6,
+      "y": 2846.9,
+      "labelAnchor": "top",
+      "name": "이태원",
+      "lat": 37.534485,
+      "lng": 126.994369
+    },
+    {
+      "stationCode": "S-S1106-0629",
+      "x": 3225.4,
+      "y": 2846.9,
+      "labelAnchor": "top",
+      "name": "녹사평",
+      "lat": 37.53469,
+      "lng": 126.98665
+    },
+    {
+      "stationCode": "S-I4108-1261",
+      "x": 3080.6,
+      "y": 2991.7,
+      "labelAnchor": "top",
+      "name": "효창공원앞",
+      "lat": 37.539034,
+      "lng": 126.9618435
+    },
+    {
+      "stationCode": "S-S1106-0625",
+      "x": 3048.4,
+      "y": 3050.8,
+      "labelAnchor": "right",
+      "name": "대흥",
+      "lat": 37.547732,
+      "lng": 126.942214
+    },
+    {
+      "stationCode": "S-S1106-0624",
+      "x": 3021.9,
+      "y": 3050.8,
+      "labelAnchor": "right",
+      "name": "광흥창",
+      "lat": 37.547464,
+      "lng": 126.931971
+    },
+    {
+      "stationCode": "S-S1106-0623",
+      "x": 3003.2,
+      "y": 3069.5,
+      "labelAnchor": "right",
+      "name": "상수",
+      "lat": 37.547704,
+      "lng": 126.92292
+    },
+    {
+      "stationCode": "S-S1106-0621",
+      "x": 3087.5,
+      "y": 3082.2,
+      "labelAnchor": "right",
+      "name": "망원",
+      "lat": 37.556031,
+      "lng": 126.910129
+    },
+    {
+      "stationCode": "S-S1106-0620",
+      "x": 3089.6,
+      "y": 3029.9,
+      "labelAnchor": "right",
+      "name": "마포구청",
+      "lat": 37.563529,
+      "lng": 126.903356
+    },
+    {
+      "stationCode": "S-S1106-0619",
+      "x": 3073.4,
+      "y": 3013.7,
+      "labelAnchor": "right",
+      "name": "월드컵경기장",
+      "lat": 37.569439,
+      "lng": 126.899077
+    },
+    {
+      "stationCode": "S-I28A1-A04",
+      "x": 3075.5,
+      "y": 2936.7,
+      "labelAnchor": "right",
+      "name": "디지털미디어시티",
+      "lat": 37.5771331666667,
+      "lng": 126.899929666667
+    },
+    {
+      "stationCode": "S-S1106-0617",
+      "x": 3123.3,
+      "y": 2888.9,
+      "labelAnchor": "right",
+      "name": "증산",
+      "lat": 37.583989,
+      "lng": 126.909785
+    },
+    {
+      "stationCode": "S-S1106-0616",
+      "x": 3158.3,
+      "y": 2853.9,
+      "labelAnchor": "right",
+      "name": "새절",
+      "lat": 37.591148,
+      "lng": 126.913613
+    },
+    {
+      "stationCode": "S-S1106-0610",
+      "x": 3158.3,
+      "y": 2756.3,
+      "labelAnchor": "right",
+      "name": "응암",
+      "lat": 37.59859,
+      "lng": 126.915583
+    },
+    {
+      "stationCode": "S-S1106-0611",
+      "x": 3202.3,
+      "y": 2712.3,
+      "labelAnchor": "top",
+      "name": "역촌",
+      "lat": 37.60605,
+      "lng": 126.922764
+    },
+    {
+      "stationCode": "S-S1106-0613",
+      "x": 3221.8,
+      "y": 2595.1,
+      "labelAnchor": "top",
+      "name": "독바위",
+      "lat": 37.618413,
+      "lng": 126.933035
+    },
+    {
+      "stationCode": "S-S1106-0615",
+      "x": 3154.4,
+      "y": 2662.4,
+      "labelAnchor": "top",
+      "name": "구산",
+      "lat": 37.611196,
+      "lng": 126.9172519
+    },
+    {
+      "stationCode": "S-I4105-1853",
+      "x": 4413.2,
+      "y": 4120.4,
+      "labelAnchor": "top",
+      "name": "모란",
+      "lat": 37.433056,
+      "lng": 127.1294925
+    },
+    {
+      "stationCode": "S-S1108-0826",
+      "x": 4489.5,
+      "y": 4044.1,
+      "labelAnchor": "top",
+      "name": "수진",
+      "lat": 37.437575,
+      "lng": 127.140936
+    },
+    {
+      "stationCode": "S-S1108-0825",
+      "x": 4527,
+      "y": 4006.7,
+      "labelAnchor": "top",
+      "name": "신흥",
+      "lat": 37.440952,
+      "lng": 127.14759
+    },
+    {
+      "stationCode": "S-S1108-0824",
+      "x": 4574.7,
+      "y": 3958.9,
+      "labelAnchor": "right",
+      "name": "단대오거리",
+      "lat": 37.445057,
+      "lng": 127.156735
+    },
+    {
+      "stationCode": "S-S1108-0823",
+      "x": 4574.7,
+      "y": 3931.8,
+      "labelAnchor": "right",
+      "name": "남한산성입구",
+      "lat": 37.451568,
+      "lng": 127.159845
+    },
+    {
+      "stationCode": "S-S1108-0822",
+      "x": 4544.7,
+      "y": 3901.9,
+      "labelAnchor": "top",
+      "name": "산성",
+      "lat": 37.456886,
+      "lng": 127.149927
+    },
+    {
+      "stationCode": "S-S1108-0821",
+      "x": 4487.5,
+      "y": 3844.7,
+      "labelAnchor": "top",
+      "name": "남위례",
+      "lat": 37.462839,
+      "lng": 127.139047
+    },
+    {
+      "stationCode": "S-I4105-1031",
+      "x": 4413.2,
+      "y": 3770.4,
+      "labelAnchor": "right",
+      "name": "복정",
+      "lat": 37.4703845,
+      "lng": 127.1266865
+    },
+    {
+      "stationCode": "S-S1108-0819",
+      "x": 4413.2,
+      "y": 3723.4,
+      "labelAnchor": "right",
+      "name": "장지",
+      "lat": 37.478609,
+      "lng": 127.126229
+    },
+    {
+      "stationCode": "S-S1108-0818",
+      "x": 4413.2,
+      "y": 3668.6,
+      "labelAnchor": "right",
+      "name": "문정",
+      "lat": 37.485931,
+      "lng": 127.122473
+    },
+    {
+      "stationCode": "S-S1108-0816",
+      "x": 4311.5,
+      "y": 3567.4,
+      "labelAnchor": "right",
+      "name": "송파",
+      "lat": 37.49978,
+      "lng": 127.11212
+    },
+    {
+      "stationCode": "S-S1108-0815",
+      "x": 4260.2,
+      "y": 3516.7,
+      "labelAnchor": "top",
+      "name": "석촌",
+      "lat": 37.505237,
+      "lng": 127.1069695
+    },
+    {
+      "stationCode": "S-S1108-0813",
+      "x": 4346.9,
+      "y": 3376.4,
+      "labelAnchor": "top",
+      "name": "몽촌토성",
+      "lat": 37.517692,
+      "lng": 127.11274
+    },
+    {
+      "stationCode": "S-S1108-0812",
+      "x": 4387.9,
+      "y": 3335.4,
+      "labelAnchor": "right",
+      "name": "강동구청",
+      "lat": 37.530348,
+      "lng": 127.120461
+    },
+    {
+      "stationCode": "S-S1108-0810",
+      "x": 4387.9,
+      "y": 3202.5,
+      "labelAnchor": "right",
+      "name": "암사",
+      "lat": 37.550127,
+      "lng": 127.127521
+    },
+    {
+      "stationCode": "S-S1108-0809",
+      "x": 4509.8,
+      "y": 3080.5,
+      "labelAnchor": "right",
+      "name": "암사역사공원",
+      "lat": 37.557167,
+      "lng": 127.137556
+    },
+    {
+      "stationCode": "S-S1108-808",
+      "x": 4509.8,
+      "y": 2887.4,
+      "labelAnchor": "right",
+      "name": "장자호수공원",
+      "lat": 37.587222,
+      "lng": 127.13793
+    },
+    {
+      "stationCode": "S-I4108-1205",
+      "x": 4509.8,
+      "y": 2737.5,
+      "labelAnchor": "right",
+      "name": "구리",
+      "lat": 37.60291,
+      "lng": 127.1420515
+    },
+    {
+      "stationCode": "S-S1108-806",
+      "x": 4485,
+      "y": 2712.7,
+      "labelAnchor": "right",
+      "name": "동구릉",
+      "lat": 37.610556,
+      "lng": 127.135056
+    },
+    {
+      "stationCode": "S-S1109-4138",
+      "x": 4572.2,
+      "y": 3353,
+      "labelAnchor": "right",
+      "name": "중앙보훈병원",
+      "lat": 37.528807,
+      "lng": 127.148488
+    },
+    {
+      "stationCode": "S-S1109-4137",
+      "x": 4505.7,
+      "y": 3419.4,
+      "labelAnchor": "top",
+      "name": "둔촌오륜",
+      "lat": 37.519339,
+      "lng": 127.138619
+    },
+    {
+      "stationCode": "S-S1109-4135",
+      "x": 4333.4,
+      "y": 3443.6,
+      "labelAnchor": "top",
+      "name": "한성백제",
+      "lat": 37.516369,
+      "lng": 127.116211
+    },
+    {
+      "stationCode": "S-S1109-4134",
+      "x": 4313.8,
+      "y": 3463.2,
+      "labelAnchor": "right",
+      "name": "송파나루",
+      "lat": 37.51055,
+      "lng": 127.112451
+    },
+    {
+      "stationCode": "S-S1109-4132",
+      "x": 4231.3,
+      "y": 3516.7,
+      "labelAnchor": "top",
+      "name": "석촌고분",
+      "lat": 37.502439,
+      "lng": 127.096611
+    },
+    {
+      "stationCode": "S-S1109-4131",
+      "x": 4173.2,
+      "y": 3516.7,
+      "labelAnchor": "top",
+      "name": "삼전",
+      "lat": 37.504531,
+      "lng": 127.087211
+    },
+    {
+      "stationCode": "S-S1109-4129",
+      "x": 4110,
+      "y": 3516.7,
+      "labelAnchor": "top",
+      "name": "봉은사",
+      "lat": 37.514219,
+      "lng": 127.060245
+    },
+    {
+      "stationCode": "S-S1109-4128",
+      "x": 4075.3,
+      "y": 3551.4,
+      "labelAnchor": "right",
+      "name": "삼성중앙",
+      "lat": 37.513011,
+      "lng": 127.053282
+    },
+    {
+      "stationCode": "S-I4105-1850",
+      "x": 4055.7,
+      "y": 3571,
+      "labelAnchor": "right",
+      "name": "선정릉",
+      "lat": 37.5105275,
+      "lng": 127.04373815
+    },
+    {
+      "stationCode": "S-S1109-4126",
+      "x": 4013.8,
+      "y": 3571,
+      "labelAnchor": "top",
+      "name": "언주",
+      "lat": 37.507287,
+      "lng": 127.033868
+    },
+    {
+      "stationCode": "S-I11D1-D006",
+      "x": 3927.7,
+      "y": 3657.1,
+      "labelAnchor": "top",
+      "name": "신논현",
+      "lat": 37.504499714796,
+      "lng": 127.024473820399
+    },
+    {
+      "stationCode": "S-S1109-4124",
+      "x": 3901.5,
+      "y": 3683.4,
+      "labelAnchor": "top",
+      "name": "사평",
+      "lat": 37.504161,
+      "lng": 127.015219
+    },
+    {
+      "stationCode": "S-S1109-4122",
+      "x": 3652.7,
+      "y": 3675.2,
+      "labelAnchor": "top",
+      "name": "신반포",
+      "lat": 37.5035033,
+      "lng": 126.996044
+    },
+    {
+      "stationCode": "S-S1109-4121",
+      "x": 3514.1,
+      "y": 3672.2,
+      "labelAnchor": "top",
+      "name": "구반포",
+      "lat": 37.501389,
+      "lng": 126.987222
+    },
+    {
+      "stationCode": "S-S1109-4119",
+      "x": 3230.6,
+      "y": 3669.1,
+      "labelAnchor": "top",
+      "name": "흑석",
+      "lat": 37.508889,
+      "lng": 126.963611
+    },
+    {
+      "stationCode": "S-S1109-4118",
+      "x": 3156.7,
+      "y": 3595.1,
+      "labelAnchor": "top",
+      "name": "노들",
+      "lat": 37.512726,
+      "lng": 126.953096
+    },
+    {
+      "stationCode": "S-L11SL-S401",
+      "x": 3009.7,
+      "y": 3450.1,
+      "labelAnchor": "right",
+      "name": "샛강",
+      "lat": 37.5172599685,
+      "lng": 126.928901982
+    },
+    {
+      "stationCode": "S-S1109-4114",
+      "x": 3003.6,
+      "y": 3303,
+      "labelAnchor": "right",
+      "name": "국회의사당",
+      "lat": 37.528105,
+      "lng": 126.917874
+    },
+    {
+      "stationCode": "S-S1109-4112",
+      "x": 2953.2,
+      "y": 3222.4,
+      "labelAnchor": "top",
+      "name": "선유도",
+      "lat": 37.537778,
+      "lng": 126.893889
+    },
+    {
+      "stationCode": "S-S1109-4111",
+      "x": 2923.6,
+      "y": 3192.8,
+      "labelAnchor": "top",
+      "name": "신목동",
+      "lat": 37.544167,
+      "lng": 126.883056
+    },
+    {
+      "stationCode": "S-S1109-4110",
+      "x": 2883.4,
+      "y": 3152.6,
+      "labelAnchor": "top",
+      "name": "염창",
+      "lat": 37.546944,
+      "lng": 126.874722
+    },
+    {
+      "stationCode": "S-S1109-4109",
+      "x": 2824.5,
+      "y": 3093.7,
+      "labelAnchor": "right",
+      "name": "등촌",
+      "lat": 37.551111,
+      "lng": 126.864722
+    },
+    {
+      "stationCode": "S-S1109-4108",
+      "x": 2824.5,
+      "y": 3067,
+      "labelAnchor": "right",
+      "name": "증미",
+      "lat": 37.55785,
+      "lng": 126.861067
+    },
+    {
+      "stationCode": "S-S1109-4107",
+      "x": 2781,
+      "y": 3023.5,
+      "labelAnchor": "top",
+      "name": "가양",
+      "lat": 37.561111,
+      "lng": 126.855078
+    },
+    {
+      "stationCode": "S-S1109-4106",
+      "x": 2701.3,
+      "y": 2943.7,
+      "labelAnchor": "top",
+      "name": "양천향교",
+      "lat": 37.568333,
+      "lng": 126.841389
+    },
+    {
+      "stationCode": "S-I28A1-A042",
+      "x": 2599.6,
+      "y": 2943.7,
+      "labelAnchor": "top",
+      "name": "마곡나루",
+      "lat": 37.56626807,
+      "lng": 126.82762145
+    },
+    {
+      "stationCode": "S-S1109-4104",
+      "x": 2541.5,
+      "y": 2943.7,
+      "labelAnchor": "top",
+      "name": "신방화",
+      "lat": 37.5675,
+      "lng": 126.816667
+    },
+    {
+      "stationCode": "S-S1109-4103",
+      "x": 2509.4,
+      "y": 2975.9,
+      "labelAnchor": "top",
+      "name": "공항시장",
+      "lat": 37.563726,
+      "lng": 126.810678
+    },
+    {
+      "stationCode": "S-S1109-4101",
+      "x": 2478,
+      "y": 2888.8,
+      "labelAnchor": "right",
+      "name": "개화",
+      "lat": 37.578591,
+      "lng": 126.797833
+    },
+    {
+      "stationCode": "S-I4105-1872",
+      "x": 3685.9,
+      "y": 5342.7,
+      "labelAnchor": "top",
+      "name": "매교역",
+      "lat": 37.265502,
+      "lng": 127.015657
+    },
+    {
+      "stationCode": "S-I4105-1871",
+      "x": 3760.9,
+      "y": 5342.7,
+      "labelAnchor": "top",
+      "name": "수원시청역",
+      "lat": 37.261941,
+      "lng": 127.030736
+    },
+    {
+      "stationCode": "S-I4105-1870",
+      "x": 3856.9,
+      "y": 5438.7,
+      "labelAnchor": "top",
+      "name": "매탄권선역",
+      "lat": 37.252458,
+      "lng": 127.040824
+    },
+    {
+      "stationCode": "S-I4105-1869",
+      "x": 3943.2,
+      "y": 5525,
+      "labelAnchor": "top",
+      "name": "망포역",
+      "lat": 37.245793,
+      "lng": 127.057367
+    },
+    {
+      "stationCode": "S-I4105-1868",
+      "x": 4011,
+      "y": 5457.3,
+      "labelAnchor": "top",
+      "name": "영통역",
+      "lat": 37.251521,
+      "lng": 127.071341
+    },
+    {
+      "stationCode": "S-I4105-1867",
+      "x": 4079.1,
+      "y": 5389.2,
+      "labelAnchor": "top",
+      "name": "청명역",
+      "lat": 37.259485,
+      "lng": 127.078945
+    },
+    {
+      "stationCode": "S-I4105-1866",
+      "x": 4211.4,
+      "y": 5389.2,
+      "labelAnchor": "top",
+      "name": "상갈역",
+      "lat": 37.261797,
+      "lng": 127.108718
+    },
+    {
+      "stationCode": "S-I4105-1865",
+      "x": 4293.3,
+      "y": 5307.2,
+      "labelAnchor": "right",
+      "name": "기흥",
+      "lat": 37.27555494,
+      "lng": 127.11649525
+    },
+    {
+      "stationCode": "S-I4105-1864",
+      "x": 4293.3,
+      "y": 5207.9,
+      "labelAnchor": "right",
+      "name": "신갈역",
+      "lat": 37.286127,
+      "lng": 127.111311
+    },
+    {
+      "stationCode": "S-I4105-1863",
+      "x": 4293.3,
+      "y": 5106.7,
+      "labelAnchor": "right",
+      "name": "구성역",
+      "lat": 37.299013,
+      "lng": 127.105664
+    },
+    {
+      "stationCode": "S-I4105-1861",
+      "x": 4293.3,
+      "y": 5003.3,
+      "labelAnchor": "right",
+      "name": "보정역",
+      "lat": 37.31274,
+      "lng": 127.108219
+    },
+    {
+      "stationCode": "S-I4105-1862",
+      "x": 4293.3,
+      "y": 4912.7,
+      "labelAnchor": "right",
+      "name": "죽전역",
+      "lat": 37.324575,
+      "lng": 127.107385
+    },
+    {
+      "stationCode": "S-I4105-1859",
+      "x": 4293.3,
+      "y": 4794.9,
+      "labelAnchor": "right",
+      "name": "오리역",
+      "lat": 37.339832,
+      "lng": 127.108985
+    },
+    {
+      "stationCode": "S-I11D1-D013",
+      "x": 4293.3,
+      "y": 4710.7,
+      "labelAnchor": "right",
+      "name": "미금",
+      "lat": 37.3506306604736,
+      "lng": 127.108927389296
+    },
+    {
+      "stationCode": "S-I11D1-D012",
+      "x": 4293.3,
+      "y": 4571.3,
+      "labelAnchor": "right",
+      "name": "정자",
+      "lat": 37.3671235957764,
+      "lng": 127.108238452932
+    },
+    {
+      "stationCode": "S-I4105-1856",
+      "x": 4344.6,
+      "y": 4520.1,
+      "labelAnchor": "right",
+      "name": "수내역",
+      "lat": 37.378435,
+      "lng": 127.114216
+    },
+    {
+      "stationCode": "S-I4105-1855",
+      "x": 4413.2,
+      "y": 4451.4,
+      "labelAnchor": "right",
+      "name": "서현역",
+      "lat": 37.384931,
+      "lng": 127.123249
+    },
+    {
+      "stationCode": "S-I4105-1860",
+      "x": 4413.2,
+      "y": 4324.6,
+      "labelAnchor": "right",
+      "name": "이매역",
+      "lat": 37.395291,
+      "lng": 127.12766
+    },
+    {
+      "stationCode": "S-I4105-1854",
+      "x": 4413.2,
+      "y": 4242.8,
+      "labelAnchor": "right",
+      "name": "야탑역",
+      "lat": 37.41132,
+      "lng": 127.128661
+    },
+    {
+      "stationCode": "S-I4105-1852",
+      "x": 4413.2,
+      "y": 4021.8,
+      "labelAnchor": "right",
+      "name": "태평역",
+      "lat": 37.439842,
+      "lng": 127.127746
+    },
+    {
+      "stationCode": "S-I4105-1851",
+      "x": 4413.2,
+      "y": 3952.5,
+      "labelAnchor": "right",
+      "name": "가천대역",
+      "lat": 37.448784,
+      "lng": 127.126677
+    },
+    {
+      "stationCode": "S-I4105-1028",
+      "x": 4090,
+      "y": 3590.3,
+      "labelAnchor": "top",
+      "name": "대모산입구역",
+      "lat": 37.491347,
+      "lng": 127.072702
+    },
+    {
+      "stationCode": "S-I4105-1027",
+      "x": 4043.9,
+      "y": 3590.3,
+      "labelAnchor": "top",
+      "name": "개포동역",
+      "lat": 37.489112,
+      "lng": 127.066027
+    },
+    {
+      "stationCode": "S-I4105-1026",
+      "x": 3979.9,
+      "y": 3590.3,
+      "labelAnchor": "top",
+      "name": "구룡역",
+      "lat": 37.486985,
+      "lng": 127.059496
+    },
+    {
+      "stationCode": "S-I4105-1024",
+      "x": 4033.9,
+      "y": 3565,
+      "labelAnchor": "top",
+      "name": "한티역",
+      "lat": 37.496208,
+      "lng": 127.052883
+    },
+    {
+      "stationCode": "S-I4105-1848",
+      "x": 4150.1,
+      "y": 3355.9,
+      "labelAnchor": "right",
+      "name": "압구정로데오역",
+      "lat": 37.527385,
+      "lng": 127.040555
+    },
+    {
+      "stationCode": "S-I4105-1847",
+      "x": 4150.1,
+      "y": 3264.1,
+      "labelAnchor": "right",
+      "name": "서울숲역",
+      "lat": 37.543647,
+      "lng": 127.044686
+    },
+    {
+      "stationCode": "S-I28K1-1890",
+      "x": 1335.1,
+      "y": 3704.1,
+      "labelAnchor": "right",
+      "name": "신포역",
+      "lat": 37.468442,
+      "lng": 126.624509
+    },
+    {
+      "stationCode": "S-I28K1-1889",
+      "x": 1405.5,
+      "y": 3774.5,
+      "labelAnchor": "right",
+      "name": "숭의역",
+      "lat": 37.460891,
+      "lng": 126.638035
+    },
+    {
+      "stationCode": "S-I28K1-1888",
+      "x": 1508.7,
+      "y": 3877.8,
+      "labelAnchor": "right",
+      "name": "인하대역",
+      "lat": 37.448191,
+      "lng": 126.649832
+    },
+    {
+      "stationCode": "S-I28K1-1886",
+      "x": 1508.7,
+      "y": 3972,
+      "labelAnchor": "right",
+      "name": "송도역",
+      "lat": 37.429714,
+      "lng": 126.654486
+    },
+    {
+      "stationCode": "S-I28K1-1885",
+      "x": 1649.1,
+      "y": 4112.4,
+      "labelAnchor": "top",
+      "name": "연수역",
+      "lat": 37.417769,
+      "lng": 126.678991
+    },
+    {
+      "stationCode": "S-I28K1-1884",
+      "x": 1698.8,
+      "y": 4162,
+      "labelAnchor": "top",
+      "name": "원인재",
+      "lat": 37.4126425,
+      "lng": 126.6874225
+    },
+    {
+      "stationCode": "S-I28K1-1883",
+      "x": 1742,
+      "y": 4205.2,
+      "labelAnchor": "top",
+      "name": "남동인더스파크역",
+      "lat": 37.407668,
+      "lng": 126.695613
+    },
+    {
+      "stationCode": "S-I28K1-1882",
+      "x": 1797.1,
+      "y": 4260.3,
+      "labelAnchor": "top",
+      "name": "호구포역",
+      "lat": 37.401622,
+      "lng": 126.708682
+    },
+    {
+      "stationCode": "S-I28K1-1881",
+      "x": 1913,
+      "y": 4260.3,
+      "labelAnchor": "top",
+      "name": "인천논현역",
+      "lat": 37.400641,
+      "lng": 126.722495
+    },
+    {
+      "stationCode": "S-I28K1-1880",
+      "x": 1987.9,
+      "y": 4260.3,
+      "labelAnchor": "top",
+      "name": "소래포구역",
+      "lat": 37.400963,
+      "lng": 126.733533
+    },
+    {
+      "stationCode": "S-I28K1-1879",
+      "x": 2061.1,
+      "y": 4333.6,
+      "labelAnchor": "right",
+      "name": "월곶역",
+      "lat": 37.39189,
+      "lng": 126.742741
+    },
+    {
+      "stationCode": "S-I28K1-1878",
+      "x": 2061.1,
+      "y": 4418.7,
+      "labelAnchor": "right",
+      "name": "달월역",
+      "lat": 37.379993,
+      "lng": 126.745431
+    },
+    {
+      "stationCode": "S-I28K1-1877",
+      "x": 2700.7,
+      "y": 5157.2,
+      "labelAnchor": "right",
+      "name": "사리역",
+      "lat": 37.290809,
+      "lng": 126.857172
+    },
+    {
+      "stationCode": "S-I28K1-1876",
+      "x": 2891.8,
+      "y": 5348.3,
+      "labelAnchor": "right",
+      "name": "야목역",
+      "lat": 37.261211,
+      "lng": 126.884029
+    },
+    {
+      "stationCode": "S-I28K1-1875",
+      "x": 3035,
+      "y": 5491.5,
+      "labelAnchor": "top",
+      "name": "어천역",
+      "lat": 37.250076,
+      "lng": 126.908805
+    },
+    {
+      "stationCode": "S-I28K1-1874",
+      "x": 3377.6,
+      "y": 5491.5,
+      "labelAnchor": "top",
+      "name": "오목천역",
+      "lat": 37.243011,
+      "lng": 126.9636354
+    },
+    {
+      "stationCode": "S-I28K1-1873",
+      "x": 3436,
+      "y": 5433.2,
+      "labelAnchor": "top",
+      "name": "고색역",
+      "lat": 37.249829,
+      "lng": 126.9805899
+    },
+    {
+      "stationCode": "S-I4108-1203",
+      "x": 4214.8,
+      "y": 2776.2,
+      "labelAnchor": "top",
+      "name": "망우역",
+      "lat": 37.599638,
+      "lng": 127.0921745
+    },
+    {
+      "stationCode": "S-I4108-1271",
+      "x": 2488.8,
+      "y": 2539.7,
+      "labelAnchor": "right",
+      "name": "능곡역",
+      "lat": 37.618741,
+      "lng": 126.820745
+    },
+    {
+      "stationCode": "S-I4108-1272",
+      "x": 2452.1,
+      "y": 2369.7,
+      "labelAnchor": "right",
+      "name": "곡산역",
+      "lat": 37.645729,
+      "lng": 126.801877
+    },
+    {
+      "stationCode": "S-I4108-1273",
+      "x": 2379.5,
+      "y": 2297.1,
+      "labelAnchor": "right",
+      "name": "백마역",
+      "lat": 37.658346,
+      "lng": 126.794401
+    },
+    {
+      "stationCode": "S-I4108-1274",
+      "x": 2301.7,
+      "y": 2219.3,
+      "labelAnchor": "right",
+      "name": "풍산역",
+      "lat": 37.672173,
+      "lng": 126.786355
+    },
+    {
+      "stationCode": "S-I4108-1275",
+      "x": 2215.4,
+      "y": 2133,
+      "labelAnchor": "right",
+      "name": "일산역",
+      "lat": 37.682231,
+      "lng": 126.769521
+    },
+    {
+      "stationCode": "S-I41K2-1329",
+      "x": 8137.6,
+      "y": 674,
+      "labelAnchor": "right",
+      "name": "춘천역",
+      "lat": 37.884391,
+      "lng": 127.716603
+    },
+    {
+      "stationCode": "S-I41K2-1328",
+      "x": 8137.6,
+      "y": 834,
+      "labelAnchor": "right",
+      "name": "남춘천역",
+      "lat": 37.864071,
+      "lng": 127.723761
+    },
+    {
+      "stationCode": "S-I41K2-1327",
+      "x": 8137.6,
+      "y": 1240.1,
+      "labelAnchor": "top",
+      "name": "김유정역",
+      "lat": 37.818475,
+      "lng": 127.714302
+    },
+    {
+      "stationCode": "S-I41K2-1326",
+      "x": 7586.8,
+      "y": 1240.1,
+      "labelAnchor": "top",
+      "name": "강촌역",
+      "lat": 37.805728,
+      "lng": 127.634054
+    },
+    {
+      "stationCode": "S-I41K2-1325",
+      "x": 7355.1,
+      "y": 1008.3,
+      "labelAnchor": "top",
+      "name": "백양리역",
+      "lat": 37.830881,
+      "lng": 127.589085
+    },
+    {
+      "stationCode": "S-I41K2-1324",
+      "x": 7068.9,
+      "y": 1008.3,
+      "labelAnchor": "top",
+      "name": "굴봉산역",
+      "lat": 37.832086,
+      "lng": 127.557732
+    },
+    {
+      "stationCode": "S-I41K2-1323",
+      "x": 6867.7,
+      "y": 1209.5,
+      "labelAnchor": "top",
+      "name": "가평역",
+      "lat": 37.814515,
+      "lng": 127.510693
+    },
+    {
+      "stationCode": "S-I41K2-1322",
+      "x": 6529.3,
+      "y": 1547.9,
+      "labelAnchor": "right",
+      "name": "상천역",
+      "lat": 37.770305,
+      "lng": 127.4542
+    },
+    {
+      "stationCode": "S-I41K2-1321",
+      "x": 6305.4,
+      "y": 1771.8,
+      "labelAnchor": "right",
+      "name": "청평역",
+      "lat": 37.735484,
+      "lng": 127.426541
+    },
+    {
+      "stationCode": "S-I41K2-1320",
+      "x": 5962.5,
+      "y": 2114.7,
+      "labelAnchor": "top",
+      "name": "대성리역",
+      "lat": 37.683909,
+      "lng": 127.379165
+    },
+    {
+      "stationCode": "S-I41K2-1319",
+      "x": 5680.6,
+      "y": 2396.6,
+      "labelAnchor": "top",
+      "name": "마석역",
+      "lat": 37.652328,
+      "lng": 127.311713
+    },
+    {
+      "stationCode": "S-I41K2-1318",
+      "x": 5428.5,
+      "y": 2396.6,
+      "labelAnchor": "top",
+      "name": "천마산역",
+      "lat": 37.658995,
+      "lng": 127.285731
+    },
+    {
+      "stationCode": "S-I41K2-1317",
+      "x": 5139,
+      "y": 2396.6,
+      "labelAnchor": "top",
+      "name": "평내호평역",
+      "lat": 37.653229,
+      "lng": 127.244452
+    },
+    {
+      "stationCode": "S-I41K2-1316",
+      "x": 4961.9,
+      "y": 2573.7,
+      "labelAnchor": "top",
+      "name": "금곡역",
+      "lat": 37.637414,
+      "lng": 127.207931
+    },
+    {
+      "stationCode": "S-I41K2-1315",
+      "x": 4787.6,
+      "y": 2399.3,
+      "labelAnchor": "top",
+      "name": "사릉역",
+      "lat": 37.651145,
+      "lng": 127.176839
+    },
+    {
+      "stationCode": "S-I41K2-1314",
+      "x": 4591.6,
+      "y": 2399.3,
+      "labelAnchor": "top",
+      "name": "퇴계원역",
+      "lat": 37.648316,
+      "lng": 127.143858
+    },
+    {
+      "stationCode": "S-I41K2-1313",
+      "x": 4497.1,
+      "y": 2493.8,
+      "labelAnchor": "top",
+      "name": "별내역",
+      "lat": 37.642369,
+      "lng": 127.127254
+    },
+    {
+      "stationCode": "S-I41K2-1312",
+      "x": 4430.3,
+      "y": 2560.6,
+      "labelAnchor": "right",
+      "name": "갈매역",
+      "lat": 37.634135,
+      "lng": 127.114803
+    },
+    {
+      "stationCode": "S-I28A1-A11",
+      "x": 131.4,
+      "y": 3694.9,
+      "labelAnchor": "right",
+      "name": "인천공항2터미널",
+      "lat": 37.46866,
+      "lng": 126.433415
+    },
+    {
+      "stationCode": "S-I28A1-A10",
+      "x": 318.3,
+      "y": 3881.8,
+      "labelAnchor": "top",
+      "name": "인천공항1터미널",
+      "lat": 37.44760672,
+      "lng": 126.4523433
+    },
+    {
+      "stationCode": "S-I28A1-A09",
+      "x": 500.9,
+      "y": 3699.2,
+      "labelAnchor": "right",
+      "name": "공항화물청사",
+      "lat": 37.45902611,
+      "lng": 126.4774333
+    },
+    {
+      "stationCode": "S-I28A1-A08",
+      "x": 500.9,
+      "y": 3631.2,
+      "labelAnchor": "right",
+      "name": "운서",
+      "lat": 37.49284463,
+      "lng": 126.4936619
+    },
+    {
+      "stationCode": "S-I28A1-A072",
+      "x": 748,
+      "y": 3384.1,
+      "labelAnchor": "top",
+      "name": "영종",
+      "lat": 37.51209814,
+      "lng": 126.5242471
+    },
+    {
+      "stationCode": "S-I28A1-A071",
+      "x": 1187.5,
+      "y": 2944.5,
+      "labelAnchor": "top",
+      "name": "청라국제도시",
+      "lat": 37.556509,
+      "lng": 126.624725
+    },
+    {
+      "stationCode": "S-I28A1-A07",
+      "x": 1661.7,
+      "y": 2944.5,
+      "labelAnchor": "top",
+      "name": "검암",
+      "lat": 37.568883235,
+      "lng": 126.67460885
+    },
+    {
+      "stationCode": "S-I28A1-A06",
+      "x": 2047.7,
+      "y": 2944.5,
+      "labelAnchor": "top",
+      "name": "계양",
+      "lat": 37.571654,
+      "lng": 126.736319
+    },
+    {
+      "stationCode": "S-S2801-3139",
+      "x": 1286.8,
+      "y": 4219.7,
+      "labelAnchor": "right",
+      "name": "송도달빛축제공원",
+      "lat": 37.40687495,
+      "lng": 126.6260537
+    },
+    {
+      "stationCode": "S-S2801-3138",
+      "x": 1324.1,
+      "y": 4257.1,
+      "labelAnchor": "right",
+      "name": "국제업무지구",
+      "lat": 37.400421,
+      "lng": 126.630105
+    },
+    {
+      "stationCode": "S-S2801-3137",
+      "x": 1369.6,
+      "y": 4302.5,
+      "labelAnchor": "right",
+      "name": "센트럴파크",
+      "lat": 37.392833,
+      "lng": 126.635002
+    },
+    {
+      "stationCode": "S-S2801-3136",
+      "x": 1411.1,
+      "y": 4344,
+      "labelAnchor": "right",
+      "name": "인천대입구",
+      "lat": 37.386239,
+      "lng": 126.639351
+    },
+    {
+      "stationCode": "S-S2801-3135",
+      "x": 1463.9,
+      "y": 4396.8,
+      "labelAnchor": "top",
+      "name": "지식정보단지",
+      "lat": 37.378021,
+      "lng": 126.645412
+    },
+    {
+      "stationCode": "S-S2801-3134",
+      "x": 1489.2,
+      "y": 4371.6,
+      "labelAnchor": "top",
+      "name": "테크노파크",
+      "lat": 37.382311,
+      "lng": 126.656355
+    },
+    {
+      "stationCode": "S-S2801-3133",
+      "x": 1528.8,
+      "y": 4331.9,
+      "labelAnchor": "right",
+      "name": "캠퍼스타운",
+      "lat": 37.388209,
+      "lng": 126.661985
+    },
+    {
+      "stationCode": "S-S2801-3132",
+      "x": 1602.7,
+      "y": 4258,
+      "labelAnchor": "right",
+      "name": "동막",
+      "lat": 37.398173,
+      "lng": 126.673561
+    },
+    {
+      "stationCode": "S-S2801-3131",
+      "x": 1650.3,
+      "y": 4210.5,
+      "labelAnchor": "right",
+      "name": "동춘",
+      "lat": 37.404676,
+      "lng": 126.680835
+    },
+    {
+      "stationCode": "S-S2801-3129",
+      "x": 1742.8,
+      "y": 4118,
+      "labelAnchor": "right",
+      "name": "신연수",
+      "lat": 37.418032,
+      "lng": 126.693853
+    },
+    {
+      "stationCode": "S-S2801-3128",
+      "x": 1787.6,
+      "y": 4073.1,
+      "labelAnchor": "right",
+      "name": "선학",
+      "lat": 37.426985,
+      "lng": 126.698872
+    },
+    {
+      "stationCode": "S-S2801-3127",
+      "x": 1787.6,
+      "y": 3984.9,
+      "labelAnchor": "right",
+      "name": "문학경기장",
+      "lat": 37.434964,
+      "lng": 126.698373
+    },
+    {
+      "stationCode": "S-S2801-3126",
+      "x": 1787.6,
+      "y": 3931.1,
+      "labelAnchor": "right",
+      "name": "인천터미널",
+      "lat": 37.441917,
+      "lng": 126.699727
+    },
+    {
+      "stationCode": "S-S2801-3125",
+      "x": 1787.6,
+      "y": 3873.3,
+      "labelAnchor": "right",
+      "name": "예술회관",
+      "lat": 37.449334,
+      "lng": 126.700991
+    },
+    {
+      "stationCode": "S-S2801-3124",
+      "x": 1787.6,
+      "y": 3816.1,
+      "labelAnchor": "right",
+      "name": "인천시청",
+      "lat": 37.4572595,
+      "lng": 126.7018695
+    },
+    {
+      "stationCode": "S-S2801-3123",
+      "x": 1846.9,
+      "y": 3756.8,
+      "labelAnchor": "right",
+      "name": "간석오거리",
+      "lat": 37.466921,
+      "lng": 126.707861
+    },
+    {
+      "stationCode": "S-S2801-3122",
+      "x": 1846.9,
+      "y": 3672.4,
+      "labelAnchor": "right",
+      "name": "부평삼거리",
+      "lat": 37.478267,
+      "lng": 126.710494
+    },
+    {
+      "stationCode": "S-S2801-3121",
+      "x": 1911.7,
+      "y": 3607.7,
+      "labelAnchor": "top",
+      "name": "동수",
+      "lat": 37.485409,
+      "lng": 126.718464
+    },
+    {
+      "stationCode": "S-S2801-3119",
+      "x": 1930.2,
+      "y": 3495.2,
+      "labelAnchor": "right",
+      "name": "부평시장",
+      "lat": 37.498495,
+      "lng": 126.722282
+    },
+    {
+      "stationCode": "S-S2801-3117",
+      "x": 1930.2,
+      "y": 3351.1,
+      "labelAnchor": "right",
+      "name": "갈산",
+      "lat": 37.517124,
+      "lng": 126.721566
+    },
+    {
+      "stationCode": "S-S2801-3116",
+      "x": 1930.2,
+      "y": 3249.6,
+      "labelAnchor": "right",
+      "name": "작전",
+      "lat": 37.530271,
+      "lng": 126.722548
+    },
+    {
+      "stationCode": "S-S2801-3115",
+      "x": 1930.2,
+      "y": 3188.1,
+      "labelAnchor": "right",
+      "name": "경인교대입구",
+      "lat": 37.538272,
+      "lng": 126.722603
+    },
+    {
+      "stationCode": "S-S2801-3114",
+      "x": 1980,
+      "y": 3138.3,
+      "labelAnchor": "top",
+      "name": "계산",
+      "lat": 37.543243,
+      "lng": 126.728436
+    },
+    {
+      "stationCode": "S-S2801-3113",
+      "x": 2030.9,
+      "y": 3138.3,
+      "labelAnchor": "top",
+      "name": "임학",
+      "lat": 37.545058,
+      "lng": 126.738642
+    },
+    {
+      "stationCode": "S-S2801-3112",
+      "x": 2082.6,
+      "y": 3086.6,
+      "labelAnchor": "right",
+      "name": "박촌",
+      "lat": 37.553525,
+      "lng": 126.744946
+    },
+    {
+      "stationCode": "S-S2801-3111",
+      "x": 2082.6,
+      "y": 2979.5,
+      "labelAnchor": "right",
+      "name": "귤현",
+      "lat": 37.566362,
+      "lng": 126.742498
+    },
+    {
+      "stationCode": "S-S2801-3109",
+      "x": 1883.9,
+      "y": 2780.8,
+      "labelAnchor": "right",
+      "name": "아라",
+      "lat": 37.592222,
+      "lng": 126.713333
+    },
+    {
+      "stationCode": "S-S2801-3108",
+      "x": 1796.2,
+      "y": 2693.1,
+      "labelAnchor": "top",
+      "name": "신검단중앙",
+      "lat": 37.6026,
+      "lng": 126.698611
+    },
+    {
+      "stationCode": "S-S2801-3107",
+      "x": 1744.4,
+      "y": 2693.1,
+      "labelAnchor": "top",
+      "name": "검단호수공원",
+      "lat": 37.6025,
+      "lng": 126.688056
+    },
+    {
+      "stationCode": "S-S2802-3227",
+      "x": 2165.8,
+      "y": 3946,
+      "labelAnchor": "right",
+      "name": "운연",
+      "lat": 37.439533,
+      "lng": 126.759609
+    },
+    {
+      "stationCode": "S-S2802-3226",
+      "x": 2103.3,
+      "y": 3883.5,
+      "labelAnchor": "top",
+      "name": "인천대공원",
+      "lat": 37.448475,
+      "lng": 126.753051
+    },
+    {
+      "stationCode": "S-S2802-3225",
+      "x": 2030,
+      "y": 3883.5,
+      "labelAnchor": "top",
+      "name": "남동구청",
+      "lat": 37.448179,
+      "lng": 126.736581
+    },
+    {
+      "stationCode": "S-S2802-3224",
+      "x": 1962.6,
+      "y": 3816.1,
+      "labelAnchor": "top",
+      "name": "만수",
+      "lat": 37.454962,
+      "lng": 126.731764
+    },
+    {
+      "stationCode": "S-S2802-3223",
+      "x": 1907.8,
+      "y": 3816.1,
+      "labelAnchor": "top",
+      "name": "모래내시장",
+      "lat": 37.455842,
+      "lng": 126.719578
+    },
+    {
+      "stationCode": "S-S2802-3222",
+      "x": 1850.3,
+      "y": 3816.1,
+      "labelAnchor": "top",
+      "name": "석천사거리",
+      "lat": 37.4569323,
+      "lng": 126.710383
+    },
+    {
+      "stationCode": "S-S2802-3220",
+      "x": 1739.9,
+      "y": 3816.1,
+      "labelAnchor": "top",
+      "name": "석바위시장",
+      "lat": 37.457659,
+      "lng": 126.692387
+    },
+    {
+      "stationCode": "S-S2802-3219",
+      "x": 1680.7,
+      "y": 3816.1,
+      "labelAnchor": "top",
+      "name": "시민공원",
+      "lat": 37.458339,
+      "lng": 126.6810091
+    },
+    {
+      "stationCode": "S-S2802-3217",
+      "x": 1680.7,
+      "y": 3682.6,
+      "labelAnchor": "right",
+      "name": "주안국가산단",
+      "lat": 37.473599,
+      "lng": 126.681102
+    },
+    {
+      "stationCode": "S-S2802-3216",
+      "x": 1680.7,
+      "y": 3598.1,
+      "labelAnchor": "right",
+      "name": "가재울",
+      "lat": 37.484152,
+      "lng": 126.683883
+    },
+    {
+      "stationCode": "S-S2802-3215",
+      "x": 1639.8,
+      "y": 3557.1,
+      "labelAnchor": "right",
+      "name": "인천가좌",
+      "lat": 37.489962,
+      "lng": 126.675284
+    },
+    {
+      "stationCode": "S-S2802-3214",
+      "x": 1639.8,
+      "y": 3467.9,
+      "labelAnchor": "right",
+      "name": "서부여성회관",
+      "lat": 37.500298,
+      "lng": 126.675875
+    },
+    {
+      "stationCode": "S-S2802-3212",
+      "x": 1662.4,
+      "y": 3339.8,
+      "labelAnchor": "right",
+      "name": "가정중앙시장",
+      "lat": 37.517511,
+      "lng": 126.676784
+    },
+    {
+      "stationCode": "S-S2802-3211",
+      "x": 1662.3,
+      "y": 3283.4,
+      "labelAnchor": "right",
+      "name": "가정",
+      "lat": 37.524805,
+      "lng": 126.675387
+    },
+    {
+      "stationCode": "S-S2802-3210",
+      "x": 1662.1,
+      "y": 3136.3,
+      "labelAnchor": "right",
+      "name": "서구청",
+      "lat": 37.543839,
+      "lng": 126.676795
+    },
+    {
+      "stationCode": "S-S2802-3209",
+      "x": 1662,
+      "y": 3077.6,
+      "labelAnchor": "right",
+      "name": "아시아드경기장",
+      "lat": 37.551373,
+      "lng": 126.677075
+    },
+    {
+      "stationCode": "S-S2802-3208",
+      "x": 1661.9,
+      "y": 3003.2,
+      "labelAnchor": "right",
+      "name": "검바위",
+      "lat": 37.561091,
+      "lng": 126.677529
+    },
+    {
+      "stationCode": "S-S2802-3206",
+      "x": 1661.7,
+      "y": 2817.9,
+      "labelAnchor": "right",
+      "name": "독정",
+      "lat": 37.584927,
+      "lng": 126.675981
+    },
+    {
+      "stationCode": "S-S2802-3205",
+      "x": 1661.7,
+      "y": 2765.9,
+      "labelAnchor": "right",
+      "name": "완정",
+      "lat": 37.592867,
+      "lng": 126.672961
+    },
+    {
+      "stationCode": "S-S2802-3204",
+      "x": 1614.6,
+      "y": 2718.8,
+      "labelAnchor": "top",
+      "name": "마전",
+      "lat": 37.597756,
+      "lng": 126.667195
+    },
+    {
+      "stationCode": "S-S2802-3203",
+      "x": 1554,
+      "y": 2658.2,
+      "labelAnchor": "top",
+      "name": "검단사거리",
+      "lat": 37.601693,
+      "lng": 126.656545
+    },
+    {
+      "stationCode": "S-S2802-3202",
+      "x": 1472.3,
+      "y": 2740,
+      "labelAnchor": "top",
+      "name": "왕길",
+      "lat": 37.5950191,
+      "lng": 126.642284
+    },
+    {
+      "stationCode": "S-S2802-3201",
+      "x": 1374.3,
+      "y": 2740,
+      "labelAnchor": "top",
+      "name": "검단오류",
+      "lat": 37.5950162,
+      "lng": 126.62801
+    },
+    {
+      "stationCode": "S-S28M1-106",
+      "x": 80,
+      "y": 4017.3,
+      "labelAnchor": "top",
+      "name": "용유역",
+      "lat": 37.424805,
+      "lng": 126.423637
+    },
+    {
+      "stationCode": "S-S28M1-105",
+      "x": 143.3,
+      "y": 3954,
+      "labelAnchor": "top",
+      "name": "워터파크역",
+      "lat": 37.429227,
+      "lng": 126.434183
+    },
+    {
+      "stationCode": "S-S28M1-104",
+      "x": 303.4,
+      "y": 3954,
+      "labelAnchor": "top",
+      "name": "파라다이스시티역",
+      "lat": 37.437217,
+      "lng": 126.459858
+    },
+    {
+      "stationCode": "S-S28M1-103",
+      "x": 303.4,
+      "y": 3901.6,
+      "labelAnchor": "right",
+      "name": "합동청사역",
+      "lat": 37.440519,
+      "lng": 126.458654
+    },
+    {
+      "stationCode": "S-S28M1-102",
+      "x": 278.6,
+      "y": 3876.7,
+      "labelAnchor": "right",
+      "name": "장기주차장역",
+      "lat": 37.44385,
+      "lng": 126.455671
+    },
+    {
+      "stationCode": "S-S28M1-101",
+      "x": 257.7,
+      "y": 3855.8,
+      "labelAnchor": "right",
+      "name": "인천국제공항역",
+      "lat": 37.447222,
+      "lng": 126.4525
+    },
+    {
+      "stationCode": "S-I11D1-D019",
+      "x": 3910.6,
+      "y": 5074.8,
+      "labelAnchor": "right",
+      "name": "광교",
+      "lat": 37.3017347422146,
+      "lng": 127.044856131638
+    },
+    {
+      "stationCode": "S-I11D1-D018",
+      "x": 3910.6,
+      "y": 5202.7,
+      "labelAnchor": "top",
+      "name": "광교중앙",
+      "lat": 37.2877375194967,
+      "lng": 127.052625032841
+    },
+    {
+      "stationCode": "S-I11D1-D017",
+      "x": 4015.2,
+      "y": 5098.1,
+      "labelAnchor": "right",
+      "name": "상현",
+      "lat": 37.2986852587224,
+      "lng": 127.06957991138
+    },
+    {
+      "stationCode": "S-I11D1-D016",
+      "x": 4110.4,
+      "y": 5003,
+      "labelAnchor": "right",
+      "name": "성복",
+      "lat": 37.3140425091456,
+      "lng": 127.080757826931
+    },
+    {
+      "stationCode": "S-I11D1-D015",
+      "x": 4204.6,
+      "y": 4908.8,
+      "labelAnchor": "right",
+      "name": "수지구청",
+      "lat": 37.3230089609191,
+      "lng": 127.095581285703
+    },
+    {
+      "stationCode": "S-I11D1-D014",
+      "x": 4204.6,
+      "y": 4799.4,
+      "labelAnchor": "right",
+      "name": "동천",
+      "lat": 37.3386841329961,
+      "lng": 127.102793673668
+    },
+    {
+      "stationCode": "S-I11D1-D011",
+      "x": 4293.3,
+      "y": 4324.5,
+      "labelAnchor": "right",
+      "name": "판교",
+      "lat": 37.3952563767415,
+      "lng": 127.111172869309
+    },
+    {
+      "stationCode": "S-I11D1-D010",
+      "x": 3938.5,
+      "y": 3969.7,
+      "labelAnchor": "right",
+      "name": "청계산입구",
+      "lat": 37.4487148450701,
+      "lng": 127.054339616958
+    },
+    {
+      "stationCode": "S-I11D1-D009",
+      "x": 3835.3,
+      "y": 3866.5,
+      "labelAnchor": "right",
+      "name": "양재시민의숲",
+      "lat": 37.4709638768813,
+      "lng": 127.038420263319
+    },
+    {
+      "stationCode": "S-L11UI-S119",
+      "x": 3712.9,
+      "y": 2756.4,
+      "labelAnchor": "right",
+      "name": "정릉",
+      "lat": 37.60278,
+      "lng": 127.01345
+    },
+    {
+      "stationCode": "S-L11UI-S118",
+      "x": 3712.9,
+      "y": 2642.7,
+      "labelAnchor": "right",
+      "name": "북한산보국문",
+      "lat": 37.61233,
+      "lng": 127.00816
+    },
+    {
+      "stationCode": "S-L11UI-S117",
+      "x": 3750.3,
+      "y": 2605.3,
+      "labelAnchor": "top",
+      "name": "솔샘",
+      "lat": 37.62037,
+      "lng": 127.01357
+    },
+    {
+      "stationCode": "S-L11UI-S116",
+      "x": 3777.7,
+      "y": 2605.3,
+      "labelAnchor": "right",
+      "name": "삼양사거리",
+      "lat": 37.62144,
+      "lng": 127.02049
+    },
+    {
+      "stationCode": "S-L11UI-S115",
+      "x": 3777.7,
+      "y": 2549.7,
+      "labelAnchor": "right",
+      "name": "삼양",
+      "lat": 37.62706,
+      "lng": 127.01817
+    },
+    {
+      "stationCode": "S-L11UI-S114",
+      "x": 3777.7,
+      "y": 2493.9,
+      "labelAnchor": "right",
+      "name": "화계",
+      "lat": 37.63428,
+      "lng": 127.0175
+    },
+    {
+      "stationCode": "S-L11UI-S113",
+      "x": 3777.7,
+      "y": 2436.9,
+      "labelAnchor": "right",
+      "name": "가오리",
+      "lat": 37.64162,
+      "lng": 127.01681
+    },
+    {
+      "stationCode": "S-L11UI-S112",
+      "x": 3777.7,
+      "y": 2373.6,
+      "labelAnchor": "right",
+      "name": "4.19민주묘지",
+      "lat": 37.64954,
+      "lng": 127.01371
+    },
+    {
+      "stationCode": "S-L11UI-S111",
+      "x": 3777.7,
+      "y": 2323.3,
+      "labelAnchor": "right",
+      "name": "솔밭공원",
+      "lat": 37.65607,
+      "lng": 127.01326
+    },
+    {
+      "stationCode": "S-L11UI-S110",
+      "x": 3777.7,
+      "y": 2271.2,
+      "labelAnchor": "right",
+      "name": "북한산우이",
+      "lat": 37.66284,
+      "lng": 127.01272
+    },
+    {
+      "stationCode": "S-L11SL-S411",
+      "x": 3297.6,
+      "y": 3746.2,
+      "labelAnchor": "top",
+      "name": "관악산",
+      "lat": 37.46916896,
+      "lng": 126.944954837
+    },
+    {
+      "stationCode": "S-L11SL-S410",
+      "x": 3204.5,
+      "y": 3746.2,
+      "labelAnchor": "right",
+      "name": "서울대벤처타운",
+      "lat": 37.47204068,
+      "lng": 126.933976556
+    },
+    {
+      "stationCode": "S-L11SL-S409",
+      "x": 3204.5,
+      "y": 3679.3,
+      "labelAnchor": "right",
+      "name": "서원",
+      "lat": 37.47827336,
+      "lng": 126.933228219
+    },
+    {
+      "stationCode": "S-L11SL-S407",
+      "x": 3219.2,
+      "y": 3616.2,
+      "labelAnchor": "top",
+      "name": "당곡",
+      "lat": 37.490039105,
+      "lng": 126.927568759
+    },
+    {
+      "stationCode": "S-L11SL-S406",
+      "x": 3185.6,
+      "y": 3582.5,
+      "labelAnchor": "top",
+      "name": "보라매병원",
+      "lat": 37.4929607,
+      "lng": 126.923886
+    },
+    {
+      "stationCode": "S-L11SL-S405",
+      "x": 3140.4,
+      "y": 3537.3,
+      "labelAnchor": "top",
+      "name": "보라매공원",
+      "lat": 37.495225405,
+      "lng": 126.918258811
+    },
+    {
+      "stationCode": "S-L11SL-S403",
+      "x": 3082.3,
+      "y": 3518.1,
+      "labelAnchor": "right",
+      "name": "서울지방병무청",
+      "lat": 37.50604687,
+      "lng": 126.922783404
+    },
+    {
+      "stationCode": "S-L41G1-G108",
+      "x": 2201.3,
+      "y": 2667.8,
+      "labelAnchor": "top",
+      "name": "고촌역",
+      "lat": 37.60125,
+      "lng": 126.770361
+    },
+    {
+      "stationCode": "S-L41G1-G107",
+      "x": 2053.1,
+      "y": 2667.8,
+      "labelAnchor": "top",
+      "name": "풍무역",
+      "lat": 37.612333,
+      "lng": 126.732583
+    },
+    {
+      "stationCode": "S-L41G1-G106",
+      "x": 1939.1,
+      "y": 2553.8,
+      "labelAnchor": "top",
+      "name": "사우역",
+      "lat": 37.620361,
+      "lng": 126.719722
+    },
+    {
+      "stationCode": "S-L41G1-G105",
+      "x": 1852.3,
+      "y": 2467,
+      "labelAnchor": "right",
+      "name": "걸포북변역",
+      "lat": 37.631639,
+      "lng": 126.70575
+    },
+    {
+      "stationCode": "S-L41G1-G104",
+      "x": 1701.2,
+      "y": 2315.9,
+      "labelAnchor": "top",
+      "name": "운양역",
+      "lat": 37.653861,
+      "lng": 126.683833
+    },
+    {
+      "stationCode": "S-L41G1-G103",
+      "x": 1635.2,
+      "y": 2381.9,
+      "labelAnchor": "top",
+      "name": "장기역",
+      "lat": 37.644028,
+      "lng": 126.669
+    },
+    {
+      "stationCode": "S-L41G1-G102",
+      "x": 1459.6,
+      "y": 2381.9,
+      "labelAnchor": "top",
+      "name": "마산역",
+      "lat": 37.640606,
+      "lng": 126.643944
+    },
+    {
+      "stationCode": "S-L41G1-G101",
+      "x": 1410,
+      "y": 2332.3,
+      "labelAnchor": "top",
+      "name": "구래역",
+      "lat": 37.645354,
+      "lng": 126.6285
+    },
+    {
+      "stationCode": "S-L41G1-G100",
+      "x": 1299.3,
+      "y": 2332.3,
+      "labelAnchor": "top",
+      "name": "양촌역",
+      "lat": 37.641639,
+      "lng": 126.614694
+    },
+    {
+      "stationCode": "S-L41U1-U115",
+      "x": 3933.1,
+      "y": 1660.4,
+      "labelAnchor": "right",
+      "name": "흥선",
+      "lat": 37.74322487,
+      "lng": 127.0371765
+    },
+    {
+      "stationCode": "S-L41U1-U114",
+      "x": 3902.5,
+      "y": 1691,
+      "labelAnchor": "right",
+      "name": "의정부시청",
+      "lat": 37.73924874,
+      "lng": 127.034854
+    },
+    {
+      "stationCode": "S-L41U1-U113",
+      "x": 3959,
+      "y": 1691,
+      "labelAnchor": "top",
+      "name": "경전철의정부",
+      "lat": 37.73729974,
+      "lng": 127.043321
+    },
+    {
+      "stationCode": "S-L41U1-U117",
+      "x": 4001.3,
+      "y": 1648.8,
+      "labelAnchor": "top",
+      "name": "의정부중앙",
+      "lat": 37.74371903,
+      "lng": 127.0496332
+    },
+    {
+      "stationCode": "S-L41U1-U118",
+      "x": 4046.5,
+      "y": 1648.8,
+      "labelAnchor": "top",
+      "name": "동오",
+      "lat": 37.74519123,
+      "lng": 127.05703
+    },
+    {
+      "stationCode": "S-L41U1-U119",
+      "x": 4088.3,
+      "y": 1607,
+      "labelAnchor": "top",
+      "name": "새말",
+      "lat": 37.74889941,
+      "lng": 127.063869
+    },
+    {
+      "stationCode": "S-L41U1-U120",
+      "x": 4137.9,
+      "y": 1607,
+      "labelAnchor": "top",
+      "name": "경기도청북부청사",
+      "lat": 37.75073213,
+      "lng": 127.0714795
+    },
+    {
+      "stationCode": "S-L41U1-U121",
+      "x": 4178.7,
+      "y": 1566.1,
+      "labelAnchor": "top",
+      "name": "효자",
+      "lat": 37.75398452,
+      "lng": 127.0773155
+    },
+    {
+      "stationCode": "S-L41U1-U122",
+      "x": 4223.5,
+      "y": 1610.9,
+      "labelAnchor": "right",
+      "name": "곤제",
+      "lat": 37.75054343,
+      "lng": 127.0838651
+    },
+    {
+      "stationCode": "S-L41U1-U123",
+      "x": 4223.5,
+      "y": 1663.7,
+      "labelAnchor": "right",
+      "name": "어룡",
+      "lat": 37.74272184,
+      "lng": 127.0852045
+    },
+    {
+      "stationCode": "S-L41U1-U124",
+      "x": 4223.5,
+      "y": 1708.5,
+      "labelAnchor": "right",
+      "name": "송산",
+      "lat": 37.7371698,
+      "lng": 127.0872755
+    },
+    {
+      "stationCode": "S-L41U1-U125",
+      "x": 4223.5,
+      "y": 1754.2,
+      "labelAnchor": "top",
+      "name": "탑석",
+      "lat": 37.73355362,
+      "lng": 127.0889064
+    },
+    {
+      "stationCode": "S-L41U1-U112",
+      "x": 3951.3,
+      "y": 1754.2,
+      "labelAnchor": "top",
+      "name": "범골",
+      "lat": 37.7287279,
+      "lng": 127.0437202
+    },
+    {
+      "stationCode": "S-L41U1-U110",
+      "x": 4023.6,
+      "y": 1787.7,
+      "labelAnchor": "top",
+      "name": "발곡",
+      "lat": 37.726983,
+      "lng": 127.052889
+    },
+    {
+      "stationCode": "S-I41K5-1511",
+      "x": 7468.1,
+      "y": 5187.3,
+      "labelAnchor": "top",
+      "name": "여주역",
+      "lat": 37.282881,
+      "lng": 127.628571
+    },
+    {
+      "stationCode": "S-I41K5-1510",
+      "x": 7003.6,
+      "y": 5187.3,
+      "labelAnchor": "top",
+      "name": "세종대왕릉역",
+      "lat": 37.293636,
+      "lng": 127.570764
+    },
+    {
+      "stationCode": "S-I41K5-1509",
+      "x": 6708.9,
+      "y": 5482,
+      "labelAnchor": "top",
+      "name": "부발역",
+      "lat": 37.260411,
+      "lng": 127.490303
+    },
+    {
+      "stationCode": "S-I41K5-1508",
+      "x": 6379.7,
+      "y": 5482,
+      "labelAnchor": "top",
+      "name": "이천역",
+      "lat": 37.264222,
+      "lng": 127.442135
+    },
+    {
+      "stationCode": "S-I41K5-1507",
+      "x": 6008.5,
+      "y": 5110.8,
+      "labelAnchor": "right",
+      "name": "신둔도예촌역",
+      "lat": 37.315499,
+      "lng": 127.405251
+    },
+    {
+      "stationCode": "S-I41K5-1506",
+      "x": 5696.4,
+      "y": 4798.7,
+      "labelAnchor": "top",
+      "name": "곤지암역",
+      "lat": 37.350525,
+      "lng": 127.346186
+    },
+    {
+      "stationCode": "S-I41K5-1505",
+      "x": 5460.6,
+      "y": 4563,
+      "labelAnchor": "top",
+      "name": "초월역",
+      "lat": 37.373389,
+      "lng": 127.299996
+    },
+    {
+      "stationCode": "S-I41K5-1504",
+      "x": 5222.2,
+      "y": 4324.6,
+      "labelAnchor": "top",
+      "name": "경기광주역",
+      "lat": 37.398974,
+      "lng": 127.253201
+    },
+    {
+      "stationCode": "S-I41K5-1503",
+      "x": 4872.1,
+      "y": 4324.6,
+      "labelAnchor": "top",
+      "name": "삼동역",
+      "lat": 37.408731,
+      "lng": 127.203447
+    },
+    {
+      "stationCode": "S-I41K5-1512",
+      "x": 4354.5,
+      "y": 4324.6,
+      "labelAnchor": "top",
+      "name": "성남역",
+      "lat": 37.394709,
+      "lng": 127.11949
+    },
+    {
+      "stationCode": "S-I41WS-1981",
+      "x": 2478.5,
+      "y": 3295.7,
+      "labelAnchor": "right",
+      "name": "원종역",
+      "lat": 37.5240628,
+      "lng": 126.8048386
+    },
+    {
+      "stationCode": "S-I41WS-4805",
+      "x": 2478.9,
+      "y": 3745.1,
+      "labelAnchor": "right",
+      "name": "소새울역",
+      "lat": 37.4685046,
+      "lng": 126.797228
+    },
+    {
+      "stationCode": "S-I41WS-4806",
+      "x": 2478.9,
+      "y": 3840.1,
+      "labelAnchor": "right",
+      "name": "시흥대야역",
+      "lat": 37.4504787,
+      "lng": 126.793142
+    },
+    {
+      "stationCode": "S-I41WS-4807",
+      "x": 2306.8,
+      "y": 4012.1,
+      "labelAnchor": "right",
+      "name": "신천역",
+      "lat": 37.4391147,
+      "lng": 126.786835
+    },
+    {
+      "stationCode": "S-I41WS-4808",
+      "x": 2306.8,
+      "y": 4257.5,
+      "labelAnchor": "right",
+      "name": "신현역",
+      "lat": 37.4091399,
+      "lng": 126.78788
+    },
+    {
+      "stationCode": "S-I41WS-4809",
+      "x": 2411,
+      "y": 4361.6,
+      "labelAnchor": "right",
+      "name": "시흥시청역",
+      "lat": 37.3814109,
+      "lng": 126.805946
+    },
+    {
+      "stationCode": "S-I41WS-4810",
+      "x": 2411,
+      "y": 4508.1,
+      "labelAnchor": "right",
+      "name": "시흥능곡역",
+      "lat": 37.3699903,
+      "lng": 126.808594
+    },
+    {
+      "stationCode": "S-I41WS-4811",
+      "x": 2411,
+      "y": 4669.3,
+      "labelAnchor": "right",
+      "name": "달미역",
+      "lat": 37.3490003,
+      "lng": 126.809318
+    },
+    {
+      "stationCode": "S-I41WS-4812",
+      "x": 2411,
+      "y": 4781.7,
+      "labelAnchor": "right",
+      "name": "선부역",
+      "lat": 37.33459,
+      "lng": 126.81
+    },
+    {
+      "stationCode": "S-I41WS-4814",
+      "x": 2358.2,
+      "y": 4963.1,
+      "labelAnchor": "right",
+      "name": "시우역",
+      "lat": 37.3130967,
+      "lng": 126.795503
+    },
+    {
+      "stationCode": "S-I41WS-4815",
+      "x": 2290.1,
+      "y": 5031.2,
+      "labelAnchor": "right",
+      "name": "원시역",
+      "lat": 37.302654,
+      "lng": 126.7867897
+    },
+    {
+      "stationCode": "S-S4108-805",
+      "x": 4593.6,
+      "y": 2590.3,
+      "labelAnchor": "right",
+      "name": "다산역",
+      "lat": 37.62437,
+      "lng": 127.1498
+    },
+    {
+      "stationCode": "S-I4104-0408",
+      "x": 4455,
+      "y": 2324,
+      "labelAnchor": "top",
+      "name": "별내별가람역",
+      "lat": 37.667833,
+      "lng": 127.116167
+    },
+    {
+      "stationCode": "S-I4104-0406",
+      "x": 4837.7,
+      "y": 1941.3,
+      "labelAnchor": "top",
+      "name": "오남역",
+      "lat": 37.7054056,
+      "lng": 127.191644
+    },
+    {
+      "stationCode": "S-I4104-0405",
+      "x": 4931.5,
+      "y": 1847.5,
+      "labelAnchor": "right",
+      "name": "진접역",
+      "lat": 37.720472,
+      "lng": 127.203167
+    },
+    {
+      "stationCode": "S-L41E1-Y124",
+      "x": 4915.8,
+      "y": 5233.6,
+      "labelAnchor": "right",
+      "name": "전대·에버랜드",
+      "lat": 37.28541327,
+      "lng": 127.219509
+    },
+    {
+      "stationCode": "S-L41E1-Y123",
+      "x": 4915.8,
+      "y": 5379.2,
+      "labelAnchor": "right",
+      "name": "둔전",
+      "lat": 37.26721222,
+      "lng": 127.2136387
+    },
+    {
+      "stationCode": "S-L41E1-Y122",
+      "x": 4915.8,
+      "y": 5438.7,
+      "labelAnchor": "right",
+      "name": "보평",
+      "lat": 37.25896427,
+      "lng": 127.2184808
+    },
+    {
+      "stationCode": "S-L41E1-Y121",
+      "x": 4915.8,
+      "y": 5549.1,
+      "labelAnchor": "right",
+      "name": "고진",
+      "lat": 37.24463834,
+      "lng": 127.2141836
+    },
+    {
+      "stationCode": "S-L41E1-Y120",
+      "x": 4872.3,
+      "y": 5592.5,
+      "labelAnchor": "top",
+      "name": "용인중앙시장",
+      "lat": 37.2379113,
+      "lng": 127.2090526
+    },
+    {
+      "stationCode": "S-L41E1-Y119",
+      "x": 4805.3,
+      "y": 5592.5,
+      "labelAnchor": "top",
+      "name": "김량장",
+      "lat": 37.23732377,
+      "lng": 127.1986109
+    },
+    {
+      "stationCode": "S-L41E1-Y118",
+      "x": 4754,
+      "y": 5592.5,
+      "labelAnchor": "top",
+      "name": "명지대",
+      "lat": 37.23807629,
+      "lng": 127.1902913
+    },
+    {
+      "stationCode": "S-L41E1-Y117",
+      "x": 4683.5,
+      "y": 5592.5,
+      "labelAnchor": "top",
+      "name": "시청·용인대",
+      "lat": 37.23944203,
+      "lng": 127.1788851
+    },
+    {
+      "stationCode": "S-L41E1-Y116",
+      "x": 4592.4,
+      "y": 5592.5,
+      "labelAnchor": "right",
+      "name": "삼가",
+      "lat": 37.24205993,
+      "lng": 127.16818
+    },
+    {
+      "stationCode": "S-L41E1-Y115",
+      "x": 4592.4,
+      "y": 5416.3,
+      "labelAnchor": "right",
+      "name": "초당",
+      "lat": 37.26080647,
+      "lng": 127.1594692
+    },
+    {
+      "stationCode": "S-L41E1-Y114",
+      "x": 4527.9,
+      "y": 5351.8,
+      "labelAnchor": "right",
+      "name": "동백",
+      "lat": 37.26910138,
+      "lng": 127.1526906
+    },
+    {
+      "stationCode": "S-L41E1-Y113",
+      "x": 4478.9,
+      "y": 5302.8,
+      "labelAnchor": "top",
+      "name": "어정",
+      "lat": 37.27495132,
+      "lng": 127.1437499
+    },
+    {
+      "stationCode": "S-L41E1-Y112",
+      "x": 4427.7,
+      "y": 5354,
+      "labelAnchor": "top",
+      "name": "지석",
+      "lat": 37.26973732,
+      "lng": 127.1363256
+    },
+    {
+      "stationCode": "S-L41E1-Y111",
+      "x": 4340.1,
+      "y": 5354,
+      "labelAnchor": "top",
+      "name": "강남대",
+      "lat": 37.27017073,
+      "lng": 127.1260669
+    },
+    {
+      "stationCode": "S-I4108-1220",
+      "x": 7510.8,
+      "y": 3856.1,
+      "labelAnchor": "top",
+      "name": "지평역",
+      "lat": 37.476496,
+      "lng": 127.629681
+    },
+    {
+      "stationCode": "S-I4108-1219",
+      "x": 7296.5,
+      "y": 3856.1,
+      "labelAnchor": "top",
+      "name": "용문역",
+      "lat": 37.482085,
+      "lng": 127.594251
+    },
+    {
+      "stationCode": "S-I4108-1218",
+      "x": 6922.8,
+      "y": 3856.1,
+      "labelAnchor": "top",
+      "name": "원덕역",
+      "lat": 37.468585,
+      "lng": 127.547468
+    },
+    {
+      "stationCode": "S-I4108-1217",
+      "x": 6699.7,
+      "y": 3632.9,
+      "labelAnchor": "top",
+      "name": "양평역",
+      "lat": 37.492674,
+      "lng": 127.491858
+    },
+    {
+      "stationCode": "S-I4108-1216",
+      "x": 6597.3,
+      "y": 3530.5,
+      "labelAnchor": "top",
+      "name": "오빈역",
+      "lat": 37.506061,
+      "lng": 127.474053
+    },
+    {
+      "stationCode": "S-I4108-1215",
+      "x": 6366.3,
+      "y": 3530.5,
+      "labelAnchor": "top",
+      "name": "아신역",
+      "lat": 37.513954,
+      "lng": 127.443238
+    },
+    {
+      "stationCode": "S-I4108-1214",
+      "x": 6028.2,
+      "y": 3530.5,
+      "labelAnchor": "top",
+      "name": "국수역",
+      "lat": 37.516171,
+      "lng": 127.399402
+    },
+    {
+      "stationCode": "S-I4108-1213",
+      "x": 5917.1,
+      "y": 3419.4,
+      "labelAnchor": "top",
+      "name": "신원역",
+      "lat": 37.525921,
+      "lng": 127.372745
+    },
+    {
+      "stationCode": "S-I4108-1212",
+      "x": 5703.3,
+      "y": 3205.6,
+      "labelAnchor": "top",
+      "name": "양수역",
+      "lat": 37.545998,
+      "lng": 127.328948
+    },
+    {
+      "stationCode": "S-I4108-1211",
+      "x": 5624.7,
+      "y": 3127,
+      "labelAnchor": "top",
+      "name": "운길산역",
+      "lat": 37.554659,
+      "lng": 127.310089
+    },
+    {
+      "stationCode": "S-I4108-1210",
+      "x": 5197.5,
+      "y": 3127,
+      "labelAnchor": "top",
+      "name": "팔당역",
+      "lat": 37.547321,
+      "lng": 127.243896
+    },
+    {
+      "stationCode": "S-I4108-1209",
+      "x": 5026,
+      "y": 2955.5,
+      "labelAnchor": "right",
+      "name": "도심역",
+      "lat": 37.579628,
+      "lng": 127.222798
+    },
+    {
+      "stationCode": "S-I4108-1208",
+      "x": 4954.3,
+      "y": 2883.8,
+      "labelAnchor": "right",
+      "name": "덕소역",
+      "lat": 37.586892,
+      "lng": 127.208835
+    },
+    {
+      "stationCode": "S-I4108-1207",
+      "x": 4808,
+      "y": 2737.5,
+      "labelAnchor": "top",
+      "name": "양정역",
+      "lat": 37.604269,
+      "lng": 127.194602
+    },
+    {
+      "stationCode": "S-I4108-1206",
+      "x": 4657.1,
+      "y": 2737.5,
+      "labelAnchor": "top",
+      "name": "도농역",
+      "lat": 37.608756,
+      "lng": 127.161105
+    },
+    {
+      "stationCode": "S-I4108-1204",
+      "x": 4253.5,
+      "y": 2737.5,
+      "labelAnchor": "top",
+      "name": "양원역",
+      "lat": 37.606582,
+      "lng": 127.107935
+    },
+    {
+      "stationCode": "S-I4108-1201",
+      "x": 4066,
+      "y": 2810.7,
+      "labelAnchor": "right",
+      "name": "중랑역",
+      "lat": 37.594948,
+      "lng": 127.076152
+    },
+    {
+      "stationCode": "S-I4108-1263",
+      "x": 3226,
+      "y": 2994.8,
+      "labelAnchor": "top",
+      "name": "서강대역",
+      "lat": 37.552132,
+      "lng": 126.935389
+    },
+    {
+      "stationCode": "S-I4108-1252",
+      "x": 3253.9,
+      "y": 2971.3,
+      "labelAnchor": "right",
+      "name": "신촌역",
+      "lat": 37.559768,
+      "lng": 126.942308
+    },
+    {
+      "stationCode": "S-I4108-1265",
+      "x": 3174.2,
+      "y": 3035.4,
+      "labelAnchor": "right",
+      "name": "가좌역",
+      "lat": 37.568611,
+      "lng": 126.914841
+    },
+    {
+      "stationCode": "S-I4108-1267",
+      "x": 3021.9,
+      "y": 2883.1,
+      "labelAnchor": "right",
+      "name": "수색역",
+      "lat": 37.580855,
+      "lng": 126.895681
+    },
+    {
+      "stationCode": "S-I4108-1268",
+      "x": 2855.8,
+      "y": 2717,
+      "labelAnchor": "top",
+      "name": "한국항공대",
+      "lat": 37.603102,
+      "lng": 126.868291
+    },
+    {
+      "stationCode": "S-I4108-1269",
+      "x": 2775.9,
+      "y": 2637.1,
+      "labelAnchor": "top",
+      "name": "강매역",
+      "lat": 37.612396,
+      "lng": 126.844537
+    },
+    {
+      "stationCode": "S-I4108-1270",
+      "x": 2586.2,
+      "y": 2637.1,
+      "labelAnchor": "top",
+      "name": "행신역",
+      "lat": 37.612125,
+      "lng": 126.834063
+    },
+    {
+      "stationCode": "S-I4108-1276",
+      "x": 2197,
+      "y": 2114.6,
+      "labelAnchor": "right",
+      "name": "탄현역",
+      "lat": 37.694114,
+      "lng": 126.761075
+    },
+    {
+      "stationCode": "S-I4108-1277",
+      "x": 2197,
+      "y": 1836.6,
+      "labelAnchor": "right",
+      "name": "야당역",
+      "lat": 37.712749,
+      "lng": 126.761535
+    },
+    {
+      "stationCode": "S-I4108-1278",
+      "x": 2197,
+      "y": 1734.8,
+      "labelAnchor": "right",
+      "name": "운정역",
+      "lat": 37.725441,
+      "lng": 126.767076
+    },
+    {
+      "stationCode": "S-I4108-1279",
+      "x": 2197,
+      "y": 1508.8,
+      "labelAnchor": "right",
+      "name": "금릉역",
+      "lat": 37.751295,
+      "lng": 126.765401
+    },
+    {
+      "stationCode": "S-I4108-1280",
+      "x": 2303,
+      "y": 1402.8,
+      "labelAnchor": "right",
+      "name": "금촌역",
+      "lat": 37.766106,
+      "lng": 126.774515
+    },
+    {
+      "stationCode": "S-I4108-1282",
+      "x": 2462,
+      "y": 1243.8,
+      "labelAnchor": "right",
+      "name": "월롱역",
+      "lat": 37.796201,
+      "lng": 126.792574
+    },
+    {
+      "stationCode": "S-I4108-1283",
+      "x": 2462,
+      "y": 1043.5,
+      "labelAnchor": "right",
+      "name": "파주역",
+      "lat": 37.815391,
+      "lng": 126.792426
+    },
+    {
+      "stationCode": "S-I4108-1284",
+      "x": 2462,
+      "y": 725.7,
+      "labelAnchor": "right",
+      "name": "문산역",
+      "lat": 37.854565,
+      "lng": 126.787531
+    },
+    {
+      "stationCode": "S-I4108-1286",
+      "x": 2296.9,
+      "y": 560.6,
+      "labelAnchor": "right",
+      "name": "운천역",
+      "lat": 37.880008,
+      "lng": 126.769713
+    },
+    {
+      "stationCode": "S-I4108-1285",
+      "x": 2191.5,
+      "y": 455.2,
+      "labelAnchor": "top",
+      "name": "임진강역",
+      "lat": 37.888364,
+      "lng": 126.746777
+    }
+  ],
+  "lines": [
+    {
+      "lineCode": "L-S1102",
+      "polyline": [
+        [
+          3452,
+          2983.5
+        ],
+        [
+          3470.8,
+          2966.8
+        ],
+        [
+          3507.6,
+          2969.1
+        ],
+        [
+          3631.3,
+          2966.7
+        ],
+        [
+          3690.7,
+          2965.6
+        ],
+        [
+          3779,
+          2969.4
+        ],
+        [
+          3801.8,
+          2992.2
+        ],
+        [
+          3878.1,
+          2992.2
+        ],
+        [
+          3913.7,
+          3027.1
+        ],
+        [
+          3959.5,
+          3072.3
+        ],
+        [
+          4005.7,
+          3118
+        ],
+        [
+          4046.2,
+          3158
+        ],
+        [
+          4120.5,
+          3232.3
+        ],
+        [
+          4120.6,
+          3280
+        ],
+        [
+          4120.7,
+          3341.6
+        ],
+        [
+          4120.8,
+          3376.4
+        ],
+        [
+          4040.5,
+          3456.7
+        ],
+        [
+          3980.6,
+          3516.7
+        ],
+        [
+          3949.2,
+          3548.1
+        ],
+        [
+          3930.5,
+          3566.8
+        ],
+        [
+          3829.7,
+          3667.6
+        ],
+        [
+          3793.9,
+          3667.7
+        ],
+        [
+          3703.7,
+          3672.5
+        ],
+        [
+          3677,
+          3674
+        ],
+        [
+          3588.7,
+          3675.5
+        ],
+        [
+          3535.7,
+          3677
+        ],
+        [
+          3462.4,
+          3676.9
+        ],
+        [
+          3398.4,
+          3676.9
+        ],
+        [
+          3328.3,
+          3676.9
+        ],
+        [
+          3267.6,
+          3616.2
+        ],
+        [
+          3226.1,
+          3574.7
+        ],
+        [
+          3180.4,
+          3528.9
+        ],
+        [
+          3124.3,
+          3472.8
+        ],
+        [
+          3085.4,
+          3433.8
+        ],
+        [
+          3085.4,
+          3373.9
+        ],
+        [
+          3085.4,
+          3303.3
+        ],
+        [
+          3085.4,
+          3222.4
+        ],
+        [
+          3085.3,
+          3151.6
+        ],
+        [
+          3174.2,
+          3062.7
+        ],
+        [
+          3209,
+          3032.9
+        ],
+        [
+          3249.1,
+          2997.8
+        ],
+        [
+          3276.7,
+          2973.2
+        ],
+        [
+          3329,
+          2977.7
+        ],
+        [
+          3452,
+          2983.5
+        ]
+      ],
+      "stationCodes": [
+        "S-I4101-0132",
+        "S-S1102-0202",
+        "S-I1103-0330",
+        "S-S1102-0204",
+        "S-I1104-0422",
+        "S-S1102-0206",
+        "S-S1102-0207",
+        "S-I4102-1013",
+        "S-S1102-0209",
+        "S-S1102-0210",
+        "S-S1102-0211",
+        "S-S1102-0212",
+        "S-S1102-0213",
+        "S-S1102-0214",
+        "S-S1102-0215",
+        "S-S1102-0216",
+        "S-S1102-0217",
+        "S-S1102-0218",
+        "S-S1102-0219",
+        "S-I4105-1023",
+        "S-S1102-0221",
+        "S-I11D1-D007",
+        "S-I1103-0340",
+        "S-S1102-0224",
+        "S-S1102-0225",
+        "S-I1104-0433",
+        "S-S1102-0227",
+        "S-S1102-0228",
+        "S-S1102-0229",
+        "S-L11SL-S408",
+        "S-S1102-0231",
+        "S-S1102-0232",
+        "S-S1102-0233",
+        "S-I4101-1007",
+        "S-S1102-0235",
+        "S-S1102-0236",
+        "S-S1102-0237",
+        "S-S1102-0238",
+        "S-I28A1-A03",
+        "S-S1102-0240",
+        "S-S1102-0241",
+        "S-S1102-0242",
+        "S-S1102-0243"
+      ],
+      "name": "2호선",
+      "colorToken": "line-2"
+    },
+    {
+      "lineCode": "L-S1121",
+      "polyline": [
+        [
+          4082.8,
+          3063
+        ],
+        [
+          4125.1,
+          3020.7
+        ],
+        [
+          4156,
+          2989.9
+        ],
+        [
+          4176.4,
+          2969.5
+        ]
+      ],
+      "stationCodes": [
+        "S-S1121-2111",
+        "S-S1121-2112",
+        "S-S1121-2113",
+        "S-I4101-0126"
+      ],
+      "name": "2호선",
+      "colorToken": "line-2"
+    },
+    {
+      "lineCode": "L-S1122",
+      "polyline": [
+        [
+          3020.4,
+          3473.8
+        ],
+        [
+          2960.1,
+          3473.8
+        ],
+        [
+          2894.6,
+          3473.8
+        ]
+      ],
+      "stationCodes": [
+        "S-S1122-2341",
+        "S-S1122-2342",
+        "S-S1122-2343"
+      ],
+      "name": "2호선",
+      "colorToken": "line-2"
+    },
+    {
+      "lineCode": "L-I1103",
+      "polyline": [
+        [
+          4417.1,
+          3508
+        ],
+        [
+          4379.4,
+          3545.8
+        ],
+        [
+          4334.9,
+          3590.3
+        ],
+        [
+          4233.1,
+          3590.3
+        ],
+        [
+          4127.8,
+          3590.3
+        ],
+        [
+          4127.8,
+          3556.5
+        ],
+        [
+          4057.2,
+          3485.9
+        ],
+        [
+          4011.6,
+          3531.5
+        ],
+        [
+          3979.9,
+          3563.3
+        ],
+        [
+          3919.2,
+          3624
+        ],
+        [
+          3835.3,
+          3624
+        ],
+        [
+          3703.7,
+          3624
+        ],
+        [
+          3703.7,
+          3672.5
+        ],
+        [
+          4076.4,
+          3683.4
+        ],
+        [
+          4228.4,
+          3683.4
+        ],
+        [
+          4308.9,
+          3602.9
+        ],
+        [
+          4308.9,
+          3436.8
+        ],
+        [
+          4308.9,
+          3318.2
+        ],
+        [
+          4222.4,
+          3231.7
+        ],
+        [
+          4123.1,
+          3132.4
+        ],
+        [
+          3959.7,
+          2969.1
+        ],
+        [
+          3714.1,
+          2969.1
+        ],
+        [
+          3507.6,
+          2969.1
+        ],
+        [
+          3570.1,
+          2906.6
+        ],
+        [
+          3570.1,
+          2932.6
+        ],
+        [
+          3500.7,
+          2932.6
+        ],
+        [
+          3461.5,
+          2932.6
+        ],
+        [
+          3391.1,
+          2862.2
+        ],
+        [
+          3347.6,
+          2818.6
+        ],
+        [
+          3279.1,
+          2750.2
+        ],
+        [
+          3221.8,
+          2692.8
+        ],
+        [
+          3172.9,
+          2644
+        ],
+        [
+          3172.9,
+          2481.5
+        ],
+        [
+          3172.9,
+          2365.2
+        ]
+      ],
+      "stationCodes": [
+        "S-I1103-0352",
+        "S-I1103-0351",
+        "S-I1103-0350",
+        "S-I1103-0349",
+        "S-I1103-0348",
+        "S-I1103-0347",
+        "S-I1103-0346",
+        "S-I1103-0345",
+        "S-I1103-0344",
+        "S-I1103-0343",
+        "S-I1103-0342",
+        "S-I1103-0341",
+        "S-I1103-0340",
+        "S-I1103-0339",
+        "S-I1103-0338",
+        "S-I1103-0337",
+        "S-I1103-0336",
+        "S-I1103-0335",
+        "S-I1103-0334",
+        "S-I1103-0333",
+        "S-I1103-0332",
+        "S-I1103-0331",
+        "S-I1103-0330",
+        "S-I1103-0329",
+        "S-I1103-0328",
+        "S-I1103-0327",
+        "S-I1103-0326",
+        "S-I1103-0325",
+        "S-I1103-0324",
+        "S-I1103-0323",
+        "S-I1103-0322",
+        "S-I1103-0321",
+        "S-I1103-0320",
+        "S-I1103-0319"
+      ],
+      "name": "3호선",
+      "colorToken": "line-3"
+    },
+    {
+      "lineCode": "L-I4106",
+      "polyline": [
+        [
+          3172.9,
+          2365.2
+        ],
+        [
+          3049.7,
+          2365.2
+        ],
+        [
+          2918.9,
+          2365.2
+        ],
+        [
+          2731.9,
+          2365.2
+        ],
+        [
+          2690.7,
+          2406.4
+        ],
+        [
+          2488.8,
+          2406.4
+        ],
+        [
+          2466.3,
+          2383.9
+        ],
+        [
+          2397.1,
+          2314.7
+        ],
+        [
+          2354.2,
+          2271.8
+        ],
+        [
+          2279.2,
+          2196.8
+        ],
+        [
+          2229.6,
+          2147.2
+        ]
+      ],
+      "stationCodes": [
+        "S-I1103-0319",
+        "S-I4106-1950",
+        "S-I4106-1948",
+        "S-I4106-1951",
+        "S-I4106-1952",
+        "S-I4106-1953",
+        "S-I4106-1954",
+        "S-I4106-1955",
+        "S-I4106-1956",
+        "S-I4106-1957",
+        "S-I4106-1958"
+      ],
+      "name": "일산선",
+      "colorToken": "line-3"
+    },
+    {
+      "lineCode": "L-I1104",
+      "polyline": [
+        [
+          3637.9,
+          3779.2
+        ],
+        [
+          3535.7,
+          3677
+        ],
+        [
+          2969.4,
+          3683.4
+        ],
+        [
+          2950.4,
+          3669.3
+        ],
+        [
+          2731.3,
+          3450.2
+        ],
+        [
+          2731.3,
+          3341
+        ],
+        [
+          2754.1,
+          3318.3
+        ],
+        [
+          2754.1,
+          3106.4
+        ],
+        [
+          2870.6,
+          2989.9
+        ],
+        [
+          3010.2,
+          2989.9
+        ],
+        [
+          3693.3,
+          2989.9
+        ],
+        [
+          3714.1,
+          2969.1
+        ],
+        [
+          3690.7,
+          2965.6
+        ],
+        [
+          3746.7,
+          3021.7
+        ],
+        [
+          3673.6,
+          2948.6
+        ],
+        [
+          3673.6,
+          2884.2
+        ],
+        [
+          3757.2,
+          2800.7
+        ],
+        [
+          3858.8,
+          2699.1
+        ],
+        [
+          3858.8,
+          2656.9
+        ],
+        [
+          3858.8,
+          2556.8
+        ],
+        [
+          3858.8,
+          2482.4
+        ],
+        [
+          3930.5,
+          2410.7
+        ],
+        [
+          4004.2,
+          2337
+        ],
+        [
+          4104.4,
+          2337
+        ],
+        [
+          4144.2,
+          2297.2
+        ],
+        [
+          4199.1,
+          2242.3
+        ]
+      ],
+      "stationCodes": [
+        "S-I1104-0434",
+        "S-I1104-0433",
+        "S-I1104-0432",
+        "S-I1104-0431",
+        "S-I1104-0429",
+        "S-I1104-0430",
+        "S-I1104-0428",
+        "S-I1104-0427",
+        "S-I1104-0426",
+        "S-I1104-0425",
+        "S-I1104-0424",
+        "S-I1103-0331",
+        "S-I1104-0422",
+        "S-I1104-0421",
+        "S-I1104-0420",
+        "S-I1104-0419",
+        "S-I1104-0418",
+        "S-I1104-0417",
+        "S-I1104-0416",
+        "S-I1104-0415",
+        "S-I1104-0414",
+        "S-I1104-0413",
+        "S-I1104-0412",
+        "S-I1104-0411",
+        "S-I1104-0410",
+        "S-I1104-0409"
+      ],
+      "name": "4호선",
+      "colorToken": "line-4"
+    },
+    {
+      "lineCode": "L-I4103",
+      "polyline": [
+        [
+          2061.1,
+          4534.4
+        ],
+        [
+          2061.1,
+          4560.4
+        ],
+        [
+          2211.7,
+          4711
+        ],
+        [
+          2319.5,
+          4818.8
+        ],
+        [
+          2411,
+          4910.3
+        ],
+        [
+          2528.1,
+          4910.3
+        ],
+        [
+          2647.9,
+          4910.3
+        ],
+        [
+          2700.7,
+          4963.1
+        ],
+        [
+          2737.6,
+          5000
+        ],
+        [
+          2993.1,
+          5000
+        ],
+        [
+          3133.6,
+          4859.5
+        ],
+        [
+          3133.6,
+          4642.3
+        ],
+        [
+          3186.6,
+          4589.2
+        ],
+        [
+          3297.2,
+          4478.6
+        ],
+        [
+          3297.2,
+          4331.2
+        ],
+        [
+          3367,
+          4331.2
+        ],
+        [
+          3449,
+          4249.3
+        ],
+        [
+          3587.4,
+          4110.8
+        ],
+        [
+          3648.1,
+          4050.2
+        ],
+        [
+          3677.5,
+          4050.2
+        ],
+        [
+          3677.5,
+          3952.2
+        ],
+        [
+          3632.6,
+          3907.3
+        ]
+      ],
+      "stationCodes": [
+        "S-I28K1-1762",
+        "S-I28K1-1761",
+        "S-I28K1-1760",
+        "S-I28K1-1759",
+        "S-I28K1-1758",
+        "S-I28K1-1757",
+        "S-I28K1-1756",
+        "S-I28K1-1755",
+        "S-I4103-1754",
+        "S-I4103-1753",
+        "S-I4103-1752",
+        "S-I4103-1763",
+        "S-I4103-1751",
+        "S-I4101-1708",
+        "S-I4103-1457",
+        "S-I4103-1456",
+        "S-I4103-1455",
+        "S-I4103-1454",
+        "S-I4103-1453",
+        "S-I4103-1452",
+        "S-I4103-1451",
+        "S-I4103-1450"
+      ],
+      "name": "안산과천선",
+      "colorToken": "line-4"
+    },
+    {
+      "lineCode": "L-S1107",
+      "polyline": [
+        [
+          1662.5,
+          3445.2
+        ],
+        [
+          1840,
+          3445.2
+        ],
+        [
+          1930.2,
+          3445.2
+        ],
+        [
+          2009.3,
+          3445.2
+        ],
+        [
+          2074.2,
+          3445.2
+        ],
+        [
+          2141.1,
+          3445.2
+        ],
+        [
+          2205.8,
+          3445.2
+        ],
+        [
+          2281.8,
+          3445.2
+        ],
+        [
+          2347.6,
+          3445.2
+        ],
+        [
+          2478.9,
+          3445.2
+        ],
+        [
+          2504.9,
+          3445.2
+        ],
+        [
+          2587.5,
+          3527.8
+        ],
+        [
+          2661.4,
+          3601.7
+        ],
+        [
+          2733.8,
+          3674
+        ],
+        [
+          2834.5,
+          3674
+        ],
+        [
+          2923.1,
+          3674
+        ],
+        [
+          2967.8,
+          3629.4
+        ],
+        [
+          3124.3,
+          3472.8
+        ],
+        [
+          3101.7,
+          3495.4
+        ],
+        [
+          3101.7,
+          3537.3
+        ],
+        [
+          3138.9,
+          3574.4
+        ],
+        [
+          3120.5,
+          3556
+        ],
+        [
+          3175.8,
+          3611.4
+        ],
+        [
+          3247.8,
+          3683.4
+        ],
+        [
+          3435.6,
+          3683.4
+        ],
+        [
+          3491.3,
+          3683.4
+        ],
+        [
+          2969.4,
+          3683.4
+        ],
+        [
+          3618.8,
+          3683.4
+        ],
+        [
+          4076.4,
+          3683.4
+        ],
+        [
+          3930.8,
+          3683.4
+        ],
+        [
+          4012.5,
+          3601.6
+        ],
+        [
+          4087.5,
+          3526.6
+        ],
+        [
+          4150.1,
+          3464.1
+        ],
+        [
+          4169.6,
+          3444.6
+        ],
+        [
+          4169.6,
+          3281.5
+        ],
+        [
+          4046.2,
+          3158
+        ],
+        [
+          4080.5,
+          3158
+        ],
+        [
+          4158.8,
+          3079.7
+        ],
+        [
+          4181.3,
+          3057.3
+        ],
+        [
+          4181.3,
+          2989.1
+        ],
+        [
+          4181.3,
+          2921.7
+        ],
+        [
+          4181.3,
+          2860.4
+        ],
+        [
+          4181.3,
+          2809.7
+        ],
+        [
+          4104.4,
+          2732.8
+        ],
+        [
+          4104.4,
+          2692
+        ],
+        [
+          4104.4,
+          2612.7
+        ],
+        [
+          4104.4,
+          2571.8
+        ],
+        [
+          4104.4,
+          2488.7
+        ],
+        [
+          4104.4,
+          2420.6
+        ],
+        [
+          4104.4,
+          2337
+        ],
+        [
+          4041.1,
+          2273.8
+        ],
+        [
+          4041.1,
+          2127.6
+        ],
+        [
+          4004.2,
+          2090.6
+        ],
+        [
+          4053.4,
+          2041.5
+        ]
+      ],
+      "stationCodes": [
+        "S-S1107-3763",
+        "S-S1107-3762",
+        "S-S1107-3761",
+        "S-S1107-3760",
+        "S-S1107-3759",
+        "S-S1107-3758",
+        "S-S1107-3757",
+        "S-S1107-3756",
+        "S-S1107-3755",
+        "S-I41WS-1982",
+        "S-S1107-3753",
+        "S-I1101-1821",
+        "S-S1107-0749",
+        "S-S1107-0748",
+        "S-S1107-0747",
+        "S-I4101-1702",
+        "S-S1107-0745",
+        "S-S1102-0233",
+        "S-S1107-0743",
+        "S-L11SL-S404",
+        "S-S1107-0741",
+        "S-S1107-0740",
+        "S-S1107-0739",
+        "S-S1107-0738",
+        "S-S1107-0737",
+        "S-S1107-0736",
+        "S-I1104-0432",
+        "S-S1107-0735",
+        "S-I1103-0339",
+        "S-S1107-0733",
+        "S-I11D1-D005",
+        "S-S1107-0731",
+        "S-I4105-1849",
+        "S-S1107-0729",
+        "S-S1107-0728",
+        "S-S1102-0212",
+        "S-S1107-0726",
+        "S-S1105-0544",
+        "S-S1107-0724",
+        "S-S1107-0723",
+        "S-S1107-0722",
+        "S-S1107-0721",
+        "S-I4108-1202",
+        "S-S1107-0719",
+        "S-S1107-0718",
+        "S-S1106-0645",
+        "S-S1107-0716",
+        "S-S1107-0715",
+        "S-S1107-0714",
+        "S-I1104-0411",
+        "S-S1107-0712",
+        "S-S1107-0711",
+        "S-I4102-1903",
+        "S-S1107-0709"
+      ],
+      "name": "7호선",
+      "colorToken": "line-7"
+    },
+    {
+      "lineCode": "L-I4101",
+      "polyline": [
+        [
+          2919.9,
+          4186.6
+        ],
+        [
+          3005.2,
+          4186.6
+        ],
+        [
+          3122.1,
+          4303.4
+        ],
+        [
+          3230.7,
+          4412.1
+        ],
+        [
+          3297.2,
+          4478.6
+        ],
+        [
+          3297.2,
+          4654.3
+        ],
+        [
+          3297.2,
+          4737.2
+        ],
+        [
+          3297.2,
+          4994.5
+        ],
+        [
+          3396.5,
+          5093.7
+        ],
+        [
+          3515.2,
+          5212.4
+        ],
+        [
+          3645.5,
+          5342.7
+        ],
+        [
+          3762.9,
+          5460.2
+        ],
+        [
+          3762.9,
+          5792.6
+        ],
+        [
+          3882.8,
+          5912.5
+        ],
+        [
+          3821.1,
+          5974.2
+        ],
+        [
+          3925.8,
+          6078.9
+        ],
+        [
+          3925.8,
+          6282.5
+        ],
+        [
+          3925.8,
+          6557.4
+        ],
+        [
+          3925.8,
+          6824.5
+        ],
+        [
+          3925.8,
+          6964.4
+        ],
+        [
+          3925.8,
+          7191
+        ],
+        [
+          3510.3,
+          7606.4
+        ],
+        [
+          3510.3,
+          4130.7
+        ],
+        [
+          3120.5,
+          3740.9
+        ],
+        [
+          2923.1,
+          3740.9
+        ],
+        [
+          2923.1,
+          3674
+        ],
+        [
+          2923.1,
+          3433.8
+        ],
+        [
+          3085.4,
+          3433.8
+        ],
+        [
+          3003.1,
+          3351.5
+        ],
+        [
+          3003.1,
+          3429.1
+        ],
+        [
+          3045.6,
+          3481.6
+        ],
+        [
+          3062.8,
+          3501.1
+        ],
+        [
+          3062.7,
+          3205.5
+        ],
+        [
+          3275.1,
+          2993.4
+        ],
+        [
+          2870.6,
+          2989.9
+        ],
+        [
+          3452,
+          2983.5
+        ],
+        [
+          3549.5,
+          2886
+        ],
+        [
+          3570.1,
+          2906.6
+        ],
+        [
+          3633.3,
+          2908.2
+        ],
+        [
+          3746.7,
+          3021.7
+        ],
+        [
+          3800.8,
+          2967.7
+        ],
+        [
+          4176.4,
+          2969.5
+        ],
+        [
+          3823,
+          2976.9
+        ],
+        [
+          3980.8,
+          2984.1
+        ]
+      ],
+      "stationCodes": [
+        "S-I4101-1750",
+        "S-I4101-1705",
+        "S-I4101-1706",
+        "S-I4101-1707",
+        "S-I4101-1708",
+        "S-I4101-1709",
+        "S-I4101-1729",
+        "S-I4101-1710",
+        "S-I4101-1711",
+        "S-I4101-1712",
+        "S-I4101-1713",
+        "S-I4101-1715",
+        "S-I4101-1716",
+        "S-I4101-1749",
+        "S-I4101-1717",
+        "S-I4101-1718",
+        "S-I4101-1719",
+        "S-I4101-1720",
+        "S-I4101-1721",
+        "S-I4101-1722",
+        "S-I4101-1723",
+        "S-I4101-1724",
+        "S-I4101-1704",
+        "S-I4101-1703",
+        "S-I4101-1714",
+        "S-I4101-1702",
+        "S-I4101-1701",
+        "S-I4101-1007",
+        "S-I4101-1006",
+        "S-I4101-1032",
+        "S-I4101-1005",
+        "S-I4101-1004",
+        "S-I4101-1003",
+        "S-I4101-1002",
+        "S-I1104-0426",
+        "S-I4101-0132",
+        "S-I4101-0131",
+        "S-I1103-0329",
+        "S-I4101-0129",
+        "S-I1104-0421",
+        "S-I4101-0127",
+        "S-I4101-0126",
+        "S-I4101-0125",
+        "S-I4101-0124"
+      ],
+      "name": "1호선",
+      "colorToken": "line-1"
+    },
+    {
+      "lineCode": "L-I4102",
+      "polyline": [
+        [
+          4004.2,
+          80
+        ],
+        [
+          4004.2,
+          243.7
+        ],
+        [
+          4004.2,
+          344.6
+        ],
+        [
+          4004.2,
+          438.2
+        ],
+        [
+          4004.2,
+          521.2
+        ],
+        [
+          4004.2,
+          888.7
+        ],
+        [
+          4004.2,
+          1085.1
+        ],
+        [
+          4004.2,
+          1419
+        ],
+        [
+          4004.2,
+          1540
+        ],
+        [
+          4004.2,
+          1623
+        ],
+        [
+          4004.2,
+          1705
+        ],
+        [
+          4004.2,
+          1807.1
+        ],
+        [
+          4004.2,
+          1920.2
+        ],
+        [
+          4004.2,
+          2090.6
+        ],
+        [
+          4004.2,
+          2158.3
+        ],
+        [
+          4004.2,
+          2248
+        ],
+        [
+          4004.2,
+          2337
+        ],
+        [
+          4004.2,
+          2441.5
+        ],
+        [
+          4066,
+          2503.3
+        ],
+        [
+          4066,
+          2565.9
+        ],
+        [
+          4070,
+          2647.1
+        ],
+        [
+          4073.5,
+          2768.8
+        ],
+        [
+          4058.6,
+          2783.7
+        ],
+        [
+          4062.1,
+          2902.7
+        ],
+        [
+          3980.8,
+          2984.1
+        ],
+        [
+          3878.1,
+          2992.2
+        ],
+        [
+          4007.3,
+          2999.5
+        ],
+        [
+          4308.9,
+          3318.2
+        ],
+        [
+          4118,
+          3318.2
+        ],
+        [
+          3522.5,
+          3913.7
+        ],
+        [
+          3062.7,
+          3453.9
+        ],
+        [
+          3062.7,
+          3205.5
+        ]
+      ],
+      "stationCodes": [
+        "S-I4102-1916",
+        "S-I4102-1915",
+        "S-I4102-1914",
+        "S-I4102-1913",
+        "S-I4102-1912",
+        "S-I4102-1911",
+        "S-I4102-1910",
+        "S-I4102-1909",
+        "S-I4102-1908",
+        "S-I4102-1907",
+        "S-I4102-1906",
+        "S-I4102-1905",
+        "S-I4102-1904",
+        "S-I4102-1903",
+        "S-I4102-1902",
+        "S-I4102-1901",
+        "S-I1104-0412",
+        "S-I4102-1021",
+        "S-I4102-1020",
+        "S-I4102-1019",
+        "S-I4102-1018",
+        "S-I4102-1017",
+        "S-I4102-1016",
+        "S-I4102-1015",
+        "S-I4101-0124",
+        "S-I4102-1013",
+        "S-I4102-1012",
+        "S-I1103-0335",
+        "S-I4102-1010",
+        "S-I4102-1009",
+        "S-I4102-1008",
+        "S-I4101-1003"
+      ],
+      "name": "경원선",
+      "colorToken": "line-1"
+    },
+    {
+      "lineCode": "L-I1101",
+      "polyline": [
+        [
+          2842,
+          3527.8
+        ],
+        [
+          2778.3,
+          3527.8
+        ],
+        [
+          2693.1,
+          3527.8
+        ],
+        [
+          2587.5,
+          3527.8
+        ],
+        [
+          2525.9,
+          3589.3
+        ],
+        [
+          2478.9,
+          3589.3
+        ],
+        [
+          2314.2,
+          3589.3
+        ],
+        [
+          2204.6,
+          3589.3
+        ],
+        [
+          2130.6,
+          3589.2
+        ],
+        [
+          2052,
+          3589.2
+        ],
+        [
+          1930.2,
+          3589.1
+        ],
+        [
+          1867.5,
+          3651.8
+        ],
+        [
+          1867.5,
+          3688.1
+        ],
+        [
+          1810,
+          3745.6
+        ],
+        [
+          1680.7,
+          3745.6
+        ],
+        [
+          1609.1,
+          3745.6
+        ],
+        [
+          1539.6,
+          3745.6
+        ],
+        [
+          1463.4,
+          3745.6
+        ],
+        [
+          1380.2,
+          3662.4
+        ],
+        [
+          1293.4,
+          3662.4
+        ]
+      ],
+      "stationCodes": [
+        "S-I1101-1813",
+        "S-I1101-1801",
+        "S-I1101-1802",
+        "S-I1101-1821",
+        "S-I1101-1803",
+        "S-I1101-4804",
+        "S-I1101-1804",
+        "S-I1101-1822",
+        "S-I1101-1805",
+        "S-I1101-1815",
+        "S-I1101-1806",
+        "S-I1101-1807",
+        "S-I1101-1808",
+        "S-I1101-1816",
+        "S-I1101-1809",
+        "S-I1101-1823",
+        "S-I1101-1810",
+        "S-I1101-1817",
+        "S-I1101-1811",
+        "S-I1101-1812"
+      ],
+      "name": "경인선",
+      "colorToken": "line-1"
+    },
+    {
+      "lineCode": "L-S1105",
+      "polyline": [
+        [
+          5020.3,
+          3255.7
+        ],
+        [
+          4907.7,
+          3255.7
+        ],
+        [
+          4907.7,
+          3173.5
+        ],
+        [
+          4846.5,
+          3112.3
+        ],
+        [
+          4731.9,
+          3112.3
+        ],
+        [
+          4672.6,
+          3112.3
+        ],
+        [
+          4589.1,
+          3112.3
+        ],
+        [
+          4527.2,
+          3174.2
+        ],
+        [
+          4527.2,
+          3209.8
+        ],
+        [
+          4527.2,
+          3274.4
+        ],
+        [
+          4481.6,
+          3274.4
+        ],
+        [
+          4481.6,
+          3343.3
+        ],
+        [
+          4481.6,
+          3443.6
+        ],
+        [
+          4437.4,
+          3487.8
+        ],
+        [
+          4417.1,
+          3508
+        ],
+        [
+          4473.9,
+          3564.8
+        ],
+        [
+          4494.3,
+          3585.1
+        ],
+        [
+          4664.2,
+          3585.1
+        ],
+        [
+          4387.9,
+          3308.8
+        ],
+        [
+          4284.8,
+          3205.8
+        ],
+        [
+          4214.5,
+          3135.5
+        ],
+        [
+          4158.8,
+          3079.7
+        ],
+        [
+          4064.6,
+          3079.7
+        ],
+        [
+          4032.5,
+          3047.6
+        ],
+        [
+          4032.5,
+          2992.2
+        ],
+        [
+          3878.1,
+          2992.2
+        ],
+        [
+          3986.8,
+          3001.8
+        ],
+        [
+          3962.3,
+          3001.2
+        ],
+        [
+          3935.1,
+          2968.1
+        ],
+        [
+          3690.7,
+          2965.6
+        ],
+        [
+          3631.3,
+          2966.7
+        ],
+        [
+          3570.1,
+          2906.6
+        ],
+        [
+          3493.8,
+          2906.6
+        ],
+        [
+          3400.1,
+          2906.6
+        ],
+        [
+          3329,
+          2977.7
+        ],
+        [
+          3123.3,
+          2975.9
+        ],
+        [
+          3106.6,
+          2992.6
+        ],
+        [
+          3003.1,
+          3096.1
+        ],
+        [
+          3003.1,
+          3324.4
+        ],
+        [
+          3003.1,
+          3374
+        ],
+        [
+          3003.1,
+          3429.1
+        ],
+        [
+          3085.4,
+          3346.8
+        ],
+        [
+          3085.4,
+          3303.3
+        ],
+        [
+          2950.1,
+          3303.3
+        ],
+        [
+          2882.2,
+          3303.3
+        ],
+        [
+          2819.6,
+          3303.3
+        ],
+        [
+          2768.5,
+          3303.3
+        ],
+        [
+          2718.4,
+          3253.2
+        ],
+        [
+          2665.7,
+          3200.5
+        ],
+        [
+          2665.7,
+          3130.6
+        ],
+        [
+          2665.7,
+          3050.3
+        ],
+        [
+          2638.1,
+          3022.7
+        ],
+        [
+          2556.2,
+          3022.7
+        ],
+        [
+          2478,
+          2944.5
+        ],
+        [
+          2478,
+          2918.5
+        ],
+        [
+          2503.9,
+          2892.6
+        ]
+      ],
+      "stationCodes": [
+        "S-S1105-0558",
+        "S-S1105-0557",
+        "S-S1105-0556",
+        "S-S1105-0555",
+        "S-S1105-0554",
+        "S-S1105-0553",
+        "S-S1105-0552",
+        "S-S1105-0551",
+        "S-S1105-0550",
+        "S-S1105-0549",
+        "S-S1105-0548",
+        "S-S1105-P549",
+        "S-S1105-P550",
+        "S-S1105-P551",
+        "S-I1103-0352",
+        "S-S1105-P553",
+        "S-S1105-P554",
+        "S-S1105-P555",
+        "S-S1105-0547",
+        "S-S1105-0546",
+        "S-S1105-0545",
+        "S-S1105-0544",
+        "S-S1105-0543",
+        "S-S1105-0542",
+        "S-S1105-0541",
+        "S-I4102-1013",
+        "S-S1105-0539",
+        "S-S1105-0538",
+        "S-S1105-0537",
+        "S-I1104-0422",
+        "S-S1102-0204",
+        "S-I1103-0329",
+        "S-S1105-0533",
+        "S-S1105-0532",
+        "S-S1102-0243",
+        "S-S1105-0530",
+        "S-I28A1-A02",
+        "S-S1105-0528",
+        "S-S1105-0527",
+        "S-S1105-0526",
+        "S-I4101-1032",
+        "S-S1105-0524",
+        "S-S1102-0236",
+        "S-S1105-0522",
+        "S-S1105-0521",
+        "S-S1105-0520",
+        "S-S1105-0519",
+        "S-S1105-0518",
+        "S-S1105-0517",
+        "S-S1105-0516",
+        "S-S1105-0514",
+        "S-S1105-0515",
+        "S-S1105-0513",
+        "S-I28A1-A05",
+        "S-S1105-0511",
+        "S-S1105-0510"
+      ],
+      "name": "5호선",
+      "colorToken": "line-5"
+    },
+    {
+      "lineCode": "L-S1106",
+      "polyline": [
+        [
+          4290.7,
+          2700.2
+        ],
+        [
+          4230.5,
+          2640.1
+        ],
+        [
+          4203.1,
+          2612.7
+        ],
+        [
+          4104.4,
+          2612.7
+        ],
+        [
+          4070,
+          2647.1
+        ],
+        [
+          4020.2,
+          2696.9
+        ],
+        [
+          3979,
+          2738
+        ],
+        [
+          3932,
+          2785.1
+        ],
+        [
+          3932,
+          2862.9
+        ],
+        [
+          3845.6,
+          2949.3
+        ],
+        [
+          3757.5,
+          2949.3
+        ],
+        [
+          3739.1,
+          2967.7
+        ],
+        [
+          3800.8,
+          2967.7
+        ],
+        [
+          3779,
+          2969.4
+        ],
+        [
+          3935.1,
+          2968.1
+        ],
+        [
+          4123.1,
+          3132.4
+        ],
+        [
+          3897.7,
+          2907
+        ],
+        [
+          3924.9,
+          2934.3
+        ],
+        [
+          3837.6,
+          2846.9
+        ],
+        [
+          3225.4,
+          2846.9
+        ],
+        [
+          2754.1,
+          3318.3
+        ],
+        [
+          3080.6,
+          2991.7
+        ],
+        [
+          3106.6,
+          2992.6
+        ],
+        [
+          3048.4,
+          3050.8
+        ],
+        [
+          3021.9,
+          3050.8
+        ],
+        [
+          3003.2,
+          3069.5
+        ],
+        [
+          3085.3,
+          3151.6
+        ],
+        [
+          3087.5,
+          3082.2
+        ],
+        [
+          3089.6,
+          3029.9
+        ],
+        [
+          3073.4,
+          3013.7
+        ],
+        [
+          3075.5,
+          2936.7
+        ],
+        [
+          3123.3,
+          2888.9
+        ],
+        [
+          3158.3,
+          2853.9
+        ],
+        [
+          3158.3,
+          2756.3
+        ],
+        [
+          3202.3,
+          2712.3
+        ],
+        [
+          3221.8,
+          2692.8
+        ],
+        [
+          3221.8,
+          2595.1
+        ],
+        [
+          3154.4,
+          2662.4
+        ],
+        [
+          3172.9,
+          2644
+        ]
+      ],
+      "stationCodes": [
+        "S-I41K2-1311",
+        "S-S1106-0647",
+        "S-S1106-0646",
+        "S-S1106-0645",
+        "S-I4102-1018",
+        "S-S1106-0643",
+        "S-S1106-0642",
+        "S-S1106-0641",
+        "S-S1106-0640",
+        "S-S1106-0639",
+        "S-L11UI-S121",
+        "S-S1106-0637",
+        "S-I4101-0127",
+        "S-S1102-0206",
+        "S-S1105-0537",
+        "S-I1103-0333",
+        "S-S1106-0632",
+        "S-S1106-0631",
+        "S-S1106-0630",
+        "S-S1106-0629",
+        "S-I1104-0428",
+        "S-I4108-1261",
+        "S-I28A1-A02",
+        "S-S1106-0625",
+        "S-S1106-0624",
+        "S-S1106-0623",
+        "S-S1102-0238",
+        "S-S1106-0621",
+        "S-S1106-0620",
+        "S-S1106-0619",
+        "S-I28A1-A04",
+        "S-S1106-0617",
+        "S-S1106-0616",
+        "S-S1106-0610",
+        "S-S1106-0611",
+        "S-I1103-0322",
+        "S-S1106-0613",
+        "S-S1106-0615",
+        "S-I1103-0321"
+      ],
+      "name": "6호선",
+      "colorToken": "line-6"
+    },
+    {
+      "lineCode": "L-S1108",
+      "polyline": [
+        [
+          4413.2,
+          4120.4
+        ],
+        [
+          4489.5,
+          4044.1
+        ],
+        [
+          4527,
+          4006.7
+        ],
+        [
+          4574.7,
+          3958.9
+        ],
+        [
+          4574.7,
+          3931.8
+        ],
+        [
+          4544.7,
+          3901.9
+        ],
+        [
+          4487.5,
+          3844.7
+        ],
+        [
+          4413.2,
+          3770.4
+        ],
+        [
+          4413.2,
+          3723.4
+        ],
+        [
+          4413.2,
+          3668.6
+        ],
+        [
+          4334.9,
+          3590.3
+        ],
+        [
+          4311.5,
+          3567.4
+        ],
+        [
+          4260.2,
+          3516.7
+        ],
+        [
+          4120.8,
+          3376.4
+        ],
+        [
+          4346.9,
+          3376.4
+        ],
+        [
+          4387.9,
+          3335.4
+        ],
+        [
+          4387.9,
+          3308.8
+        ],
+        [
+          4387.9,
+          3202.5
+        ],
+        [
+          4509.8,
+          3080.5
+        ],
+        [
+          4509.8,
+          2887.4
+        ],
+        [
+          4509.8,
+          2737.5
+        ],
+        [
+          4485,
+          2712.7
+        ]
+      ],
+      "stationCodes": [
+        "S-I4105-1853",
+        "S-S1108-0826",
+        "S-S1108-0825",
+        "S-S1108-0824",
+        "S-S1108-0823",
+        "S-S1108-0822",
+        "S-S1108-0821",
+        "S-I4105-1031",
+        "S-S1108-0819",
+        "S-S1108-0818",
+        "S-I1103-0350",
+        "S-S1108-0816",
+        "S-S1108-0815",
+        "S-S1102-0216",
+        "S-S1108-0813",
+        "S-S1108-0812",
+        "S-S1105-0547",
+        "S-S1108-0810",
+        "S-S1108-0809",
+        "S-S1108-808",
+        "S-I4108-1205",
+        "S-S1108-806"
+      ],
+      "name": "8호선",
+      "colorToken": "line-8"
+    },
+    {
+      "lineCode": "L-S1109",
+      "polyline": [
+        [
+          4572.2,
+          3353
+        ],
+        [
+          4505.7,
+          3419.4
+        ],
+        [
+          4481.6,
+          3443.6
+        ],
+        [
+          4333.4,
+          3443.6
+        ],
+        [
+          4313.8,
+          3463.2
+        ],
+        [
+          4260.2,
+          3516.7
+        ],
+        [
+          4231.3,
+          3516.7
+        ],
+        [
+          4173.2,
+          3516.7
+        ],
+        [
+          3980.6,
+          3516.7
+        ],
+        [
+          4110,
+          3516.7
+        ],
+        [
+          4075.3,
+          3551.4
+        ],
+        [
+          4055.7,
+          3571
+        ],
+        [
+          4013.8,
+          3571
+        ],
+        [
+          3927.7,
+          3657.1
+        ],
+        [
+          3901.5,
+          3683.4
+        ],
+        [
+          4076.4,
+          3683.4
+        ],
+        [
+          3652.7,
+          3675.2
+        ],
+        [
+          3514.1,
+          3672.2
+        ],
+        [
+          2950.4,
+          3669.3
+        ],
+        [
+          3230.6,
+          3669.1
+        ],
+        [
+          3156.7,
+          3595.1
+        ],
+        [
+          3062.8,
+          3501.1
+        ],
+        [
+          3009.7,
+          3450.1
+        ],
+        [
+          3003.1,
+          3374
+        ],
+        [
+          3003.6,
+          3303
+        ],
+        [
+          3085.4,
+          3222.4
+        ],
+        [
+          2953.2,
+          3222.4
+        ],
+        [
+          2923.6,
+          3192.8
+        ],
+        [
+          2883.4,
+          3152.6
+        ],
+        [
+          2824.5,
+          3093.7
+        ],
+        [
+          2824.5,
+          3067
+        ],
+        [
+          2781,
+          3023.5
+        ],
+        [
+          2701.3,
+          2943.7
+        ],
+        [
+          2599.6,
+          2943.7
+        ],
+        [
+          2541.5,
+          2943.7
+        ],
+        [
+          2509.4,
+          2975.9
+        ],
+        [
+          2478,
+          2944.5
+        ],
+        [
+          2478,
+          2888.8
+        ]
+      ],
+      "stationCodes": [
+        "S-S1109-4138",
+        "S-S1109-4137",
+        "S-S1105-P550",
+        "S-S1109-4135",
+        "S-S1109-4134",
+        "S-S1108-0815",
+        "S-S1109-4132",
+        "S-S1109-4131",
+        "S-S1102-0218",
+        "S-S1109-4129",
+        "S-S1109-4128",
+        "S-I4105-1850",
+        "S-S1109-4126",
+        "S-I11D1-D006",
+        "S-S1109-4124",
+        "S-I1103-0339",
+        "S-S1109-4122",
+        "S-S1109-4121",
+        "S-I1104-0431",
+        "S-S1109-4119",
+        "S-S1109-4118",
+        "S-I4101-1004",
+        "S-L11SL-S401",
+        "S-S1105-0526",
+        "S-S1109-4114",
+        "S-S1102-0237",
+        "S-S1109-4112",
+        "S-S1109-4111",
+        "S-S1109-4110",
+        "S-S1109-4109",
+        "S-S1109-4108",
+        "S-S1109-4107",
+        "S-S1109-4106",
+        "S-I28A1-A042",
+        "S-S1109-4104",
+        "S-S1109-4103",
+        "S-I28A1-A05",
+        "S-S1109-4101"
+      ],
+      "name": "서울 도시철도 9호선",
+      "colorToken": "line-9"
+    },
+    {
+      "lineCode": "L-I4105",
+      "polyline": [
+        [
+          3645.5,
+          5342.7
+        ],
+        [
+          3685.9,
+          5342.7
+        ],
+        [
+          3760.9,
+          5342.7
+        ],
+        [
+          3856.9,
+          5438.7
+        ],
+        [
+          3943.2,
+          5525
+        ],
+        [
+          4011,
+          5457.3
+        ],
+        [
+          4079.1,
+          5389.2
+        ],
+        [
+          4211.4,
+          5389.2
+        ],
+        [
+          4293.3,
+          5307.2
+        ],
+        [
+          4293.3,
+          5207.9
+        ],
+        [
+          4293.3,
+          5106.7
+        ],
+        [
+          4293.3,
+          5003.3
+        ],
+        [
+          4293.3,
+          4912.7
+        ],
+        [
+          4293.3,
+          4794.9
+        ],
+        [
+          4293.3,
+          4710.7
+        ],
+        [
+          4293.3,
+          4571.3
+        ],
+        [
+          4344.6,
+          4520.1
+        ],
+        [
+          4413.2,
+          4451.4
+        ],
+        [
+          4413.2,
+          4324.6
+        ],
+        [
+          4413.2,
+          4242.8
+        ],
+        [
+          4413.2,
+          4120.4
+        ],
+        [
+          4413.2,
+          4021.8
+        ],
+        [
+          4413.2,
+          3952.5
+        ],
+        [
+          4413.2,
+          3770.4
+        ],
+        [
+          4233.1,
+          3590.3
+        ],
+        [
+          4090,
+          3590.3
+        ],
+        [
+          4043.9,
+          3590.3
+        ],
+        [
+          3979.9,
+          3590.3
+        ],
+        [
+          3979.9,
+          3563.3
+        ],
+        [
+          4033.9,
+          3565
+        ],
+        [
+          3930.5,
+          3566.8
+        ],
+        [
+          4055.7,
+          3571
+        ],
+        [
+          4150.1,
+          3464.1
+        ],
+        [
+          4150.1,
+          3355.9
+        ],
+        [
+          4150.1,
+          3264.1
+        ],
+        [
+          3878.1,
+          2992.2
+        ]
+      ],
+      "stationCodes": [
+        "S-I4101-1713",
+        "S-I4105-1872",
+        "S-I4105-1871",
+        "S-I4105-1870",
+        "S-I4105-1869",
+        "S-I4105-1868",
+        "S-I4105-1867",
+        "S-I4105-1866",
+        "S-I4105-1865",
+        "S-I4105-1864",
+        "S-I4105-1863",
+        "S-I4105-1861",
+        "S-I4105-1862",
+        "S-I4105-1859",
+        "S-I11D1-D013",
+        "S-I11D1-D012",
+        "S-I4105-1856",
+        "S-I4105-1855",
+        "S-I4105-1860",
+        "S-I4105-1854",
+        "S-I4105-1853",
+        "S-I4105-1852",
+        "S-I4105-1851",
+        "S-I4105-1031",
+        "S-I1103-0349",
+        "S-I4105-1028",
+        "S-I4105-1027",
+        "S-I4105-1026",
+        "S-I1103-0344",
+        "S-I4105-1024",
+        "S-I4105-1023",
+        "S-I4105-1850",
+        "S-I4105-1849",
+        "S-I4105-1848",
+        "S-I4105-1847",
+        "S-I4102-1013"
+      ],
+      "name": "분당선",
+      "colorToken": "line-bundang"
+    },
+    {
+      "lineCode": "L-I28K1",
+      "polyline": [
+        [
+          1293.4,
+          3662.4
+        ],
+        [
+          1335.1,
+          3704.1
+        ],
+        [
+          1405.5,
+          3774.5
+        ],
+        [
+          1508.7,
+          3877.8
+        ],
+        [
+          1508.7,
+          3972
+        ],
+        [
+          1649.1,
+          4112.4
+        ],
+        [
+          1698.8,
+          4162
+        ],
+        [
+          1742,
+          4205.2
+        ],
+        [
+          1797.1,
+          4260.3
+        ],
+        [
+          1913,
+          4260.3
+        ],
+        [
+          1987.9,
+          4260.3
+        ],
+        [
+          2061.1,
+          4333.6
+        ],
+        [
+          2061.1,
+          4418.7
+        ],
+        [
+          2061.1,
+          4534.4
+        ],
+        [
+          2061.1,
+          4560.4
+        ],
+        [
+          2211.7,
+          4711
+        ],
+        [
+          2319.5,
+          4818.8
+        ],
+        [
+          2411,
+          4910.3
+        ],
+        [
+          2528.1,
+          4910.3
+        ],
+        [
+          2647.9,
+          4910.3
+        ],
+        [
+          2700.7,
+          4963.1
+        ],
+        [
+          2700.7,
+          5157.2
+        ],
+        [
+          2891.8,
+          5348.3
+        ],
+        [
+          3035,
+          5491.5
+        ],
+        [
+          3377.6,
+          5491.5
+        ],
+        [
+          3436,
+          5433.2
+        ]
+      ],
+      "stationCodes": [
+        "S-I1101-1812",
+        "S-I28K1-1890",
+        "S-I28K1-1889",
+        "S-I28K1-1888",
+        "S-I28K1-1886",
+        "S-I28K1-1885",
+        "S-I28K1-1884",
+        "S-I28K1-1883",
+        "S-I28K1-1882",
+        "S-I28K1-1881",
+        "S-I28K1-1880",
+        "S-I28K1-1879",
+        "S-I28K1-1878",
+        "S-I28K1-1762",
+        "S-I28K1-1761",
+        "S-I28K1-1760",
+        "S-I28K1-1759",
+        "S-I28K1-1758",
+        "S-I28K1-1757",
+        "S-I28K1-1756",
+        "S-I28K1-1755",
+        "S-I28K1-1877",
+        "S-I28K1-1876",
+        "S-I28K1-1875",
+        "S-I28K1-1874",
+        "S-I28K1-1873"
+      ],
+      "name": "수인선",
+      "colorToken": "line-bundang"
+    },
+    {
+      "lineCode": "L-I41K2",
+      "polyline": [
+        [
+          8137.6,
+          674
+        ],
+        [
+          8137.6,
+          834
+        ],
+        [
+          8137.6,
+          1240.1
+        ],
+        [
+          7586.8,
+          1240.1
+        ],
+        [
+          7355.1,
+          1008.3
+        ],
+        [
+          7068.9,
+          1008.3
+        ],
+        [
+          6867.7,
+          1209.5
+        ],
+        [
+          6529.3,
+          1547.9
+        ],
+        [
+          6305.4,
+          1771.8
+        ],
+        [
+          5962.5,
+          2114.7
+        ],
+        [
+          5680.6,
+          2396.6
+        ],
+        [
+          5428.5,
+          2396.6
+        ],
+        [
+          5139,
+          2396.6
+        ],
+        [
+          4961.9,
+          2573.7
+        ],
+        [
+          4787.6,
+          2399.3
+        ],
+        [
+          4591.6,
+          2399.3
+        ],
+        [
+          4497.1,
+          2493.8
+        ],
+        [
+          4430.3,
+          2560.6
+        ],
+        [
+          4290.7,
+          2700.2
+        ],
+        [
+          4214.8,
+          2776.2
+        ]
+      ],
+      "stationCodes": [
+        "S-I41K2-1329",
+        "S-I41K2-1328",
+        "S-I41K2-1327",
+        "S-I41K2-1326",
+        "S-I41K2-1325",
+        "S-I41K2-1324",
+        "S-I41K2-1323",
+        "S-I41K2-1322",
+        "S-I41K2-1321",
+        "S-I41K2-1320",
+        "S-I41K2-1319",
+        "S-I41K2-1318",
+        "S-I41K2-1317",
+        "S-I41K2-1316",
+        "S-I41K2-1315",
+        "S-I41K2-1314",
+        "S-I41K2-1313",
+        "S-I41K2-1312",
+        "S-I41K2-1311",
+        "S-I4108-1203"
+      ],
+      "name": "경춘선",
+      "colorToken": "line-gyeongchun"
+    },
+    {
+      "lineCode": "L-I28A1",
+      "polyline": [
+        [
+          131.4,
+          3694.9
+        ],
+        [
+          318.3,
+          3881.8
+        ],
+        [
+          500.9,
+          3699.2
+        ],
+        [
+          500.9,
+          3631.2
+        ],
+        [
+          748,
+          3384.1
+        ],
+        [
+          1187.5,
+          2944.5
+        ],
+        [
+          1661.7,
+          2944.5
+        ],
+        [
+          2047.7,
+          2944.5
+        ],
+        [
+          2478,
+          2944.5
+        ],
+        [
+          2599.6,
+          2943.7
+        ],
+        [
+          3075.5,
+          2936.7
+        ],
+        [
+          3174.2,
+          3062.7
+        ],
+        [
+          3106.6,
+          2992.6
+        ],
+        [
+          2870.6,
+          2989.9
+        ]
+      ],
+      "stationCodes": [
+        "S-I28A1-A11",
+        "S-I28A1-A10",
+        "S-I28A1-A09",
+        "S-I28A1-A08",
+        "S-I28A1-A072",
+        "S-I28A1-A071",
+        "S-I28A1-A07",
+        "S-I28A1-A06",
+        "S-I28A1-A05",
+        "S-I28A1-A042",
+        "S-I28A1-A04",
+        "S-I28A1-A03",
+        "S-I28A1-A02",
+        "S-I1104-0426"
+      ],
+      "name": "인천국제공항선",
+      "colorToken": "line-airport"
+    },
+    {
+      "lineCode": "L-S2801",
+      "polyline": [
+        [
+          1286.8,
+          4219.7
+        ],
+        [
+          1324.1,
+          4257.1
+        ],
+        [
+          1369.6,
+          4302.5
+        ],
+        [
+          1411.1,
+          4344
+        ],
+        [
+          1463.9,
+          4396.8
+        ],
+        [
+          1489.2,
+          4371.6
+        ],
+        [
+          1528.8,
+          4331.9
+        ],
+        [
+          1602.7,
+          4258
+        ],
+        [
+          1650.3,
+          4210.5
+        ],
+        [
+          1698.8,
+          4162
+        ],
+        [
+          1742.8,
+          4118
+        ],
+        [
+          1787.6,
+          4073.1
+        ],
+        [
+          1787.6,
+          3984.9
+        ],
+        [
+          1787.6,
+          3931.1
+        ],
+        [
+          1787.6,
+          3873.3
+        ],
+        [
+          1787.6,
+          3816.1
+        ],
+        [
+          1846.9,
+          3756.8
+        ],
+        [
+          1846.9,
+          3672.4
+        ],
+        [
+          1911.7,
+          3607.7
+        ],
+        [
+          1930.2,
+          3589.1
+        ],
+        [
+          1930.2,
+          3495.2
+        ],
+        [
+          1930.2,
+          3445.2
+        ],
+        [
+          1930.2,
+          3351.1
+        ],
+        [
+          1930.2,
+          3249.6
+        ],
+        [
+          1930.2,
+          3188.1
+        ],
+        [
+          1980,
+          3138.3
+        ],
+        [
+          2030.9,
+          3138.3
+        ],
+        [
+          2082.6,
+          3086.6
+        ],
+        [
+          2082.6,
+          2979.5
+        ],
+        [
+          2047.7,
+          2944.5
+        ],
+        [
+          1883.9,
+          2780.8
+        ],
+        [
+          1796.2,
+          2693.1
+        ],
+        [
+          1744.4,
+          2693.1
+        ]
+      ],
+      "stationCodes": [
+        "S-S2801-3139",
+        "S-S2801-3138",
+        "S-S2801-3137",
+        "S-S2801-3136",
+        "S-S2801-3135",
+        "S-S2801-3134",
+        "S-S2801-3133",
+        "S-S2801-3132",
+        "S-S2801-3131",
+        "S-I28K1-1884",
+        "S-S2801-3129",
+        "S-S2801-3128",
+        "S-S2801-3127",
+        "S-S2801-3126",
+        "S-S2801-3125",
+        "S-S2801-3124",
+        "S-S2801-3123",
+        "S-S2801-3122",
+        "S-S2801-3121",
+        "S-I1101-1806",
+        "S-S2801-3119",
+        "S-S1107-3761",
+        "S-S2801-3117",
+        "S-S2801-3116",
+        "S-S2801-3115",
+        "S-S2801-3114",
+        "S-S2801-3113",
+        "S-S2801-3112",
+        "S-S2801-3111",
+        "S-I28A1-A06",
+        "S-S2801-3109",
+        "S-S2801-3108",
+        "S-S2801-3107"
+      ],
+      "name": "인천지하철 1호선",
+      "colorToken": "line-incheon1"
+    },
+    {
+      "lineCode": "L-S2802",
+      "polyline": [
+        [
+          2165.8,
+          3946
+        ],
+        [
+          2103.3,
+          3883.5
+        ],
+        [
+          2030,
+          3883.5
+        ],
+        [
+          1962.6,
+          3816.1
+        ],
+        [
+          1907.8,
+          3816.1
+        ],
+        [
+          1850.3,
+          3816.1
+        ],
+        [
+          1787.6,
+          3816.1
+        ],
+        [
+          1739.9,
+          3816.1
+        ],
+        [
+          1680.7,
+          3816.1
+        ],
+        [
+          1680.7,
+          3745.6
+        ],
+        [
+          1680.7,
+          3682.6
+        ],
+        [
+          1680.7,
+          3598.1
+        ],
+        [
+          1639.8,
+          3557.1
+        ],
+        [
+          1639.8,
+          3467.9
+        ],
+        [
+          1662.5,
+          3445.2
+        ],
+        [
+          1662.4,
+          3339.8
+        ],
+        [
+          1662.3,
+          3283.4
+        ],
+        [
+          1662.1,
+          3136.3
+        ],
+        [
+          1662,
+          3077.6
+        ],
+        [
+          1661.9,
+          3003.2
+        ],
+        [
+          1661.7,
+          2944.5
+        ],
+        [
+          1661.7,
+          2817.9
+        ],
+        [
+          1661.7,
+          2765.9
+        ],
+        [
+          1614.6,
+          2718.8
+        ],
+        [
+          1554,
+          2658.2
+        ],
+        [
+          1472.3,
+          2740
+        ],
+        [
+          1374.3,
+          2740
+        ]
+      ],
+      "stationCodes": [
+        "S-S2802-3227",
+        "S-S2802-3226",
+        "S-S2802-3225",
+        "S-S2802-3224",
+        "S-S2802-3223",
+        "S-S2802-3222",
+        "S-S2801-3124",
+        "S-S2802-3220",
+        "S-S2802-3219",
+        "S-I1101-1809",
+        "S-S2802-3217",
+        "S-S2802-3216",
+        "S-S2802-3215",
+        "S-S2802-3214",
+        "S-S1107-3763",
+        "S-S2802-3212",
+        "S-S2802-3211",
+        "S-S2802-3210",
+        "S-S2802-3209",
+        "S-S2802-3208",
+        "S-I28A1-A07",
+        "S-S2802-3206",
+        "S-S2802-3205",
+        "S-S2802-3204",
+        "S-S2802-3203",
+        "S-S2802-3202",
+        "S-S2802-3201"
+      ],
+      "name": "인천지하철 2호선",
+      "colorToken": "line-incheon2"
+    },
+    {
+      "lineCode": "L-S28M1",
+      "polyline": [
+        [
+          80,
+          4017.3
+        ],
+        [
+          143.3,
+          3954
+        ],
+        [
+          303.4,
+          3954
+        ],
+        [
+          303.4,
+          3901.6
+        ],
+        [
+          278.6,
+          3876.7
+        ],
+        [
+          257.7,
+          3855.8
+        ]
+      ],
+      "stationCodes": [
+        "S-S28M1-106",
+        "S-S28M1-105",
+        "S-S28M1-104",
+        "S-S28M1-103",
+        "S-S28M1-102",
+        "S-S28M1-101"
+      ],
+      "name": "자기부상철도",
+      "colorToken": "line-maglev"
+    },
+    {
+      "lineCode": "L-I11D1",
+      "polyline": [
+        [
+          3910.6,
+          5074.8
+        ],
+        [
+          3910.6,
+          5202.7
+        ],
+        [
+          4015.2,
+          5098.1
+        ],
+        [
+          4110.4,
+          5003
+        ],
+        [
+          4204.6,
+          4908.8
+        ],
+        [
+          4204.6,
+          4799.4
+        ],
+        [
+          4293.3,
+          4710.7
+        ],
+        [
+          4293.3,
+          4571.3
+        ],
+        [
+          4293.3,
+          4324.5
+        ],
+        [
+          3938.5,
+          3969.7
+        ],
+        [
+          3835.3,
+          3866.5
+        ],
+        [
+          3835.3,
+          3624
+        ],
+        [
+          3793.9,
+          3667.7
+        ],
+        [
+          3927.7,
+          3657.1
+        ],
+        [
+          4012.5,
+          3601.6
+        ],
+        [
+          4308.9,
+          3602.9
+        ]
+      ],
+      "stationCodes": [
+        "S-I11D1-D019",
+        "S-I11D1-D018",
+        "S-I11D1-D017",
+        "S-I11D1-D016",
+        "S-I11D1-D015",
+        "S-I11D1-D014",
+        "S-I11D1-D013",
+        "S-I11D1-D012",
+        "S-I11D1-D011",
+        "S-I11D1-D010",
+        "S-I11D1-D009",
+        "S-I1103-0342",
+        "S-I11D1-D007",
+        "S-I11D1-D006",
+        "S-I11D1-D005",
+        "S-I1103-0337"
+      ],
+      "name": "신분당선",
+      "colorToken": "line-sinbundang"
+    },
+    {
+      "lineCode": "L-L11UI",
+      "polyline": [
+        [
+          4176.4,
+          2969.5
+        ],
+        [
+          3757.5,
+          2949.3
+        ],
+        [
+          3757.2,
+          2800.7
+        ],
+        [
+          3712.9,
+          2756.4
+        ],
+        [
+          3712.9,
+          2642.7
+        ],
+        [
+          3750.3,
+          2605.3
+        ],
+        [
+          3777.7,
+          2605.3
+        ],
+        [
+          3777.7,
+          2549.7
+        ],
+        [
+          3777.7,
+          2493.9
+        ],
+        [
+          3777.7,
+          2436.9
+        ],
+        [
+          3777.7,
+          2373.6
+        ],
+        [
+          3777.7,
+          2323.3
+        ],
+        [
+          3777.7,
+          2271.2
+        ]
+      ],
+      "stationCodes": [
+        "S-I4101-0126",
+        "S-L11UI-S121",
+        "S-I1104-0418",
+        "S-L11UI-S119",
+        "S-L11UI-S118",
+        "S-L11UI-S117",
+        "S-L11UI-S116",
+        "S-L11UI-S115",
+        "S-L11UI-S114",
+        "S-L11UI-S113",
+        "S-L11UI-S112",
+        "S-L11UI-S111",
+        "S-L11UI-S110"
+      ],
+      "name": "우이신설선",
+      "colorToken": "line-uisinseol"
+    },
+    {
+      "lineCode": "L-L11SL",
+      "polyline": [
+        [
+          3297.6,
+          3746.2
+        ],
+        [
+          3204.5,
+          3746.2
+        ],
+        [
+          3204.5,
+          3679.3
+        ],
+        [
+          3267.6,
+          3616.2
+        ],
+        [
+          3219.2,
+          3616.2
+        ],
+        [
+          3185.6,
+          3582.5
+        ],
+        [
+          3140.4,
+          3537.3
+        ],
+        [
+          3101.7,
+          3537.3
+        ],
+        [
+          3082.3,
+          3518.1
+        ],
+        [
+          3045.6,
+          3481.6
+        ],
+        [
+          3009.7,
+          3450.1
+        ]
+      ],
+      "stationCodes": [
+        "S-L11SL-S411",
+        "S-L11SL-S410",
+        "S-L11SL-S409",
+        "S-L11SL-S408",
+        "S-L11SL-S407",
+        "S-L11SL-S406",
+        "S-L11SL-S405",
+        "S-L11SL-S404",
+        "S-L11SL-S403",
+        "S-I4101-1005",
+        "S-L11SL-S401"
+      ],
+      "name": "수도권 경량도시철도 신림선",
+      "colorToken": "line-sillim"
+    },
+    {
+      "lineCode": "L-L41G1",
+      "polyline": [
+        [
+          2478,
+          2944.5
+        ],
+        [
+          2201.3,
+          2667.8
+        ],
+        [
+          2053.1,
+          2667.8
+        ],
+        [
+          1939.1,
+          2553.8
+        ],
+        [
+          1852.3,
+          2467
+        ],
+        [
+          1701.2,
+          2315.9
+        ],
+        [
+          1635.2,
+          2381.9
+        ],
+        [
+          1459.6,
+          2381.9
+        ],
+        [
+          1410,
+          2332.3
+        ],
+        [
+          1299.3,
+          2332.3
+        ]
+      ],
+      "stationCodes": [
+        "S-I28A1-A05",
+        "S-L41G1-G108",
+        "S-L41G1-G107",
+        "S-L41G1-G106",
+        "S-L41G1-G105",
+        "S-L41G1-G104",
+        "S-L41G1-G103",
+        "S-L41G1-G102",
+        "S-L41G1-G101",
+        "S-L41G1-G100"
+      ],
+      "name": "김포도시철도",
+      "colorToken": "line-gimpo"
+    },
+    {
+      "lineCode": "L-L41U1",
+      "polyline": [
+        [
+          3933.1,
+          1660.4
+        ],
+        [
+          3902.5,
+          1691
+        ],
+        [
+          3959,
+          1691
+        ],
+        [
+          4001.3,
+          1648.8
+        ],
+        [
+          4046.5,
+          1648.8
+        ],
+        [
+          4088.3,
+          1607
+        ],
+        [
+          4137.9,
+          1607
+        ],
+        [
+          4178.7,
+          1566.1
+        ],
+        [
+          4223.5,
+          1610.9
+        ],
+        [
+          4223.5,
+          1663.7
+        ],
+        [
+          4223.5,
+          1708.5
+        ],
+        [
+          4223.5,
+          1754.2
+        ],
+        [
+          3951.3,
+          1754.2
+        ],
+        [
+          4004.2,
+          1807.1
+        ],
+        [
+          4023.6,
+          1787.7
+        ]
+      ],
+      "stationCodes": [
+        "S-L41U1-U115",
+        "S-L41U1-U114",
+        "S-L41U1-U113",
+        "S-L41U1-U117",
+        "S-L41U1-U118",
+        "S-L41U1-U119",
+        "S-L41U1-U120",
+        "S-L41U1-U121",
+        "S-L41U1-U122",
+        "S-L41U1-U123",
+        "S-L41U1-U124",
+        "S-L41U1-U125",
+        "S-L41U1-U112",
+        "S-I4102-1905",
+        "S-L41U1-U110"
+      ],
+      "name": "의정부",
+      "colorToken": "line-uijeongbu"
+    },
+    {
+      "lineCode": "L-I41K5",
+      "polyline": [
+        [
+          7468.1,
+          5187.3
+        ],
+        [
+          7003.6,
+          5187.3
+        ],
+        [
+          6708.9,
+          5482
+        ],
+        [
+          6379.7,
+          5482
+        ],
+        [
+          6008.5,
+          5110.8
+        ],
+        [
+          5696.4,
+          4798.7
+        ],
+        [
+          5460.6,
+          4563
+        ],
+        [
+          5222.2,
+          4324.6
+        ],
+        [
+          4872.1,
+          4324.6
+        ],
+        [
+          4413.2,
+          4324.6
+        ],
+        [
+          4354.5,
+          4324.6
+        ],
+        [
+          4293.3,
+          4324.5
+        ]
+      ],
+      "stationCodes": [
+        "S-I41K5-1511",
+        "S-I41K5-1510",
+        "S-I41K5-1509",
+        "S-I41K5-1508",
+        "S-I41K5-1507",
+        "S-I41K5-1506",
+        "S-I41K5-1505",
+        "S-I41K5-1504",
+        "S-I41K5-1503",
+        "S-I4105-1860",
+        "S-I41K5-1512",
+        "S-I11D1-D011"
+      ],
+      "name": "경강선",
+      "colorToken": "line-gyeonggang"
+    },
+    {
+      "lineCode": "L-I41WS",
+      "polyline": [
+        [
+          2215.4,
+          2133
+        ],
+        [
+          2301.7,
+          2219.3
+        ],
+        [
+          2379.5,
+          2297.1
+        ],
+        [
+          2452.1,
+          2369.7
+        ],
+        [
+          2488.8,
+          2406.4
+        ],
+        [
+          2488.8,
+          2539.7
+        ],
+        [
+          2478,
+          2944.5
+        ],
+        [
+          2478.5,
+          3295.7
+        ],
+        [
+          2478.9,
+          3445.2
+        ],
+        [
+          2478.9,
+          3589.3
+        ],
+        [
+          2478.9,
+          3745.1
+        ],
+        [
+          2478.9,
+          3840.1
+        ],
+        [
+          2306.8,
+          4012.1
+        ],
+        [
+          2306.8,
+          4257.5
+        ],
+        [
+          2411,
+          4361.6
+        ],
+        [
+          2411,
+          4508.1
+        ],
+        [
+          2411,
+          4669.3
+        ],
+        [
+          2411,
+          4781.7
+        ],
+        [
+          2411,
+          4910.3
+        ],
+        [
+          2358.2,
+          4963.1
+        ],
+        [
+          2290.1,
+          5031.2
+        ]
+      ],
+      "stationCodes": [
+        "S-I4108-1275",
+        "S-I4108-1274",
+        "S-I4108-1273",
+        "S-I4108-1272",
+        "S-I4106-1953",
+        "S-I4108-1271",
+        "S-I28A1-A05",
+        "S-I41WS-1981",
+        "S-I41WS-1982",
+        "S-I1101-4804",
+        "S-I41WS-4805",
+        "S-I41WS-4806",
+        "S-I41WS-4807",
+        "S-I41WS-4808",
+        "S-I41WS-4809",
+        "S-I41WS-4810",
+        "S-I41WS-4811",
+        "S-I41WS-4812",
+        "S-I28K1-1758",
+        "S-I41WS-4814",
+        "S-I41WS-4815"
+      ],
+      "name": "서해선",
+      "colorToken": "line-seohae"
+    },
+    {
+      "lineCode": "L-S4108",
+      "polyline": [
+        [
+          4497.1,
+          2493.8
+        ],
+        [
+          4593.6,
+          2590.3
+        ]
+      ],
+      "stationCodes": [
+        "S-I41K2-1313",
+        "S-S4108-805"
+      ],
+      "name": "수도권 광역철도 8호선",
+      "colorToken": "line-8"
+    },
+    {
+      "lineCode": "L-I4104",
+      "polyline": [
+        [
+          4455,
+          2324
+        ],
+        [
+          4837.7,
+          1941.3
+        ],
+        [
+          4931.5,
+          1847.5
+        ]
+      ],
+      "stationCodes": [
+        "S-I4104-0408",
+        "S-I4104-0406",
+        "S-I4104-0405"
+      ],
+      "name": "진접선",
+      "colorToken": "line-4"
+    },
+    {
+      "lineCode": "L-L41E1",
+      "polyline": [
+        [
+          4915.8,
+          5233.6
+        ],
+        [
+          4915.8,
+          5379.2
+        ],
+        [
+          4915.8,
+          5438.7
+        ],
+        [
+          4915.8,
+          5549.1
+        ],
+        [
+          4872.3,
+          5592.5
+        ],
+        [
+          4805.3,
+          5592.5
+        ],
+        [
+          4754,
+          5592.5
+        ],
+        [
+          4683.5,
+          5592.5
+        ],
+        [
+          4592.4,
+          5592.5
+        ],
+        [
+          4592.4,
+          5416.3
+        ],
+        [
+          4527.9,
+          5351.8
+        ],
+        [
+          4478.9,
+          5302.8
+        ],
+        [
+          4427.7,
+          5354
+        ],
+        [
+          4340.1,
+          5354
+        ],
+        [
+          4293.3,
+          5307.2
+        ]
+      ],
+      "stationCodes": [
+        "S-L41E1-Y124",
+        "S-L41E1-Y123",
+        "S-L41E1-Y122",
+        "S-L41E1-Y121",
+        "S-L41E1-Y120",
+        "S-L41E1-Y119",
+        "S-L41E1-Y118",
+        "S-L41E1-Y117",
+        "S-L41E1-Y116",
+        "S-L41E1-Y115",
+        "S-L41E1-Y114",
+        "S-L41E1-Y113",
+        "S-L41E1-Y112",
+        "S-L41E1-Y111",
+        "S-I4105-1865"
+      ],
+      "name": "에버라인",
+      "colorToken": "line-everline"
+    },
+    {
+      "lineCode": "L-I4108",
+      "polyline": [
+        [
+          7510.8,
+          3856.1
+        ],
+        [
+          7296.5,
+          3856.1
+        ],
+        [
+          6922.8,
+          3856.1
+        ],
+        [
+          6699.7,
+          3632.9
+        ],
+        [
+          6597.3,
+          3530.5
+        ],
+        [
+          6366.3,
+          3530.5
+        ],
+        [
+          6028.2,
+          3530.5
+        ],
+        [
+          5917.1,
+          3419.4
+        ],
+        [
+          5703.3,
+          3205.6
+        ],
+        [
+          5624.7,
+          3127
+        ],
+        [
+          5197.5,
+          3127
+        ],
+        [
+          5026,
+          2955.5
+        ],
+        [
+          4954.3,
+          2883.8
+        ],
+        [
+          4808,
+          2737.5
+        ],
+        [
+          4657.1,
+          2737.5
+        ],
+        [
+          4509.8,
+          2737.5
+        ],
+        [
+          4253.5,
+          2737.5
+        ],
+        [
+          4214.8,
+          2776.2
+        ],
+        [
+          4181.3,
+          2809.7
+        ],
+        [
+          4066,
+          2810.7
+        ],
+        [
+          4066,
+          2565.9
+        ],
+        [
+          4062.1,
+          2902.7
+        ],
+        [
+          3980.8,
+          2984.1
+        ],
+        [
+          2870.6,
+          2989.9
+        ],
+        [
+          3080.6,
+          2991.7
+        ],
+        [
+          3106.6,
+          2992.6
+        ],
+        [
+          3226,
+          2994.8
+        ],
+        [
+          3253.9,
+          2971.3
+        ],
+        [
+          3174.2,
+          3062.7
+        ],
+        [
+          3174.2,
+          3035.4
+        ],
+        [
+          3075.5,
+          2936.7
+        ],
+        [
+          3021.9,
+          2883.1
+        ],
+        [
+          2855.8,
+          2717
+        ],
+        [
+          2775.9,
+          2637.1
+        ],
+        [
+          2586.2,
+          2637.1
+        ],
+        [
+          2488.8,
+          2539.7
+        ],
+        [
+          2488.8,
+          2406.4
+        ],
+        [
+          2452.1,
+          2369.7
+        ],
+        [
+          2379.5,
+          2297.1
+        ],
+        [
+          2301.7,
+          2219.3
+        ],
+        [
+          2215.4,
+          2133
+        ],
+        [
+          2197,
+          2114.6
+        ],
+        [
+          2197,
+          1836.6
+        ],
+        [
+          2197,
+          1734.8
+        ],
+        [
+          2197,
+          1508.8
+        ],
+        [
+          2303,
+          1402.8
+        ],
+        [
+          2462,
+          1243.8
+        ],
+        [
+          2462,
+          1043.5
+        ],
+        [
+          2462,
+          725.7
+        ],
+        [
+          2296.9,
+          560.6
+        ],
+        [
+          2191.5,
+          455.2
+        ]
+      ],
+      "stationCodes": [
+        "S-I4108-1220",
+        "S-I4108-1219",
+        "S-I4108-1218",
+        "S-I4108-1217",
+        "S-I4108-1216",
+        "S-I4108-1215",
+        "S-I4108-1214",
+        "S-I4108-1213",
+        "S-I4108-1212",
+        "S-I4108-1211",
+        "S-I4108-1210",
+        "S-I4108-1209",
+        "S-I4108-1208",
+        "S-I4108-1207",
+        "S-I4108-1206",
+        "S-I4108-1205",
+        "S-I4108-1204",
+        "S-I4108-1203",
+        "S-I4108-1202",
+        "S-I4108-1201",
+        "S-I4102-1019",
+        "S-I4102-1015",
+        "S-I4101-0124",
+        "S-I1104-0426",
+        "S-I4108-1261",
+        "S-I28A1-A02",
+        "S-I4108-1263",
+        "S-I4108-1252",
+        "S-I28A1-A03",
+        "S-I4108-1265",
+        "S-I28A1-A04",
+        "S-I4108-1267",
+        "S-I4108-1268",
+        "S-I4108-1269",
+        "S-I4108-1270",
+        "S-I4108-1271",
+        "S-I4106-1953",
+        "S-I4108-1272",
+        "S-I4108-1273",
+        "S-I4108-1274",
+        "S-I4108-1275",
+        "S-I4108-1276",
+        "S-I4108-1277",
+        "S-I4108-1278",
+        "S-I4108-1279",
+        "S-I4108-1280",
+        "S-I4108-1282",
+        "S-I4108-1283",
+        "S-I4108-1284",
+        "S-I4108-1286",
+        "S-I4108-1285"
+      ],
+      "name": "경의중앙선",
+      "colorToken": "line-gyeongui"
+    }
+  ]
+}

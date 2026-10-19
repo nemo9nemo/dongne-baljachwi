@@ -1,9 +1,9 @@
 import { supabase } from './supabase'
 import { narrowRpcError } from './rpc-error'
-import type { UpsertRecordArgs, UpsertRecordResult } from './database.types'
+import type { EditSnapshot, SaveRecordArgs, SaveRecordResult, SyncRecordPhotosArgs, SyncRecordPhotosResult } from './database.types'
 
 /**
- * 기록 본문 저장 (05 §4.2).
+ * 기록의 편집 스냅샷·본문·사진 목록 RPC 경계 (05 §10, D01–D04).
  *
  * `couple-rpc.ts`와 같은 계약 경계다 — 화면은 `supabase.rpc`를 직접 부르지 않는다.
  * 이 함수는 실패를 **예외로 던지는** 경로(A)만 쓴다. `redeem_invite`처럼 실패를 값으로
@@ -13,7 +13,7 @@ import type { UpsertRecordArgs, UpsertRecordResult } from './database.types'
  * 재삽입"이 클라이언트에서 2회 요청으로 쪼개지면 중간 실패에서 태그가 사라진 기록이 남는다.
  */
 
-/** 05 §4.2의 실패 코드 + 클라이언트에서만 붙는 2개 */
+/** 쓰기 계약 실패 코드. NETWORK/UNKNOWN은 커밋 여부를 단정하지 않는다. */
 export type RecordErrorCode =
   | 'UNAUTHENTICATED'
   | 'NOT_IN_COUPLE'
@@ -23,6 +23,12 @@ export type RecordErrorCode =
   | 'INVALID_ENUM'
   | 'NOTE_TOO_LONG'
   | 'INVALID_TAGS'
+  | 'RECORD_CONFLICT'
+  | 'RECORD_ID_USED'
+  | 'INVALID_OPERATION'
+  | 'OPERATION_MISMATCH'
+  | 'INVALID_PHOTOS'
+  | 'INVALID_PLACE'
   | 'NETWORK'
   | 'UNKNOWN'
 
@@ -31,8 +37,8 @@ export type RecordFailure = {
   retryAfterSec: number | null
 }
 
-export type UpsertRecordOutcome =
-  | { ok: true; data: UpsertRecordResult }
+export type RecordOutcome<T> =
+  | { ok: true; data: T }
   | { ok: false; failure: RecordFailure }
 
 const KNOWN_CODES: ReadonlySet<RecordErrorCode> = new Set<RecordErrorCode>([
@@ -44,6 +50,8 @@ const KNOWN_CODES: ReadonlySet<RecordErrorCode> = new Set<RecordErrorCode>([
   'INVALID_ENUM',
   'NOTE_TOO_LONG',
   'INVALID_TAGS',
+  'RECORD_CONFLICT', 'RECORD_ID_USED', 'INVALID_OPERATION', 'OPERATION_MISMATCH', 'INVALID_PHOTOS',
+  'INVALID_PLACE',
 ])
 
 /**
@@ -69,9 +77,20 @@ export function recordFailureMessage(failure: RecordFailure): string {
     case 'INVALID_ENUM':
       return '감정·날씨 값이 올바르지 않아요.'
     case 'NOTE_TOO_LONG':
-      return '일기는 2,000자까지 쓸 수 있어요.'
+      return '일기는 1,000자까지 쓸 수 있어요.'
     case 'INVALID_TAGS':
       return '태그는 1~20자로 최대 10개까지 넣을 수 있어요.'
+    case 'RECORD_CONFLICT':
+      return '다른 곳에서 기록이 변경됐어요. 최신 내용과 내 입력을 확인해주세요.'
+    case 'RECORD_ID_USED':
+      return '이미 사용한 기록 번호예요. 기존 저장 결과를 먼저 확인해주세요.'
+    case 'INVALID_OPERATION':
+    case 'OPERATION_MISMATCH':
+      return '저장 요청이 일치하지 않아요. 입력을 유지한 채 저장 결과를 확인해주세요.'
+    case 'INVALID_PHOTOS':
+      return '사진 정보를 확인하지 못했어요. 최신 사진 목록을 확인해주세요.'
+    case 'INVALID_PLACE':
+      return '장소 이름은 80자까지 쓸 수 있어요.'
     case 'NETWORK':
       return '네트워크 연결을 확인해주세요.'
     case 'UNKNOWN':
@@ -84,9 +103,36 @@ export function recordFailureMessage(failure: RecordFailure): string {
  *
  * @param args 05 §4.2 계약 그대로. 태그는 정규화 전 원문을 보내고 서버가 다시 정규화한다.
  */
-export async function upsertRecord(args: UpsertRecordArgs): Promise<UpsertRecordOutcome> {
-  const { data, error } = await supabase.rpc('upsert_record', args)
-  if (error) return { ok: false, failure: narrowRpcError(error, KNOWN_CODES) }
-  if (data == null) return { ok: false, failure: { code: 'UNKNOWN', retryAfterSec: null } }
-  return { ok: true, data }
+export async function saveRecord(args: SaveRecordArgs): Promise<RecordOutcome<SaveRecordResult>> {
+  try {
+    const { data, error } = await supabase.rpc('save_record_v3', args)
+    if (error) return { ok: false, failure: narrowRpcError(error, KNOWN_CODES) }
+    if (!data || !Number.isSafeInteger(data.revision) || data.revision < 1 || data.record_id !== args.p_record_id) return unknownFailure()
+    return { ok: true, data }
+  } catch { return unknownFailure() }
+}
+
+export async function syncRecordPhotos(args: SyncRecordPhotosArgs): Promise<RecordOutcome<SyncRecordPhotosResult>> {
+  try {
+    const { data, error } = await supabase.rpc('sync_record_photos', args)
+    if (error) return { ok: false, failure: narrowRpcError(error, KNOWN_CODES) }
+    if (!data || !Number.isSafeInteger(data.revision) || data.revision < 1 || data.record_id !== args.p_record_id
+      || !Array.isArray(data.photos) || !Array.isArray(data.removed_paths)
+      || !data.removed_paths.every(path => typeof path === 'string')) return unknownFailure()
+    return { ok: true, data }
+  } catch { return unknownFailure() }
+}
+
+/** 서명 URL 실패는 메타데이터 실패와 구분하며, 여기서는 필수 스냅샷만 검사한다. */
+export async function getEditSnapshot(recordId: string): Promise<EditSnapshot> {
+  const { data, error } = await supabase.rpc('get_record_edit_snapshot', { p_record_id: recordId })
+  if (error || !data || !data.record || data.record.id !== recordId || !Number.isSafeInteger(data.record.revision)
+    || !Array.isArray(data.tags) || !data.tags.every(tag => typeof tag === 'string')
+    || !Array.isArray(data.photos)) throw new Error('편집 스냅샷을 불러오지 못했어요.')
+  return data
+}
+
+function unknownFailure(): { ok: false; failure: RecordFailure } {
+  // 응답이 없어도 서버는 이미 커밋했을 수 있다. 화면은 작업 ID를 보존해 재확인한다.
+  return { ok: false, failure: { code: 'UNKNOWN', retryAfterSec: null } }
 }

@@ -62,7 +62,7 @@ select test.eq('record_cards 의 컬럼 집합이 계약(04 §4.1)과 일치한�
   (select string_agg(column_name, ',' order by ordinal_position)
      from information_schema.columns
     where table_schema = 'public' and table_name = 'record_cards'),
-  'id,station_id,visited_on,mood,weather,note_excerpt,author_id');
+  'id,station_id,visited_on,mood,weather,note_excerpt,author_id,place_name');
 
 -- D-12 의 사고 지점. 기능 검증(아래 격리 테스트)과 별개로 옵션 자체를 못박아 둔다.
 select test.eq('D-12: record_cards 는 security_invoker = true',

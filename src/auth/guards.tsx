@@ -79,7 +79,7 @@ export function RequireNoCouple() {
   // 다 입력하고 나서야 막힌다. RequireCouple과 같은 처리를 해서 애초에 들여보내지 않는다.
   if (session.loadFailed) return <LoadFailedBox />
 
-  if (session.couple !== null) return <Navigate to="/lines" replace />
+  if ((session.sharedCouple === undefined ? session.couple : session.sharedCouple) !== null) return <Navigate to="/lines" replace />
   return <Outlet />
 }
 

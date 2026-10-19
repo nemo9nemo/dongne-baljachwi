@@ -9,6 +9,15 @@
 구현: `src/styles/app-frame.module.css`, 마운트 위치: `src/App.tsx`
 관련: `src/components/AppShell.module.css`(탭바), `src/styles/ui.module.css`(`.screen`)
 
+## 2026-10-06 노선도 전용 확장
+
+노선도(`/lines`)는 제품의 메인 화면이다. 모바일에서는 남은 화면 높이를 지도에 할당하고,
+데스크톱에서는 `--map-frame-width: 1440px`까지 확장한다. 900px 이상에서는 탐색 도구를
+280px 사이드 패널에 두고, 그 아래에서는 검색·노선 필터를 지도 위에 배치한다.
+768px 앱 프레임 분기와 900px 노선도 패널 분기는 목적이 다르다.
+`mapBackdrop/mapFrame/mapShell`만 고정 높이·내부 팬을 사용하며 작성·기록 화면은 기존 스크롤을 유지한다.
+아래 480px 프레임 설명은 노선도 이외 화면에 적용한다.
+
 ## 문제
 
 `.screen`이 `max-width: 560px`로 폭은 제한돼 있었지만, 배경이 뷰포트 전체를 흰색으로 깔고

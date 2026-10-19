@@ -6,6 +6,7 @@ import {
   RouterProvider,
   createBrowserRouter,
   createRoutesFromElements,
+  useLocation,
 } from 'react-router-dom'
 import { SessionProvider } from './auth/SessionProvider'
 import { useSession } from './auth/session-context'
@@ -43,9 +44,10 @@ import ui from './styles/ui.module.css'
  * (styles/app-frame.module.css — 모바일에서는 아무 효과 없음)
  */
 function RootFrame() {
+  const isLineMap = useLocation().pathname === '/lines'
   return (
-    <div className={frame.backdrop}>
-      <div className={frame.frame}>
+    <div className={`${frame.backdrop} ${isLineMap ? frame.mapBackdrop : ''}`}>
+      <div className={`${frame.frame} ${isLineMap ? frame.mapFrame : ''}`}>
         {/* Supabase 프로젝트가 아직 없으면 모든 네트워크 호출이 실패한다.
             화면이 조용히 비어 보이는 것보다 이유를 알려주는 게 낫다. */}
         {!isSupabaseConfigured && (
