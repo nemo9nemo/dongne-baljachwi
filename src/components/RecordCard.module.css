@@ -24,14 +24,14 @@
   align-items: center;
   min-height: var(--touch-target);
   margin-bottom: var(--space-1);
-  padding: var(--space-1) var(--space-3);
+  padding: var(--space-1) 0;
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   text-decoration: none;
   /* 채움 없이 테두리만 — 카드(.card)와 같은 흰 서피스 위에서 칩이 또 하나의 면으로 겹쳐
      보이지 않게 한다. 상태는 아래 hover에서 면으로 바뀐다. */
   background: transparent;
-  border: 1px solid var(--color-border-strong);
+  border: 0;
   /* 컨트롤 반경(10px)보다 **더 동글게** — 사용자가 역명 칩만 따로 지정한 값이다.
      퍼센트라 라벨 길이에 따라 가로 반경이 함께 늘어난다(세로는 44px 고정 → 8.8px). */
   border-radius: 20%;
@@ -75,6 +75,7 @@
 .thumbWrap {
   flex: none;
   width: 88px;
+  aspect-ratio: 1;
   overflow: hidden;
   background: var(--color-surface-muted);
   border-radius: var(--radius-control);

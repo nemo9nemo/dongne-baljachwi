@@ -169,6 +169,9 @@
      1px 경계**로 떠 있는 것처럼 읽힌다 — 흰 프레임 ↔ Surface Grey 백드롭. */
   --app-backdrop: var(--gray-50);
   --app-frame-width: 480px;
+  --map-frame-width: 1440px;
+  --map-sidebar-width: 280px;
+  --map-river-color: #d8eaf3;
   --app-frame-max-height: 900px;
   /* 프레임은 이 시스템에서 가장 큰 카드다 — 카드 반경(15px)을 그대로 쓴다(이전 28px 폐기). */
   --app-frame-radius: var(--radius-card);
@@ -301,6 +304,7 @@
  */
 @media (prefers-color-scheme: dark) {
   :root {
+    --map-river-color: #28414c;
     --color-bg: var(--charcoal-deep);
     --color-surface: var(--charcoal);
     --color-surface-muted: var(--gray-850);
@@ -382,6 +386,7 @@
  * **현재는 비활성 상태**다. 값은 위 @media 블록과 한 글자도 다르면 안 된다.
  */
 .dark {
+  --map-river-color: #28414c;
   --color-bg: var(--charcoal-deep);
   --color-surface: var(--charcoal);
   --color-surface-muted: var(--gray-850);
