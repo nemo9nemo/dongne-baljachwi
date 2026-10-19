@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+import { RecordPhoto } from './RecordPhoto'
+import { useSession } from '../auth/session-context'
 import { formatVisitedOn } from '../lib/format-date'
 import { MOODS, WEATHERS } from '../lib/mood-weather'
 import type { RecordCard as RecordCardData } from '../lib/record-card-query'
@@ -30,6 +32,7 @@ type Props = {
 }
 
 export function RecordCard({ card, authorName, stationName, stationHref, backTo }: Props) {
+  const session = useSession()
   const { dateLabel } = formatVisitedOn(card.visitedOn)
   const moodMeta = card.mood === null ? null : (MOODS.find((item) => item.slug === card.mood) ?? null)
   const weatherMeta =
@@ -73,18 +76,17 @@ export function RecordCard({ card, authorName, stationName, stationHref, backTo 
         }}
       >
         {card.coverPhoto !== null && (
-          <div
-            className={styles.thumbWrap}
-          >
+          <div className={styles.thumbWrap}>
             {card.coverPhoto.url === null ? (
               <div className={styles.thumbFallback} aria-hidden="true" />
             ) : (
-              <img className={styles.thumb} src={card.coverPhoto.url} alt="" />
+              <RecordPhoto thumbnail path={card.coverPhoto.storagePath} className={styles.thumb} url={card.coverPhoto.url} alt="" />
             )}
           </div>
         )}
 
         <div className={styles.body}>
+          {card.placeName && <strong>{card.placeName}</strong>}
           <div className={styles.metaRow}>
             <span className={styles.date}>{dateLabel}</span>
           </div>
@@ -92,11 +94,9 @@ export function RecordCard({ card, authorName, stationName, stationHref, backTo 
           {card.noteExcerpt !== null && card.noteExcerpt !== '' && (
             <p className={styles.excerpt}>{card.noteExcerpt}</p>
           )}
-
-
-          <span className={styles.author} aria-hidden="true">
+          {session.couple?.kind !== 'personal' && <span className={styles.author} aria-hidden="true">
             {authorName}
-          </span>
+          </span>}
         </div>
       </Link>
     </li>

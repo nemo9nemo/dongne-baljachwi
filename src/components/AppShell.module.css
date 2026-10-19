@@ -17,6 +17,11 @@
   flex-direction: column;
 }
 
+/* 노선도는 정해진 높이 안에서 팬/줌하고 긴 작성 화면은 기존 스크롤을 유지한다. */
+.mapShell { min-height: 0; overflow: hidden; }
+.mapShell > .main { min-height: 0; }
+.mapShell > .tabbar, .mapShell > .banner { flex-shrink: 0; }
+
 .banner {
   display: flex;
   flex-wrap: wrap;
@@ -105,4 +110,21 @@
   content: '';
   background: var(--color-primary);
   border-radius: var(--radius-control);
+}
+.scopeSelector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+.scopeSelector select {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  padding: var(--space-2);
 }

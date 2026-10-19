@@ -9,6 +9,7 @@ import type {
   KakaoMarkerClusterer,
 } from '../../lib/kakao-maps'
 import { useLineMapData } from './line-map-data'
+import { useSession } from '../../auth/session-context'
 import { Button } from '@/components/ui/button'
 import lineMapStyles from './line-map.module.css'
 import styles from './map-view.module.css'
@@ -38,7 +39,7 @@ import ui from '../../styles/ui.module.css'
  * 새로고침까지 살릴 필요는 없어 sessionStorage 로 올리지 않는다 (AC-17 — 명세 동작이다).
  * 지도에는 호선 필터가 없으므로(F-13) 노선도와 달리 필터 일치 조건도 없다.
  */
-let savedMapViewport: { lat: number; lng: number; level: number } | null = null
+let savedMapViewport: { scope: string; lat: number; lng: number; level: number } | null = null
 
 /** §2.2/AC-08: 기록 0건일 때의 폴백 뷰 */
 const SEOUL_CITY_HALL = { lat: 37.5665, lng: 126.978 }
@@ -83,6 +84,9 @@ function fitPinsIntoView(kakao: KakaoMapsNamespace, map: KakaoMap, pins: readonl
 }
 
 export function MapViewScreen() {
+  const session = useSession()
+  const scope = JSON.stringify([session.userId, session.couple?.id])
+  const initialViewport = useRef(savedMapViewport?.scope === scope ? savedMapViewport : null).current
   const navigate = useNavigate()
   const { master, visits, reloadVisits } = useLineMapData()
 
@@ -91,10 +95,11 @@ export function MapViewScreen() {
   const clustererRef = useRef<KakaoMarkerClusterer | null>(null)
   const overlayRef = useRef<KakaoCustomOverlay | null>(null)
   const [sdkState, setSdkState] = useState<SdkState>('loading')
+  const [sdkAttempt, setSdkAttempt] = useState(0)
   // F-12 > F-06 (AC-16): 이 마운트가 "복원된" 마운트인지. 첫 렌더 시점의 보존값 유무로
   // 한 번만 정한다. 아래 마커 effect 의 자동 bounds 맞춤을 막는 데 쓴다 — 복원해 놓고
   // 곧바로 전체 핀에 맞춰버리면 복원한 의미가 없다.
-  const restoredRef = useRef(savedMapViewport !== null)
+  const restoredRef = useRef(initialViewport !== null)
 
   const masterData = master.kind === 'ready' ? master.master : null
 
@@ -119,34 +124,38 @@ export function MapViewScreen() {
     }
     return list
   }, [masterData, visits])
+  const latestPins = useRef(pins)
+  latestPins.current = pins
 
   // §2.2: SDK 로드 실패(키/도메인 오류 포함)는 노선도로 자동 복귀 + 토스트. 빈 화면을 남기지 않는다.
   useEffect(() => {
     if (masterData === null) return
     const container = containerRef.current
     if (container === null) return
+    setSdkState('loading')
 
     let cancelled = false
     void loadKakaoMapsSdk().then(
       (kakao) => {
         if (cancelled) return
+        const currentPins = latestPins.current
         // F-12 > F-06·F-07: 보존된 뷰포트가 있으면 핀 bounds(F-06)든 기록 0건 기본 뷰
         // (F-07)든 초기화보다 복원이 우선이다. 생성 후
         // setCenter/setLevel 로 옮기지 않고 생성 옵션으로 주는 이유는, 옮기는 방식이면
         // 기본 위치가 한 프레임 보였다가 튀기 때문이다.
-        const saved = savedMapViewport
+        const saved = initialViewport
         const center =
           saved !== null
             ? new kakao.LatLng(saved.lat, saved.lng)
-            : pins.length === 0
+            : currentPins.length === 0
               ? new kakao.LatLng(SEOUL_CITY_HALL.lat, SEOUL_CITY_HALL.lng)
-              : new kakao.LatLng(pins[0]!.lat, pins[0]!.lng)
+              : new kakao.LatLng(currentPins[0]!.lat, currentPins[0]!.lng)
         const map = new kakao.Map(container, {
           center,
           level:
             saved !== null
               ? saved.level
-              : pins.length === 0
+              : currentPins.length === 0
                 ? EMPTY_VIEW_LEVEL
                 : SINGLE_PIN_LEVEL,
         })
@@ -154,7 +163,7 @@ export function MapViewScreen() {
         // F-06: 핀이 2개 이상이면 전체 bounds로 넓힌다. Map 생성자는 center/level만 받아
         // bounds를 생성 옵션으로 줄 수 없으므로 이 후속 조정만은 불가피하다 — 대신 생성
         // center를 첫 핀으로 잡아둔 덕에 조정 전 프레임도 이미 핀 근처라 화면이 튀지 않는다.
-        if (saved === null) fitPinsIntoView(kakao, map, pins)
+        if (saved === null) fitPinsIntoView(kakao, map, currentPins)
         clustererRef.current = new kakao.MarkerClusterer({
           map,
           averageCenter: true,
@@ -170,7 +179,6 @@ export function MapViewScreen() {
         if (cancelled) return
         console.error('[map-view] 카카오맵 SDK 로드 실패', error)
         setSdkState('failed')
-        navigate('/lines', { replace: true, state: { toast: '지도를 불러오지 못했어요' } })
       },
     )
     return () => {
@@ -178,7 +186,7 @@ export function MapViewScreen() {
     }
     // pins는 최초 센터링에만 쓴다(마운트 1회, 의존성에서 의도적으로 뺀다). 방문이 갱신될
     // 때마다 지도 인스턴스를 다시 만들지 않는다 — 아래 별도 effect가 마커만 갱신한다.
-  }, [masterData, navigate])
+  }, [masterData, sdkAttempt, initialViewport])
 
   /**
    * F-12 / AC-16: 화면을 떠날 때 지도 뷰포트를 1회 읽어 보존한다.
@@ -192,9 +200,9 @@ export function MapViewScreen() {
       const map = mapRef.current
       if (map === null) return
       const center = map.getCenter()
-      savedMapViewport = { lat: center.getLat(), lng: center.getLng(), level: map.getLevel() }
+      savedMapViewport = { scope, lat: center.getLat(), lng: center.getLng(), level: map.getLevel() }
     },
-    [],
+    [scope],
   )
 
   // ── 마커/클러스터 갱신 (F-06/F-08) ────────────────────────────────────
@@ -229,7 +237,7 @@ export function MapViewScreen() {
     if (!restoredRef.current) fitPinsIntoView(kakao.maps, map, pins)
   }, [pins, sdkState, navigate])
 
-  const showEmpty = sdkState === 'ready' && pins.length === 0
+  const showEmpty = sdkState === 'ready' && visits.kind === 'ready' && pins.length === 0
 
   return (
     <div className={lineMapStyles.screen}>
@@ -259,7 +267,9 @@ export function MapViewScreen() {
       )}
 
       {/* §6 접근성: 지도는 시각적 매체다. 동일 정보에 도달하는 대체 경로(타임라인)를 안내한다. */}
-      {sdkState === 'ready' && (
+      {sdkState === 'failed' && <div className={lineMapStyles.banner} role="alert"><span>지도를 불러오지 못했어요.</span><button className={lineMapStyles.bannerButton} onClick={() => setSdkAttempt(value => value + 1)}>다시 시도</button><Link to="/lines">노선도 보기</Link></div>}
+      {sdkState === 'ready' && visits.kind === 'loading' && <p role="status" className={ui.hint}>방문 정보를 확인하고 있어요.</p>}
+      {sdkState === 'ready' && visits.kind === 'ready' && (
         <p className={ui.hint}>
           기록이 있는 역 {pins.length}곳이 지도에 표시됨. 목록으로 보려면{' '}
           <Link to="/timeline">타임라인</Link>을 이용하세요.

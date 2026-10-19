@@ -54,6 +54,7 @@ function coverageLabel(visited: number, denominator: number): string {
 
 export function ProfileScreen() {
   const session = useSession()
+  const isPersonal = session.couple?.kind === 'personal'
   const { master, visits, reloadVisits } = useLineMapData()
   const [dissolveOpen, setDissolveOpen] = useState(false)
   const [lineLinks, setLineLinks] = useState<StationLineRow[]>([])
@@ -80,7 +81,9 @@ export function ProfileScreen() {
     // distinct 개수다. 노선 단위 lines.in_mvp_scope(OR 집계)는 1호선·경춘선처럼 수도권
     // 안팎을 동시에 지나는 혼합 노선의 역외 역을 못 걸러내 역 단위 컬럼으로 직접 판정한다.
     const mvpStationCount = master.master.stations.filter((s) => s.in_mvp_scope && s.is_active).length
-    return { totalRecords, visitedStationCount, denominator: mvpStationCount }
+    const scopeIds = new Set(master.master.stations.filter(s => s.in_mvp_scope && s.is_active).map(s => s.id))
+    const coverageCount = visits.rows.filter(row => scopeIds.has(row.station_id)).length
+    return { totalRecords, visitedStationCount, coverageCount, denominator: mvpStationCount }
   }, [visits, master])
 
   // ── 추천 (F-13~F-21) ────────────────────────────────────────────────
@@ -222,7 +225,7 @@ export function ProfileScreen() {
           </p>
         )}
 
-        <p className={ui.label}>상대</p>
+        {!isPersonal && <><p className={ui.label}>상대</p>
         {session.partner === null ? (
           // F-27: 상대 미합류면 이름 자리에 대기 상태와 코드 진입점을 둔다.
           <p>
@@ -230,9 +233,9 @@ export function ProfileScreen() {
           </p>
         ) : (
           <p>{session.partner.displayName}</p>
-        )}
+        )}</>}
 
-        {session.couple !== null && (
+        {!isPersonal && session.couple !== null && (
           <>
             <p className={ui.label}>사귄 날</p>
             {dateEditing ? (
@@ -304,8 +307,8 @@ export function ProfileScreen() {
         ) : (
           <ul className={styles.statList}>
             <li>
-              <span className={styles.statLabel}>총 데이트 수</span>
-              <span className={styles.statValue}>{stats.totalRecords}회</span>
+              <span className={styles.statLabel}>기록 수</span>
+              <span className={styles.statValue}>{stats.totalRecords}건</span>
             </li>
             <li>
               <span className={styles.statLabel}>방문 역 수</span>
@@ -314,12 +317,12 @@ export function ProfileScreen() {
             <li>
               <span className={styles.statLabel}>커버리지</span>
               <span className={styles.statValue}>
-                {coverageLabel(stats.visitedStationCount, stats.denominator)}
+                {coverageLabel(stats.coverageCount, stats.denominator)}
                 {/* F-11: 분모를 함께 노출해 규모 감각을 준다 */}
                 {stats.denominator > 0 && (
                   <span className={ui.hint}>
                     {' '}
-                    ({stats.visitedStationCount} / {stats.denominator}역)
+                    ({stats.coverageCount} / {stats.denominator}역)
                   </span>
                 )}
               </span>
@@ -340,9 +343,9 @@ export function ProfileScreen() {
               {recommendations.map((rec) => (
                 <li key={rec.stationId}>
                   <Link
-                    to={`/records/new?stationId=${rec.stationId}`}
+                    to={`/stations/${rec.stationId}`}
                     className={styles.chip}
-                    aria-label={`${rec.name.endsWith('역') ? rec.name : `${rec.name}역`} 기록 작성하기`}
+                    aria-label={`${rec.name.endsWith('역') ? rec.name : `${rec.name}역`} 살펴보기`}
                     // 파스텔 배경(profile.module.css `.chip`): 노선색을 옅게 섞어 어느 역인지
                     // 시각적으로도 구분되게 한다. 소속 노선이 없으면 프로퍼티를 안 줘서
                     // color-mix가 --color-surface로 수렴하게 둔다(LineMapCanvas와 같은 패턴).
@@ -371,10 +374,10 @@ export function ProfileScreen() {
       </Button>
 
       {/* F-26: 파괴적 항목은 목록 최하단에 시각적으로 분리해 배치한다 (오탭 방지). */}
-      <hr />
+      {!isPersonal && <><hr />
       <Button type="button" variant="destructive" onClick={() => setDissolveOpen(true)}>
         커플 연결 해제
-      </Button>
+      </Button></>}
 
       {dissolveOpen && <DissolveCoupleDialog onClose={() => setDissolveOpen(false)} />}
     </div>

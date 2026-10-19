@@ -1,0 +1,29 @@
+name: Application checks
+on:
+  pull_request:
+  push:
+    branches: [develop, master]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npm run test:db
+      - run: npm run line-map:check
+      - run: npm run test:line-map
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+        env:
+          TEST_BROWSER_CHANNEL: chromium
+          VITE_SUPABASE_URL: https://fixture.invalid
+          VITE_SUPABASE_ANON_KEY: fixture-public-key

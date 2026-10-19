@@ -27,7 +27,7 @@ export function CoupleLinkedScreen() {
         <h1 className={ui.title}>{partnerName}님과 연결되었습니다</h1>
         <p className={ui.subtitle}>
           {/* F-17 / AC-11: 상대가 먼저 써 둔 기록도 전부 함께 보인다. */}
-          지금까지의 기록이 모두 함께 보여요.
+          공동 공간의 기록을 함께 볼 수 있어요. 내 개인 기록은 공유되지 않아요.
         </p>
       </header>
       <Button type="button" variant="default" onClick={() => navigate('/lines', { replace: true })}>

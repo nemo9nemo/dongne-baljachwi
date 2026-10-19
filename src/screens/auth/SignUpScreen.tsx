@@ -76,7 +76,7 @@ export function SignUpScreen() {
       <header className={ui.screenHeader}>
         <Wordmark />
         <h1 className={ui.title}>가입하기</h1>
-        <p className={ui.subtitle}>둘만의 발자취를 남길 계정을 만들어요.</p>
+        <p className={ui.subtitle}>나만의 발자취를 남길 계정을 만들어요.</p>
       </header>
 
       {alreadyRegistered && (

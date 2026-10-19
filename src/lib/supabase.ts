@@ -4,6 +4,8 @@ import { STORAGE_PREFIX } from './app-storage'
 
 const url = import.meta.env.VITE_SUPABASE_URL ?? ''
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY ?? ''
+let recordScope: string | null = null
+export function setRecordScope(scope: string | null): void { recordScope = scope }
 
 /**
  * `.env.local`에 Supabase 값이 채워져 있는지 여부.
@@ -23,6 +25,14 @@ export const supabase = createClient<Database>(
   isSupabaseConfigured ? url : 'http://localhost:54321',
   isSupabaseConfigured ? anonKey : 'anon-key-not-configured',
   {
+    global: {
+      fetch: (input, init) => {
+        const target = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+        const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined))
+        if (recordScope !== null && (target.includes('/rest/v1/') || target.includes('/storage/v1/'))) headers.set('x-record-scope', recordScope)
+        return fetch(input, { ...init, headers })
+      },
+    },
     auth: {
       // F-25: 세션은 브라우저에 유지되고 자동 갱신된다.
       // 401 → 갱신 1회 → 실패 시 로그아웃(01 §5)은 auth-js가 내부적으로 수행하고,

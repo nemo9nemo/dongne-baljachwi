@@ -9,7 +9,9 @@ export const STORAGE_PREFIX = 'dbj.'
 
 /** F-25: 접두사가 붙은 로컬/세션 저장소 항목을 전부 삭제한다. */
 export function clearAppStorage(): void {
-  for (const storage of [window.localStorage, window.sessionStorage]) {
+  for (const kind of ['localStorage', 'sessionStorage'] as const) {
+    try {
+    const storage = window[kind]
     const keys: string[] = []
     for (let i = 0; i < storage.length; i += 1) {
       const key = storage.key(i)
@@ -17,5 +19,6 @@ export function clearAppStorage(): void {
     }
     // 순회하면서 지우면 인덱스가 앞으로 밀려 일부 키를 건너뛴다. 먼저 모으고 나서 지운다.
     for (const key of keys) storage.removeItem(key)
+    } catch { /* 저장소가 차단되어도 로그아웃과 메모리 캐시 폐기는 계속한다. */ }
   }
 }

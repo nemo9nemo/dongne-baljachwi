@@ -4,6 +4,21 @@
 > 개별 스펙의 4장은 이 문서를 참조하고, 자기 기능에서 실제로 읽고 쓰는 컬럼과
 > 쿼리/뮤테이션 계약만 기술한다. **스키마 정의가 서로 어긋나면 이 문서가 정답이다.**
 
+## 2026-10-15 추가 계약 — 기록 쓰기 버전과 재시도 (D01–D04)
+
+아래 계약은 본문의 기존 직접 INSERT/UPDATE 설명보다 우선한다. 로컬 구현 상태이며
+운영 반영 여부는 [저장 신뢰성 구현 보고](../RECORD-SAVE-IMPLEMENTATION-2026-10-15.md)에서 확인한다.
+
+- `records.revision`: 양의 integer, 초기 1. 모든 records UPDATE에서 트리거가 1 증가시킨다. 본문·태그 저장과 사진 목록 교체가 같은 버전 축을 사용한다. `updated_at`은 동시성 토큰으로 사용하지 않는다.
+- `record_creation_ids(record_id PK, couple_id)`: 기존/신규 기록 ID의 재사용 방지. 기록 삭제나 영수증 정리로 지우지 않고, 공간 삭제 시에만 CASCADE된다.
+- `record_write_receipts(actor_id,couple_id,kind,operation_id PK,request,result,created_at)`: 본문/사진 성공 결과와 불변 요청 JSONB를 함께 보관한다. 같은 키·같은 값은 최초 결과, 같은 키·다른 값은 오류다. 현재 자동 만료 정책은 없으며 D07에서 정리를 다룬다.
+- 편집 조회는 RLS가 적용되는 `get_record_edit_snapshot` 한 SQL 문장으로 본문·태그·사진·revision을 읽는다.
+- 쓰기는 현재 호출자/공간/행 귀속을 확인하는 `save_record_v2` 및 `sync_record_photos`를 사용한다. 고정 search_path를 사용하고 기대 버전을 행 잠금 안에서 검사한다. 영수증 재시도도 현재 권한과 대상 귀속을 검사한다.
+- 브라우저 역할의 records INSERT/UPDATE, record_tags·record_photos INSERT/UPDATE/DELETE, 레거시 upsert_record EXECUTE를 회수한다. 기존 기록 DELETE와 읽기 RLS는 유지한다. 참조 중인 Storage 객체는 직접 덮어쓰거나 삭제할 수 없다.
+- 바이너리 업로드는 DB 밖이다. 모든 새 업로드가 준비된 뒤 사진 메타데이터 목록 전체를 원자적으로 교체하며, 성공 확인 후 제거 대상 객체를 정리한다. DB+Storage 전체의 원자성은 보장하지 않는다.
+
+요청/응답과 실패 코드는 [기록 작성 스펙 §4](05-record-editor.md#4-데이터-모델)에 정의한다. 개인 소유권·공유 권한 전환은 포함하지 않는다.
+
 ## 1. 목적 / 배경
 
 동네 발자취는 순수 SPA다 (`docs/decisions/001-tech-stack.md`). 브라우저가 Supabase를
