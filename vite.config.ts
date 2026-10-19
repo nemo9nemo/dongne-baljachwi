@@ -5,6 +5,11 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rolldownOptions: {
+      input: { app: fileURLToPath(new URL('./index.html', import.meta.url)), mockup: fileURLToPath(new URL('./design/mockup.html', import.meta.url)) },
+    },
+  },
   resolve: {
     alias: {
       // shadcn/ui 컴포넌트가 기대하는 `@/*` 별칭. tsconfig.app.json의 paths와 짝을 맞춘다.
