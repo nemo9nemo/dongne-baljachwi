@@ -18,9 +18,19 @@
     "test:browser": "node tests/browser/run-with-server.mjs",
     "service:inspect": "node --env-file-if-exists=.env.local scripts/inspect-service.mjs",
     "design:verify": "node tests/design/mockup.mjs",
-    "photos:cleanup": "node --env-file-if-exists=.env.local scripts/cleanup-photos.mjs"
+    "photos:cleanup": "node --env-file-if-exists=.env.local scripts/cleanup-photos.mjs",
+    "share:server": "node --env-file-if-exists=.env.local scripts/sharing/serve.mjs",
+    "test:local": "node tests/local/run.mjs",
+    "test:sharing": "node --test tests/local/broker.test.mjs",
+    "android:sync": "npm run build && cap sync android",
+    "android:open": "cap open android"
   },
   "dependencies": {
+    "@capacitor-community/sqlite": "^8.1.1",
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/share": "^8.0.3",
     "@fontsource/inter": "^5.3.0",
     "@fontsource/noto-sans-kr": "^5.3.0",
     "@radix-ui/react-dialog": "^1.1.23",
@@ -37,6 +47,7 @@
     "tailwindcss": "^3.4.19"
   },
   "devDependencies": {
+    "@capacitor/cli": "8.4.3",
     "@electric-sql/pglite": "^0.5.4",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.17",

@@ -27,3 +27,7 @@ jobs:
           TEST_BROWSER_CHANNEL: chromium
           VITE_SUPABASE_URL: https://fixture.invalid
           VITE_SUPABASE_ANON_KEY: fixture-public-key
+      - run: npm run test:sharing
+      - run: npm run test:local
+        env:
+          TEST_BROWSER_CHANNEL: chromium
