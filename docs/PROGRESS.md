@@ -1,4 +1,12 @@
-# 현재 진행 현황 — 2026-10-20
+# 현재 진행 현황 — 2026-11-17
+
+PR #4에 최신 기기 저장 커밋 `c1f5a4a`를 반영하고 Application checks 전체 통과 후 `develop`에 병합했다(병합 커밋 `cd7aef8`). JDK 21·Android SDK를 준비하고 디버그 APK·출시 서명 APK·AAB 빌드를 완료했다. APK 서명과 ZIP/64비트 ELF의 16KB 정렬, AAB 서명을 검증했다. PR #6의 Android 빌드와 Application checks도 통과했다. 새 앱의 업로드 키는 저장소 밖에 보관한다. 다음은 사용자가 요청한 가상 Android 검증이며, 실제 두 휴대폰 검증·운영 공유 서버·개인정보/지원 안내·광고·스토어 제출은 남아 있다.
+
+- [Android 빌드·서명·실기기 점검](ANDROID-RELEASE.md)
+- [실기기 검증 항목과 대기 상태](ANDROID-DEVICE-QA.md)
+- [최신 기능 CI](https://github.com/nemo9nemo/dongne-baljachwi/actions/runs/44097183503)
+
+## 2026-10-20 기기 저장 구현
 
 기본 실제 앱을 로그인 없는 기기 저장 모드로 전환했다. 기록·사진 CRUD, 암호화 백업/복원, 1:1 코드 승인과 실제 WebRTC 공유, 연결 해제 후 각자 개인 맵 전환을 구현했다. 브라우저 통합 12개와 연결 서버 검사 8개를 통과했다. Android 프로젝트와 네이티브 저장 경로도 추가했으며 APK/AAB 빌드·실기기 검증·운영 연결 서버 배포·광고 연동은 남아 있다.
 

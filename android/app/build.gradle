@@ -1,5 +1,26 @@
 apply plugin: 'com.android.application'
 
+// 출시 키는 저장소 밖에서 환경 변수로만 전달한다. 키 없이 출시 산출물을 만들지 않는다.
+def signingValues = [
+    storeFile: System.getenv('BALJACHWI_ANDROID_KEYSTORE_PATH'),
+    storePassword: System.getenv('BALJACHWI_ANDROID_KEYSTORE_PASSWORD'),
+    keyAlias: System.getenv('BALJACHWI_ANDROID_KEY_ALIAS'),
+    keyPassword: System.getenv('BALJACHWI_ANDROID_KEY_PASSWORD')
+]
+def signingReady = signingValues.values().every { it != null && !it.trim().isEmpty() }
+// assemble/build 같은 묶음 작업으로 실행해도 서명 없는 출시 패키징을 차단한다.
+gradle.taskGraph.whenReady { graph ->
+    def releasePackaging = graph.allTasks.any {
+        it.project == project && it.name in ['assembleRelease', 'bundleRelease', 'packageRelease', 'packageReleaseBundle']
+    }
+    if (releasePackaging && !signingReady) {
+        throw new GradleException('Release signing requires all BALJACHWI_ANDROID_KEY* environment variables. See docs/ANDROID-RELEASE.md.')
+    }
+}
+if (signingReady && !file(signingValues.storeFile).isFile()) {
+    throw new GradleException('The Android upload keystore file does not exist.')
+}
+
 android {
     namespace = "com.nemo9.dongnebaljachwi"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,8 +37,21 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (signingReady) {
+                storeFile file(signingValues.storeFile)
+                storePassword signingValues.storePassword
+                keyAlias signingValues.keyAlias
+                keyPassword signingValues.keyPassword
+            }
+        }
+    }
     buildTypes {
         release {
+            if (signingReady) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

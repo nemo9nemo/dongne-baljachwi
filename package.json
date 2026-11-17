@@ -23,6 +23,8 @@
     "test:local": "node tests/local/run.mjs",
     "test:sharing": "node --test tests/local/broker.test.mjs",
     "android:sync": "npm run build && cap sync android",
+    "android:apk": "node scripts/build-android.mjs debug",
+    "android:release": "node scripts/build-android.mjs release",
     "android:open": "cap open android"
   },
   "dependencies": {

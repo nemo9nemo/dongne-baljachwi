@@ -25,3 +25,10 @@ dist-ssr
 
 # 로컬 검증 로그·기존 작업 보존 패치
 /tmp/
+
+# Android 업로드 키와 빌드 산출물은 소스에 포함하지 않는다.
+*.jks
+*.keystore
+*.p12
+*.pfx
+/output/android/
