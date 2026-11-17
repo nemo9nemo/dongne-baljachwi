@@ -12,14 +12,14 @@ const base = 'http://127.0.0.1:8787'
 const secret = 'emulator-only-turn-fixture'
 const turn = spawn('turnserver', ['-n', '--no-cli', '--no-tls', '--no-dtls',
   '--listening-ip=127.0.0.1', '--relay-ip=127.0.0.1', '--allow-loopback-peers',
-  '--listening-port=3478', '--min-port=49160', '--max-port=49200',
+  '--listening-port=13478', '--min-port=49160', '--max-port=49200',
   '--realm=emulator.test', '--use-auth-secret', `--static-auth-secret=${secret}`,
   '--log-file=stdout'], { stdio: ['ignore', 'pipe', 'pipe'] })
 const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1',
   '--port', '8787', '--strictPort'], { stdio: ['ignore', 'pipe', 'pipe'], env: {
     ...process.env, VITE_STORAGE_BACKEND: 'local', SHARE_STATE_PATH: resolve(output, 'sharing.json'),
     SHARE_ALLOWED_ORIGINS: 'https://localhost', SHARE_TURN_SECRET: secret,
-    SHARE_TURN_URLS: 'turn:127.0.0.1:3478?transport=tcp'
+    SHARE_TURN_URLS: 'turn:127.0.0.1:13478?transport=tcp'
   } })
 let logs = ''
 for (const child of [server, turn]) {
@@ -48,10 +48,17 @@ async function openNative() {
   await device.shell(`am start -W -n ${pkg}/.MainActivity`)
   const view = await device.webView({ pkg, timeout: 45000 })
   const next = await view.page()
+  page = next
   next.setDefaultTimeout(30000)
   next.on('pageerror', error => errors.push(error.message))
   next.on('dialog', dialog => void dialog.accept())
-  await next.getByRole('heading', { name: '오늘의 발자취는 어디인가요' }).waitFor()
+  try {
+    await next.getByRole('heading', { name: '오늘의 발자취는 어디인가요' }).waitFor()
+  } catch (error) {
+    await writeFile(resolve(output, 'startup.json'), JSON.stringify({ url: next.url(),
+      body: await next.locator('body').innerText(), errors }, null, 2))
+    throw error
+  }
   return next
 }
 async function tab(target, name) {
@@ -99,7 +106,8 @@ try {
   assert.equal((await device.shell('getprop ro.kernel.qemu')).toString().trim(), '1',
     'This test only runs on a disposable emulator, never a personal phone')
   execFileSync('adb', ['-s', device.serial(), 'reverse', 'tcp:8787', 'tcp:8787'])
-  execFileSync('adb', ['-s', device.serial(), 'reverse', 'tcp:3478', 'tcp:3478'])
+  execFileSync('adb', ['-s', device.serial(), 'reverse', 'tcp:13478', 'tcp:13478'])
+  await device.shell('logcat -c')
   await device.installApk(apk)
   page = await openNative()
   await check('Android 네이티브 SQLite와 사진 파일에 저장', async () => {
@@ -200,7 +208,7 @@ try {
   console.log(`${results.length} Android emulator checks passed`)
 } catch (error) {
   if (page) await page.screenshot({ path: resolve(output, 'failure.png') }).catch(() => {})
-  if (device) await writeFile(resolve(output, 'logcat.txt'), await device.shell('logcat -d -t 350')).catch(() => {})
+  if (device) await writeFile(resolve(output, 'logcat.txt'), await device.shell('logcat -d -s Capacitor Capacitor/Console Capacitor/Plugin chromium AndroidRuntime')).catch(() => {})
   await writeFile(resolve(output, 'server.log'), logs)
   throw error
 } finally {
