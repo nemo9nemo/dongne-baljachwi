@@ -141,10 +141,11 @@ try {
       path = (await device.shell(`run-as ${pkg} find cache -name '*.baljachwi'`)).toString().trim().split('\n')[0]
       return path.endsWith('.baljachwi')
     }, 'Native backup file was not created')
-    backup = Buffer.from((await device.shell(`run-as ${pkg} base64 '${path}'`)).toString(), 'base64')
+    await until(async () => /ChooserActivity|IntentResolver|ResolverActivity/i.test(
+      (await device.shell('dumpsys activity activities')).toString()), 'Native share sheet did not open')
+    // 에뮬레이터 셸의 비 ASCII 경로 인코딩에 의존하지 않고 앱 내부에서 와일드카드를 확장한다.
+    backup = Buffer.from((await device.shell(`run-as ${pkg} sh -c "base64 cache/backups/*.baljachwi"`)).toString(), 'base64')
     assert.equal(backup.subarray(0, 8).toString(), 'BALJENC1')
-    const activities = (await device.shell('dumpsys activity activities')).toString()
-    assert.match(activities, /ChooserActivity|IntentResolver|ResolverActivity/i)
     // 공유 시트 취소 후 앱으로 돌아온다. 외부 보관 성공으로 계산하지 않는다.
     await device.shell('input keyevent 4')
     await until(() => page.getByRole('button', { name: '전체 맵·사진 백업 파일 만들기' }).isEnabled(), 'Share sheet did not dismiss')
