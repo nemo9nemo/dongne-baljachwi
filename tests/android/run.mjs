@@ -148,8 +148,9 @@ try {
     assert.equal(backup.subarray(0, 8).toString(), 'BALJENC1')
     // 공유 시트 취소 후 앱으로 돌아온다. 외부 보관 성공으로 계산하지 않는다.
     await device.shell('input keyevent 4')
-    await until(() => page.getByRole('button', { name: '전체 맵·사진 백업 파일 만들기' }).isEnabled(), 'Share sheet did not dismiss')
-    await close(page)
+    // Android가 공유 시트 종료 시 WebView를 다시 만들 수 있으므로 앱을 재시작해 다시 연결한다.
+    page = await openNative()
+    await tab(page, '내 맵·설정')
   })
   await check('잘못된 암호 거부·사진 포함 새 맵 복원', async () => {
     await page.getByRole('button', { name: '암호화 백업·복원 열기' }).click()
