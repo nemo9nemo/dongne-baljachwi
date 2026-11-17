@@ -4,7 +4,7 @@ PR #4에 최신 기기 저장 커밋 `c1f5a4a`를 반영하고 Application check
 
 - [Android 빌드·서명·실기기 점검](ANDROID-RELEASE.md)
 - [실기기 검증 항목과 대기 상태](ANDROID-DEVICE-QA.md)
-- 가상 검증 준비: Android 35 에뮬레이터의 실제 SQLite/파일 저장·재시작·덮어 설치·백업/복원과 Chromium 상대 WebRTC 공유를 CI에서 실행한다. 현재는 구성 단계이며 통과로 표시하지 않는다.
+- Android 35 에뮬레이터와 Chromium 상대를 이용한 7개 검증이 통과했다. SQLite/사진 저장·재시작·덮어 설치·암호화 백업/복원·WebRTC 공유·연결 해제 후 독립 작성을 확인했다. 첫 실행 시 사진 테이블이 생성되지 않는 Android 오류도 수정했다. [검증 결과](https://github.com/nemo9nemo/dongne-baljachwi/actions/runs/44104286386). OS 사진 선택기, 외부 백업 보관과 실제 두 휴대폰·다른 통신망은 별도 검증이 필요하다.
 - [최신 기능 CI](https://github.com/nemo9nemo/dongne-baljachwi/actions/runs/44097183503)
 
 ## 2026-10-20 기기 저장 구현
