@@ -5,6 +5,7 @@ on:
       - 'android/**'
       - 'src/**'
       - 'scripts/build-android.mjs'
+      - 'tests/android/**'
       - 'package*.json'
       - 'capacitor.config.ts'
       - 'vite.config.ts'
@@ -15,6 +16,7 @@ on:
       - 'android/**'
       - 'src/**'
       - 'scripts/build-android.mjs'
+      - 'tests/android/**'
       - 'package*.json'
       - 'capacitor.config.ts'
       - 'vite.config.ts'
@@ -48,4 +50,47 @@ jobs:
           name: android-debug-${{ github.sha }}
           path: output/android/
           if-no-files-found: error
+          retention-days: 14
+  emulator-qa:
+    needs: debug-apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v4
+        with:
+          log-accepted-android-sdk-licenses: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-debug-${{ github.sha }}
+          path: output/android/
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Prepare isolated emulator networking
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y coturn
+          sudo chmod a+rw /dev/kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -memory 2048 -cores 2
+          script: npm run test:android
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-qa-${{ github.sha }}
+          path: tmp/android-qa/
+          if-no-files-found: warn
           retention-days: 14

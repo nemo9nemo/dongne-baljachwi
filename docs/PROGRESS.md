@@ -4,6 +4,7 @@ PR #4에 최신 기기 저장 커밋 `c1f5a4a`를 반영하고 Application check
 
 - [Android 빌드·서명·실기기 점검](ANDROID-RELEASE.md)
 - [실기기 검증 항목과 대기 상태](ANDROID-DEVICE-QA.md)
+- 가상 검증 준비: Android 35 에뮬레이터의 실제 SQLite/파일 저장·재시작·덮어 설치·백업/복원과 Chromium 상대 WebRTC 공유를 CI에서 실행한다. 현재는 구성 단계이며 통과로 표시하지 않는다.
 - [최신 기능 CI](https://github.com/nemo9nemo/dongne-baljachwi/actions/runs/44097183503)
 
 ## 2026-10-20 기기 저장 구현
