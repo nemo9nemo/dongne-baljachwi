@@ -3,6 +3,7 @@
 PR #4에 최신 기기 저장 커밋 `c1f5a4a`를 반영하고 Application checks 전체 통과 후 `develop`에 병합했다(병합 커밋 `cd7aef8`). Android APK·서명 AAB 빌드 준비를 진행 중이다. 새 앱의 업로드 키는 저장소 밖에 생성했으며, 사용자에게 Android 휴대폰 한 대를 준비할 수 있음을 확인했다. 실제 두 휴대폰 검증·운영 공유 서버·개인정보/지원 안내·광고·스토어 제출은 남아 있다.
 
 - [Android 빌드·서명·실기기 점검](ANDROID-RELEASE.md)
+- [실기기 검증 항목과 대기 상태](ANDROID-DEVICE-QA.md)
 - [최신 기능 CI](https://github.com/nemo9nemo/dongne-baljachwi/actions/runs/44097183503)
 
 ## 2026-10-20 기기 저장 구현

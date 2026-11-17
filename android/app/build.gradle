@@ -8,11 +8,14 @@ def signingValues = [
     keyPassword: System.getenv('BALJACHWI_ANDROID_KEY_PASSWORD')
 ]
 def signingReady = signingValues.values().every { it != null && !it.trim().isEmpty() }
-def releaseRequested = gradle.startParameter.taskNames.any {
-    it.tokenize(':').last().toLowerCase().endsWith('release')
-}
-if (releaseRequested && !signingReady) {
-    throw new GradleException('Release signing requires all BALJACHWI_ANDROID_KEY* environment variables. See docs/ANDROID-RELEASE.md.')
+// assemble/build 같은 묶음 작업으로 실행해도 서명 없는 출시 패키징을 차단한다.
+gradle.taskGraph.whenReady { graph ->
+    def releasePackaging = graph.allTasks.any {
+        it.project == project && it.name in ['assembleRelease', 'bundleRelease', 'packageRelease', 'packageReleaseBundle']
+    }
+    if (releasePackaging && !signingReady) {
+        throw new GradleException('Release signing requires all BALJACHWI_ANDROID_KEY* environment variables. See docs/ANDROID-RELEASE.md.')
+    }
 }
 if (signingReady && !file(signingValues.storeFile).isFile()) {
     throw new GradleException('The Android upload keystore file does not exist.')
