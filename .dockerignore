@@ -1,0 +1,8 @@
+**
+!scripts/
+!scripts/sharing/
+!scripts/sharing/*.mjs
+!deploy/
+!deploy/sharing/
+!deploy/sharing/Dockerfile
+!deploy/sharing/entrypoint.sh
