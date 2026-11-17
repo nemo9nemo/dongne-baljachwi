@@ -12,6 +12,8 @@ npm run android:release
 
 ## 출시 키
 
+2026-11-17에 디버그 APK·출시 서명 APK·AAB를 실제 빌드했다. 출시 APK의 앱 ID·minSdk 24·targetSdk 36과 RSA 4096비트 업로드 서명을 확인했다. 디버그/출시 APK 모두 ZIP 16KB 정렬 검사와 arm64-v8a·x86_64 SQLCipher ELF의 PT_LOAD 16KB 정렬 검사를 통과했다. AAB도 `jarsigner -verify`로 서명을 확인했다. 이는 에뮬레이터/실기기 실행 결과와 별개다. [Android CI](https://github.com/nemo9nemo/dongne-baljachwi/actions/runs/44099047861), [전체 앱 CI](https://github.com/nemo9nemo/dongne-baljachwi/actions/runs/44099047630).
+
 키와 암호는 저장소·PR·로그에 넣지 않는다. 기본 로컬 설정은 사용자 홈의 `.config/dongne-baljachwi/android-signing/signing.json`이다. 다른 위치를 쓰면 `BALJACHWI_ANDROID_SIGNING_FILE`로 지정한다. 설정 파일에는 `storeFile`(키 파일의 절대 경로), `storePassword`, `keyAlias`, `keyPassword`를 넣고 현재 사용자만 읽을 수 있게 보관한다.
 
 CI에서 사용할 때는 다음 환경 변수 네 개를 비밀 값으로 전달한다. 환경 변수는 로컬 설정 파일보다 우선한다.
