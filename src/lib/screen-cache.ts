@@ -37,7 +37,7 @@ type Store = {
   /** 이 캐시들이 누구 것인지. 현재 커플과 다르면 통째로 버린다 */
   coupleId: string | null
   visits: VisitRow[] | null
-  timeline: (ListCache & { tagNorm: string | null }) | null
+  timeline: (ListCache & { tagNorm: string | null; filterKey?: string }) | null
   station: (ListCache & { stationId: string }) | null
 }
 
@@ -58,9 +58,10 @@ export const screenCache: Store = {
  *
  * @param coupleId 현재 세션의 커플 id. 커플이 없으면 null
  */
-export function scopeToCouple(coupleId: string | null): void {
-  if (screenCache.coupleId === coupleId) return
-  screenCache.coupleId = coupleId
+export function scopeToCouple(coupleId: string | null, userId: string | null = null): void {
+  const identity = coupleId === null ? null : JSON.stringify([userId, coupleId])
+  if (screenCache.coupleId === identity) return
+  screenCache.coupleId = identity
   screenCache.visits = null
   screenCache.timeline = null
   screenCache.station = null

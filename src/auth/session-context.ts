@@ -12,6 +12,7 @@ export type CoupleSummary = {
   /** `YYYY-MM-DD`. 디데이는 클라이언트가 계산한다 (00 D-13) */
   startedOn: string
   status: CoupleStatus
+  kind?: 'personal' | 'shared'
 }
 
 export type SessionValue = {
@@ -27,6 +28,9 @@ export type SessionValue = {
   members: CoupleMember[]
   /** 나를 제외한 멤버. 상대 미합류면 null */
   partner: CoupleMember | null
+  sharedCouple?: CoupleSummary | null
+  spaces?: { id: string; label: string; kind: 'personal' | 'shared' }[]
+  selectSpace?: (id: string) => Promise<void>
   /** 프로필/커플 조회가 네트워크 등으로 실패했는지. true면 "커플 없음"과 구분해야 한다 */
   loadFailed: boolean
   /** 커플 생성·합류·해제 직후 서버 상태를 다시 읽는다. 라우팅 가드가 곧바로 반응한다 */

@@ -1,299 +1,89 @@
-/*
- * 노선도 화면 (docs/specs/03-line-map.md).
- * 값은 전부 tokens.css 변수를 참조한다. 노선 색은 --line-<n> (lines.color_token 이 가리키는 이름).
- */
+/* 공유 지도 화면의 기본 구조 */
+.screen { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-4); }
+.title { font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); }
+.headerControls { display: flex; align-items: center; gap: var(--space-2); }
+.select { min-height: var(--touch-target); min-width: 0; padding: 0 var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-control); background: var(--color-field); }
+.toggleLink, .addRecord { display: inline-flex; min-height: var(--touch-target); align-items: center; justify-content: center; padding: 0 var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-control); text-decoration: none; font-size: var(--font-size-sm); white-space: nowrap; }
+.toggleLink { background: var(--color-surface); color: var(--color-text); }
+.addRecord { background: var(--color-text); color: var(--color-bg); }
+.banner { display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: space-between; align-items: center; padding: var(--space-2) var(--space-4); font-size: var(--font-size-sm); background: var(--color-notice-bg); border-block: 1px solid var(--color-notice-border); }
+.bannerButton { min-height: var(--touch-target); border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 0 var(--space-3); }
+.notice, .footer { padding: var(--space-3) var(--space-4); font-size: var(--font-size-sm); }
+.canvasWrap { position: relative; isolation: isolate; flex: 1; min-height: 220px; background: var(--color-surface); overflow: hidden; }
+.canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; touch-action: none; user-select: none; -webkit-user-select: none; }
+.skeleton { position: absolute; inset: 0; display: grid; place-items: center; background: var(--color-surface-muted); color: var(--color-text-muted); font-size: var(--font-size-sm); }
+.zoomControls { position: absolute; right: var(--space-3); bottom: var(--space-3); z-index: var(--z-canvas-control); display: flex; flex-direction: column; gap: var(--space-1); }
+.zoomButton { display: grid; place-items: center; width: var(--touch-target); height: var(--touch-target); background: var(--color-surface); border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); font-size: var(--font-size-xl); cursor: pointer; }
+.zoomButton:hover, .toggleLink:hover { background: var(--color-surface-muted); }
+.emptyHint { padding: var(--space-3); background: var(--color-primary-soft); text-align: center; }
 
-.screen {
-  display: flex;
-  flex-direction: column;
-  /* AppShell 의 .main(flex 컨테이너) 안에서 남은 높이를 전부 쓴다.
-     min-height:0 이 있어야 캔버스가 콘텐츠 높이 아래로도 줄어들어 탭바를 밀지 않는다. */
-  flex: 1;
-  min-height: 0;
-  /* 상단 워시 제거(2026-08-31 기아 재브랜딩) — 플랫 배경. */
-}
+/* 스펙 15: 글자 크기는 유지하고 표시 밀도는 캔버스의 충돌 검사로 제어한다. */
+.routeLine { stroke-width: var(--map-line-width, 1.5px); }
+.lineDimmed, .stationDimmed { opacity: .18; }
+.river { stroke: var(--map-river-color); opacity: .75; }
+.station { pointer-events: none; outline: none; }
+.station:focus-visible .selectionRing { stroke-width: 3px; }
+.fixedGlyph { transform: scale(var(--map-glyph-scale, 1)); }
+.fixedLabel { transform: scale(var(--map-inverse-scale, 1)); }
+.stationBody { fill: var(--color-surface); }
+.transferBody { fill: var(--color-surface); stroke: var(--color-text-muted); stroke-width: 1.2px; }
+.selectionRing { fill: none; stroke: var(--color-focus); stroke-width: 2px; }
+.visitMark { fill: var(--color-text); stroke: var(--color-surface); stroke-width: 1.5px; }
+.visitCheck { fill: none; stroke: var(--color-bg); stroke-width: 1.5px; stroke-linecap: round; stroke-linejoin: round; }
+.countBadge { fill: var(--color-text); stroke: var(--color-surface); stroke-width: 1px; }
+.badgeText { font-size: var(--font-size-xs); font-weight: var(--font-weight-bold); fill: var(--color-bg); }
+.labelLayer { pointer-events: none; }
+.label { fill: var(--color-text); font-family: var(--font-sans); font-size: var(--font-size-sm); font-weight: var(--font-weight-regular); stroke: var(--color-surface); stroke-width: 3px; stroke-linejoin: round; paint-order: stroke fill; }
+.selectedLabel { font-weight: var(--font-weight-bold); }
 
-.header {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-4) var(--space-4) var(--space-3);
-}
+/* 노선도가 화면의 주 영역을 차지하고 탐색 도구는 별도 패널에 모인다. */
+.mapScreen { overflow: hidden; }
+.mapHeader { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); flex-shrink: 0; border-bottom: 1px solid var(--color-border); }
+.eyebrow { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+.mapTitle { font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); }
+.mapWorkspace { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.sidebar { position: relative; z-index: var(--z-canvas-control); display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3) var(--space-4); background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
+.searchArea { position: relative; }
+.searchInput { width: 100%; min-height: var(--touch-target); padding: 0 var(--space-3); border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); background: var(--color-field); font-size: var(--font-size-md); }
+.searchDropdown { position: absolute; top: calc(100% + var(--space-1)); left: 0; right: 0; z-index: var(--z-dialog); border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); background: var(--color-surface); overflow: hidden; }
+.searchMeta { padding: var(--space-3); font-size: var(--font-size-xs); color: var(--color-text-muted); border-bottom: 1px solid var(--color-border); }
+.searchResults { list-style: none; padding: 0; margin: 0; max-height: min(48dvh, 400px); overflow: auto; }
+.searchResults li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-1); padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--color-border); }
+.searchResults li:last-child { border-bottom: none; }
+.searchResults a { display: flex; flex: 1; min-width: 0; min-height: var(--touch-target); justify-content: center; flex-direction: column; color: var(--color-text); text-decoration: none; }
+.searchResults a span { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+.searchResults button { flex-shrink: 0; min-height: var(--touch-target); font-size: var(--font-size-xs); padding: 0 var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-control); cursor: pointer; }
+.filterRow { display: flex; gap: var(--space-2); align-items: center; }
+.filterRow .select { flex: 1; }
+.filterLabel { display: none; }
+.textButton { min-height: var(--touch-target); padding: 0 var(--space-2); font-size: var(--font-size-sm); cursor: pointer; }
+.mapSummary, .quickStations, .sidebarLegend, .scopeNote, .firstRecord { display: none; }
+.mapHint { position: absolute; left: var(--space-3); bottom: var(--space-3); max-width: calc(100% - 84px); font-size: var(--font-size-xs); color: var(--color-text-muted); padding: var(--space-2); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-control); pointer-events: none; }
+.legend { position: absolute; top: var(--space-3); right: var(--space-3); max-width: calc(100% - var(--space-6)); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-control); font-size: var(--font-size-xs); }
+.legend summary { cursor: pointer; min-height: var(--touch-target); padding: var(--space-3); }
+.legend > div { display: flex; flex-direction: column; gap: var(--space-2); padding: 0 var(--space-3) var(--space-3); }
+.legendVisit { display: inline-block; padding: 0 var(--space-1); background: var(--color-text); color: var(--color-bg); border-radius: var(--radius-control); }
+.stationCandidates { position: absolute; bottom: var(--space-3); left: var(--space-3); right: calc(var(--touch-target) + var(--space-6)); display: flex; flex-direction: column; max-height: 50%; overflow: auto; padding: var(--space-3); border: 1px solid var(--color-border-strong); border-radius: var(--radius-control); background: var(--color-surface); }
+.stationCandidates > div { display: flex; justify-content: space-between; align-items: center; }
+.stationCandidates button { min-height: var(--touch-target); text-align: left; cursor: pointer; }
 
-.title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-tight);
-}
-
-.headerControls {
-  display: flex;
-  gap: var(--space-2);
-  align-items: center;
-}
-
-.select {
-  min-height: var(--touch-target);
-  padding: 0 var(--space-3);
-  background: var(--color-field);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-control);
-}
-
-.toggleLink {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--touch-target);
-  padding: 0 var(--space-3);
-  font-size: var(--font-size-sm);
-  color: var(--color-text);
-  text-decoration: none;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-control);
-}
-
-.toggleLink:hover {
-  color: var(--color-text);
-  background: var(--color-surface-muted);
-}
-
-.banner {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--font-size-sm);
-  background: var(--color-notice-bg);
-  border-block: 1px solid var(--color-notice-border);
-}
-
-.bannerButton {
-  min-height: var(--touch-target);
-  padding: 0 var(--space-3);
-  cursor: pointer;
-  background: none;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-control);
-}
-
-.notice {
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-}
-
-.canvasWrap {
-  position: relative;
-  /* 캔버스 영역의 z-index를 이 상자 안에 가둔다. 지도 보기에서는 카카오맵 SDK가 만든
-     레이어(핀 정보창 등)가 여기 들어오는데, 그 값들이 앱 크롬(탭바·토스트)이나
-     다이얼로그와 같은 평면에서 경쟁하면 안 된다. 안쪽 순서는 --z-canvas/--z-canvas-control
-     두 단계로만 정리한다. */
-  isolation: isolate;
-  flex: 1;
-  min-height: 220px;
-}
-
-/* 절대 배치인 이유: `height: 100%`는 부모(.canvasWrap)가 flex 아이템이라 퍼센트 기준이
-   확정되지 않아 콘텐츠 높이로 접힌다. inset:0 이면 그 문제가 없다. */
-.canvas {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  /* 브라우저 기본 팬/줌 제스처를 끄지 않으면 드래그가 페이지 스크롤로 새어 나간다. */
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.skeleton {
-  position: absolute;
-  inset: 0;
-  background: var(--color-surface-muted);
-}
-
-/* 역 그룹. 포인터 이벤트는 SVG 루트에서 "가장 가까운 역" 방식으로 처리하므로(F-24)
-   개별 요소는 히트 테스트에 참여하지 않는다. 키보드 포커스는 그대로 받는다. */
-.station {
-  pointer-events: none;
-  outline-offset: 2px;
-}
-
-.station:focus-visible {
-  outline: 2px solid var(--color-focus);
-}
-
-/* F-12: 선택되지 않은 호선은 숨기지 않고 흐리게. F-13대로 탭은 계속 받는다. */
-.stationDimmed,
-.lineDimmed {
-  opacity: 0.22;
-}
-
-/*
- * ── 역 심볼 채움 (F-03) ────────────────────────────────────────────────
- * 채움 농도로 방문 빈도를 인코딩한다. 기준점은 **10회 = 노선 원색**이고,
- * 5회 단위로 한 단계씩: 10회 미만은 서피스 쪽으로 흐리게, 10회 이상은
- * 텍스트 색 쪽으로 짙게 간다.
- *
- * 혼합 대상이 흰색/검정이 아니라 --color-surface / --color-text 인 이유:
- * 이 두 토큰이 테마에 따라 뒤집히므로(라이트 #fff↔#1f181d, 다크 #1f181d↔#f5eef2)
- * "적을수록 배경에 가깝고, 많을수록 배경에서 멀다"는 한 가지 규칙이 라이트·다크
- * 양쪽에서 그대로 성립한다. 다크에서 검정 쪽으로 짙게 하면 배경에 파묻힌다.
- *
- * 혼합 비율이 연한 쪽(35/20)과 짙은 쪽(15/30/45)에서 비대칭인 이유:
- * 라이트에서 --line-2(#009944)는 흰색 대비가 3.72:1 뿐이라 흰색 쪽 여유가 좁다.
- * 같은 폭으로 섞으면 연한 두 단계가 서로 구분되지 않아, 연한 쪽만 보폭을 넓혔다.
- * 결과적으로 라이트 기준 인접 단계 간 명도 대비가 1.23~1.30 배로 고르게 나온다
- * (흰 서피스 대비: 2.33 → 2.86 → 3.72 → 4.70 → 6.02 → 7.77).
- *
- * 테두리(stroke)는 어느 단계에서도 노선 원색 그대로다. 덤으로 기준(10~14회)에서만
- * 채움과 테두리가 같은 색이라 링이 사라지고, 위아래 단계에서는 링이 다시 보인다
- * — 농도 외의 부수적 단서가 된다.
- *
- * ⚠ 2026-08-31 정정: 여기 있던 "테두리가 배경 대비 3:1 이상을 유지하므로 WCAG 1.4.11 을
- * 테두리가 보장한다"는 서술은 --line-2(라이트 3.72:1) 하나만 있던 시절의 이야기였고,
- * MVP 24개 노선색을 전부 채운 지금은 **라이트 테마에서 성립하지 않는다.** 공식 노선색 중
- * 밝은 계열은 흰 배경 대비가 3:1에 못 미친다 — 자기부상 1.50 / 우이신설 1.80 / 의정부 1.98 /
- * 경의중앙 2.06 / 분당 2.09 / 9호선 2.15 / 인천1 2.49 / 인천2 2.53 / 서해 2.76 / 3호선 2.77 /
- * 4호선 2.82. 다크는 전부 3.76:1 이상이라 문제없다.
- * 공식 색은 임의로 못 바꾸므로(정보의 정확성이 우선) 해결책은 색이 아니라 **형태**여야 한다
- * — 심볼/스트로크에 --color-text 계열 헤어라인을 덧대는 방식. 별도 과제로 남긴다.
- * 다만 이 화면에서 "방문 여부"는 색이 아니라 채움 여부(§6)가 구분하므로, 대비 미달이
- * 정보 손실로 직결되지는 않는다 — 노선 식별이 다소 흐려질 뿐이다.
- */
-.symbol {
-  /* 10~14회 = 기준색. color-mix 미지원 브라우저(iOS Safari 16.0~16.1)에서
-     모든 방문 단계가 떨어지는 폴백이기도 하다 — 변경 전 동작과 같아진다. */
-  fill: var(--station-color);
-}
-
-/* 0회. 채움 없음(서피스와 같은 색) — 방문/미방문은 색이 아니라 "채움 여부"로 구분한다 (§6). */
-.symbolEmpty {
-  fill: var(--color-surface);
-}
-
-@supports (fill: color-mix(in srgb, red 50%, blue)) {
-  /* 1~4회 */
-  .symbolPale2 {
-    fill: color-mix(in srgb, var(--station-color) 65%, var(--color-surface));
-  }
-
-  /* 5~9회 */
-  .symbolPale1 {
-    fill: color-mix(in srgb, var(--station-color) 80%, var(--color-surface));
-  }
-
-  /* 15~19회 */
-  .symbolDeep1 {
-    fill: color-mix(in srgb, var(--station-color) 85%, var(--color-text));
-  }
-
-  /* 20~24회 */
-  .symbolDeep2 {
-    fill: color-mix(in srgb, var(--station-color) 70%, var(--color-text));
-  }
-
-  /* 25회 이상. 상한 — 여기서 더 짙어지지 않는다. */
-  .symbolDeep3 {
-    fill: color-mix(in srgb, var(--station-color) 55%, var(--color-text));
-  }
-
-  /* 다크에서는 짙은 쪽 보폭을 키운다. --line-2 다크값(#2dc46f)이 이미 밝아서
-     밝은 쪽(--color-text) 여유가 좁고, 라이트와 같은 15/30/45 로는 인접 단계
-     대비가 1.09배까지 눌려 사실상 구분이 안 된다. 25/45/65 로 1.15배까지 벌렸다.
-     연한 쪽(35/20)은 다크에서 오히려 여유가 커서(서피스↔원색 7.66:1) 그대로 둔다. */
-  @media (prefers-color-scheme: dark) {
-    .symbolDeep1 {
-      fill: color-mix(in srgb, var(--station-color) 75%, var(--color-text));
-    }
-
-    .symbolDeep2 {
-      fill: color-mix(in srgb, var(--station-color) 55%, var(--color-text));
-    }
-
-    .symbolDeep3 {
-      fill: color-mix(in srgb, var(--station-color) 35%, var(--color-text));
-    }
-  }
-}
-
-.label {
-  font-size: 13px;
-  fill: var(--color-text);
-  /* 선 위에 글자가 올라앉으면 읽히지 않는다. 배경색 테두리를 글자 뒤로 깔아 후광을 만든다. */
-  stroke: var(--color-surface);
-  stroke-width: 3px;
-  paint-order: stroke fill;
-}
-
-.badgeText {
-  font-size: 12px;
-  font-weight: var(--font-weight-bold);
-  fill: var(--color-text-inverse);
-  stroke: none;
-}
-
-/* 노선도 줌 컨트롤(F-22)이자 지도 보기의 "전체 핀 보기"(F-17). 캔버스 위에 얹히므로
-   항상 캔버스보다 위 단계다 — 지도에서는 핀 정보창에 가려지면 탈출구 역할 자체가
-   무너진다(§6 No.3). */
-.zoomControls {
-  position: absolute;
-  right: var(--space-3);
-  bottom: var(--space-3);
-  z-index: var(--z-canvas-control);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.zoomButton {
-  width: var(--touch-target);
-  height: var(--touch-target);
-  font-size: var(--font-size-lg);
-  line-height: 1;
-  cursor: pointer;
-  /* 캔버스(노선도 SVG·카카오맵) 위에 얹히므로 반투명 금지 — 불투명 서피스로 대비를
-     보장한다. 그림자가 사라졌으니 경계는 border-strong(4.9:1) 하나가 진다. */
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-control);
-}
-
-.zoomButton:hover {
-  background: var(--color-surface-muted);
-}
-
-.footer {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4) var(--space-4);
-  font-size: var(--font-size-sm);
-}
-
-.emptyHint {
-  padding: var(--space-3) var(--space-4);
-  text-align: center;
-  background: var(--color-primary-soft);
-  border-radius: var(--radius-control);
-}
-
-.missing > summary {
-  min-height: var(--touch-target);
-  padding: var(--space-3) 0;
-  color: var(--color-text-muted);
-  cursor: pointer;
-}
-
-.missingList {
-  max-height: 240px;
-  padding-left: var(--space-6);
-  margin: 0;
-  overflow-y: auto;
+@media (min-width: 900px) {
+  .mapHeader { padding: var(--space-4) var(--space-6); }
+  .mapWorkspace { flex-direction: row; }
+  .sidebar { width: var(--map-sidebar-width); flex-shrink: 0; padding: var(--space-6) var(--space-4); gap: var(--space-4); border-bottom: none; border-right: 1px solid var(--color-border); overflow: visible; }
+  .mapSummary, .quickStations, .sidebarLegend, .scopeNote, .firstRecord { display: block; }
+  .mapSummary { padding-block: var(--space-4); border-block: 1px solid var(--color-border); }
+  .summaryLabel { font-size: var(--font-size-xs); color: var(--color-text-muted); margin-bottom: var(--space-2); }
+  .summaryCount { font-size: var(--font-size-display); font-family: var(--font-numeric); font-weight: var(--font-weight-bold); line-height: var(--line-height-tight); }
+  .summaryCount span { font-size: var(--font-size-sm); font-weight: var(--font-weight-regular); color: var(--color-text-muted); }
+  .summaryHint, .scopeNote { font-size: var(--font-size-xs); color: var(--color-text-muted); margin-top: var(--space-2); }
+  .quickStations > div { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+  .quickStations button { min-height: var(--touch-target); padding: 0 var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-control); font-size: var(--font-size-xs); cursor: pointer; }
+  .sidebarLegend { min-height: 0; overflow: auto; }
+  .lineLegend { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-1); }
+  .lineLegend button { display: flex; align-items: center; gap: var(--space-2); min-height: var(--touch-target); padding: 0 var(--space-1); font-size: var(--font-size-xs); text-align: left; cursor: pointer; border-radius: var(--radius-control); }
+  .lineLegend button[aria-pressed='true'] { background: var(--color-surface-muted); font-weight: var(--font-weight-bold); }
+  .lineLegend i { width: var(--space-3); height: var(--space-1); border-radius: var(--radius-control); flex-shrink: 0; }
+  .scopeNote { margin-top: auto; }
 }

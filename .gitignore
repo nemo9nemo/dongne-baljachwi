@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# 로컬 검증 로그·기존 작업 보존 패치
+/tmp/

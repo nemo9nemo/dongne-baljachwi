@@ -1,6 +1,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useNavigationType, useSearchParams } from 'react-router-dom'
 import { useSession } from '../../auth/session-context'
+import { useRevalidation } from '../../lib/revalidation'
 import { supabase } from '../../lib/supabase'
 import { loadStationMaster } from '../../lib/station-master'
 import type { StationMaster } from '../../lib/station-master'
@@ -29,19 +30,36 @@ import ui from '../../styles/ui.module.css'
  */
 
 type Chip = { tag: string; tagNorm: string; usageCount: number }
+function validDate(value: string | null): string | null {
+  if (value === null || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null
+  const time = Date.parse(value)
+  return Number.isFinite(time) && new Date(time).toISOString().slice(0, 10) === value ? value : null
+}
 
 export function TimelineScreen() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const navigationType = useNavigationType()
   const location = useLocation()
+  const entryNavigation = useRef({ type: navigationType, state: location.state }).current
   const session = useSession()
 
   const coupleId = session.couple?.id ?? null
   // POP 복귀 캐시(F-10)는 화면 밖에 산다 — 읽기 전에 소유 커플을 맞춘다(01 AC-15).
-  scopeToCouple(coupleId)
+  scopeToCouple(coupleId, session.userId)
 
   const rawTag = searchParams.get('tag')
+  const query = searchParams.get('q')?.trim() ?? ''
+  const start = validDate(searchParams.get('start'))
+  const end = validDate(searchParams.get('end'))
+  const month = searchParams.get('month')
+  const jump = month !== null && /^\d{4}-(0[1-9]|1[0-2])$/.test(month)
+    ? new Date(Date.UTC(Number(month.slice(0,4)), Number(month.slice(5,7)), 0)).toISOString().slice(0,10) : null
+  const filterKey = JSON.stringify([query, start, end, jump, rawTag])
+  const hasFilter = Boolean(query || start || end || rawTag || jump)
+  const [months, setMonths] = useState<{ month: string; count: number }[] | null>(null)
+  const [monthError, setMonthError] = useState(false)
+  const monthGeneration = useRef(0)
   // F-19: tag_norm 기준 매칭. URL에는 06이 표시용 tag를 그대로 실어 보내므로 여기서 정규화한다.
   const selectedTagNorm = rawTag === null ? null : toTagNorm(normalizeTag(rawTag))
 
@@ -56,6 +74,8 @@ export function TimelineScreen() {
   const [online, setOnline] = useState(() => navigator.onLine)
   const [announcement, setAnnouncement] = useState('')
 
+  const requestGeneration = useRef(0)
+  const invalidateRequests = useCallback(() => { requestGeneration.current++ }, [])
   const rootRef = useRef<HTMLDivElement>(null)
   const sentinelRef = useRef<HTMLButtonElement>(null)
   const scrollParentRef = useRef<HTMLElement | null>(null)
@@ -76,7 +96,7 @@ export function TimelineScreen() {
     return () => {
       alive = false
     }
-  }, [])
+  }, [coupleId])
 
   useEffect(() => {
     void loadStationMaster()
@@ -96,29 +116,36 @@ export function TimelineScreen() {
 
   // ── 목록 로드 — 태그 필터가 바뀔 때마다 처음부터 (F-21) ────────────────────
   const load = useCallback(async (tagNorm: string | null) => {
+    const generation = ++requestGeneration.current
     setLoadState('loading')
+    setLoadingMore(false)
     setMoreError(false)
     try {
-      const page = await fetchRecordCardPage({ tagNorm })
+      const page = await fetchRecordCardPage({ tagNorm, query, start, end, jump })
+      if (generation !== requestGeneration.current) return
       setCards(page.cards)
       setCursor(page.nextCursor)
       setHasMore(page.hasMore)
       setLoadState('ready')
     } catch {
+      if (generation !== requestGeneration.current) return
       setLoadState('failed')
     }
-  }, [])
+  }, [query, start, end, jump])
 
   useEffect(() => {
+    // 필터 변경 시 이전 목록과 추가 페이지의 응답을 무효화한다.
+    requestGeneration.current++
+    setLoadingMore(false)
     // POP(뒤로가기)이고 같은 필터의 캐시가 있으면 새로 받지 않고 그대로 되살린다(F-10).
     // `navigationType`을 의도적으로 의존성에서 뺀다 — 이 화면은 라우트 전용이라 마운트마다
     // 한 번만 의미가 있고, 넣으면 "필터만 바뀐" 재실행에서도 오래된 POP 판정이 새로 걸린다.
     //
     // `restoreList`: 06이 삭제 후 `replace`로 돌려보낸 경우다. POP이 아니지만 캐시는 방금
     // 그 카드를 뺀 최신 상태라 되살리는 게 맞다(AC-14 — 스크롤도 함께 유지된다).
-    const restoreAllowed = navigationType === 'POP' || readStateFlag(location.state, 'restoreList')
+    const restoreAllowed = entryNavigation.type === 'POP' || readStateFlag(entryNavigation.state, 'restoreList')
     const cached = screenCache.timeline
-    if (restoreAllowed && cached !== null && cached.tagNorm === selectedTagNorm) {
+    if (restoreAllowed && cached !== null && cached.filterKey === filterKey) {
       setCards(cached.cards)
       setCursor(cached.cursor)
       setHasMore(cached.hasMore)
@@ -130,12 +157,16 @@ export function TimelineScreen() {
         if (parent !== null) parent.scrollTop = savedTop
         else window.scrollTo(0, savedTop)
       })
-      return
+      return invalidateRequests
     }
     void load(selectedTagNorm)
+    return invalidateRequests
     // `load`는 useCallback(deps: [])로 참조가 고정돼 있어 넣어도 재실행 트리거가 되지 않는다.
     // `coupleId`는 커플이 바뀌었을 때(캐시가 비워졌을 때) 다시 받게 하려고 넣는다.
-  }, [selectedTagNorm, load, coupleId])
+  }, [selectedTagNorm, load, coupleId, invalidateRequests, filterKey, entryNavigation])
+  const refresh = useCallback(() => { void load(selectedTagNorm) }, [load, selectedTagNorm])
+  useRevalidation(refresh)
+  useEffect(() => { monthGeneration.current++; setMonths(null); setMonthError(false) }, [filterKey])
 
   useEffect(() => {
     scrollParentRef.current = findScrollParent(rootRef.current)
@@ -143,14 +174,16 @@ export function TimelineScreen() {
 
   // 상태가 바뀔 때마다 캐시를 최신으로 유지한다. 실제 스크롤 위치는 언마운트 시점에 채운다.
   useEffect(() => {
+    if (loadState !== 'ready') return
     screenCache.timeline = {
+      filterKey,
       tagNorm: selectedTagNorm,
       cards,
       cursor,
       hasMore,
       scrollTop: screenCache.timeline?.scrollTop ?? 0,
     }
-  }, [selectedTagNorm, cards, cursor, hasMore])
+  }, [selectedTagNorm, cards, cursor, hasMore, loadState, filterKey])
 
   useEffect(() => {
     return () => {
@@ -162,20 +195,22 @@ export function TimelineScreen() {
 
   // ── 다음 페이지 ─────────────────────────────────────────────────────────
   const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore || cursor === null) return
+    if (loadState !== 'ready' || loadingMore || !hasMore || cursor === null) return
+    const generation = requestGeneration.current
     setLoadingMore(true)
     setMoreError(false)
     try {
-      const page = await fetchRecordCardPage({ tagNorm: selectedTagNorm, cursor })
+      const page = await fetchRecordCardPage({ tagNorm: selectedTagNorm, cursor, query, start, end, jump })
+      if (generation !== requestGeneration.current) return
       setCards((prev) => [...prev, ...page.cards])
       setCursor(page.nextCursor)
       setHasMore(page.hasMore)
     } catch {
-      setMoreError(true)
+      if (generation === requestGeneration.current) setMoreError(true)
     } finally {
-      setLoadingMore(false)
+      if (generation === requestGeneration.current) setLoadingMore(false)
     }
-  }, [loadingMore, hasMore, cursor, selectedTagNorm])
+  }, [loadState, loadingMore, hasMore, cursor, selectedTagNorm, query, start, end, jump])
 
   // §6 접근성: 무한 스크롤은 스크린리더가 끝을 알 수 없으므로 "더 보기" 버튼(sentinelRef)을
   // 항상 함께 둔다. IntersectionObserver는 그 버튼이 보이면 자동으로 같은 동작을 트리거한다.
@@ -196,6 +231,7 @@ export function TimelineScreen() {
   // ── 필터 전환 (F-14/F-15/F-18) ──────────────────────────────────────────
   function toggleTag(chip: Chip) {
     const params = new URLSearchParams(searchParams)
+    params.delete('month')
     if (selectedTagNorm === chip.tagNorm) {
       params.delete('tag')
     } else {
@@ -207,9 +243,7 @@ export function TimelineScreen() {
   }
 
   function clearFilter() {
-    const params = new URLSearchParams(searchParams)
-    params.delete('tag')
-    setSearchParams(params)
+    setSearchParams({})
     setAnnouncement('')
   }
 
@@ -234,7 +268,17 @@ export function TimelineScreen() {
   const selectedChip = chips?.find((chip) => chip.tagNorm === selectedTagNorm) ?? null
 
   // 06이 삭제 후 돌아올 곳(AC-09). 태그 필터가 걸린 목록으로 진입했으면 그 필터까지 되살린다.
-  const backTo = rawTag === null ? '/timeline' : `/timeline?tag=${encodeURIComponent(rawTag)}`
+  const backTo = `/timeline${searchParams.size ? `?${searchParams.toString()}` : ''}`
+  async function loadMonths() {
+    const generation = ++monthGeneration.current
+    setMonthError(false)
+    try {
+      const result = await supabase.rpc('query_record_months', { p_query: query || null, p_tag_norm: selectedTagNorm, p_start: start, p_end: end })
+      if (generation !== monthGeneration.current) return
+      if (result.error || !Array.isArray(result.data)) { setMonthError(true); return }
+      setMonths(result.data)
+    } catch { if (generation === monthGeneration.current) setMonthError(true) }
+  }
 
   // 최초 로딩 중(칩·목록 둘 다 아직 없음)인지 여부. 예전에는 이 상태를 별도의 `return`으로
   // 완전히 다른 트리(h1도, FAB도 없는 트리)로 그렸는데, 그러면 데이터가 도착하는 순간
@@ -246,6 +290,23 @@ export function TimelineScreen() {
   return (
     <div className={styles.screen} ref={rootRef}>
       <h1 className={ui.title}>타임라인</h1>
+      <form className={styles.searchFilters} key={filterKey} onSubmit={event => {
+        event.preventDefault()
+        const values = new FormData(event.currentTarget)
+        const params = new URLSearchParams(searchParams)
+        for (const name of ['q', 'start', 'end']) {
+          const value = String(values.get(name) ?? '').trim()
+          if (value) params.set(name, value); else params.delete(name)
+        }
+        params.delete('month'); setSearchParams(params)
+      }}>
+        <label>기록 검색<input name="q" defaultValue={query} placeholder="역 · 장소 · 일기" maxLength={200} /></label>
+        <div className={styles.dateFilters}><label>시작일<input type="date" name="start" defaultValue={start ?? ''} /></label><label>종료일<input type="date" name="end" defaultValue={end ?? ''} /></label></div>
+        <div className={ui.buttonRow}><Button type="submit">검색</Button><Button type="button" variant="outline" onClick={() => void loadMonths()}>기간 이동</Button>{hasFilter && <Button type="button" variant="outline" onClick={clearFilter}>조건 해제</Button>}</div>
+      </form>
+      {monthError && <p role="alert">기간을 불러오지 못했어요. 다시 시도해주세요.</p>}
+      {months !== null && <div className={styles.monthPicker} aria-label="기록이 있는 연월">{months.length === 0 ? <p>조건에 맞는 기록이 없어요.</p> : months.map(item => <button type="button" key={item.month} onClick={() => { const params = new URLSearchParams(searchParams); params.set('month', item.month); setSearchParams(params); setMonths(null) }}>{item.month} · {item.count}건</button>)}</div>}
+      {jump !== null && <p className={ui.hint}>{month}부터 이전 기록을 보고 있어요. <button onClick={() => { const params = new URLSearchParams(searchParams); params.delete('month'); setSearchParams(params) }}>최근 기록으로 돌아가기</button></p>}
 
       <p className="srOnly" role="status" aria-live="polite">
         {initialLoading ? '불러오는 중' : announcement}
@@ -266,6 +327,8 @@ export function TimelineScreen() {
         <>
           {/* F-11~F-17: 태그가 하나도 없으면 칩 영역 자체를 그리지 않는다 */}
           {chips !== null && chips.length > 0 && (
+            <details className={styles.filters}>
+              <summary>{selectedTagNorm === null ? '태그로 찾기' : `태그: ${selectedChip?.tag ?? rawTag}`}</summary>
             <div className={styles.chipRow} role="group" aria-label="태그 필터">
               {chips.map((chip) => (
                 <button
@@ -281,6 +344,7 @@ export function TimelineScreen() {
                 </button>
               ))}
             </div>
+            </details>
           )}
 
           {loadState === 'failed' && (
@@ -292,7 +356,7 @@ export function TimelineScreen() {
             </div>
           )}
 
-          {loadState === 'ready' && cards.length === 0 && selectedTagNorm === null && (
+          {loadState === 'ready' && cards.length === 0 && !hasFilter && (
             <div className={ui.centerBox}>
               <p>아직 발자취가 없어요.</p>
               <Button asChild variant="default">
@@ -301,16 +365,16 @@ export function TimelineScreen() {
             </div>
           )}
 
-          {loadState === 'ready' && cards.length === 0 && selectedTagNorm !== null && (
+          {loadState === 'ready' && cards.length === 0 && hasFilter && (
             <div className={ui.centerBox}>
-              <p>{selectedChip?.tag ?? rawTag} 태그의 기록이 없어요.</p>
+              <p>조건에 맞는 기록이 없어요.</p>
               <Button type="button" variant="outline" onClick={clearFilter}>
                 필터 해제
               </Button>
             </div>
           )}
 
-          {cards.length > 0 && (
+          {loadState === 'ready' && cards.length > 0 && (
             <ul className={styles.list}>
               {cards.map((card, index) => {
                 const showHeader =
@@ -337,7 +401,7 @@ export function TimelineScreen() {
             </ul>
           )}
 
-          {hasMore && (
+          {loadState === 'ready' && hasMore && (
             <Button
               ref={sentinelRef}
               type="button"

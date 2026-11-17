@@ -1,3 +1,4 @@
+import { toChosung } from '../../lib/station-search'
 import { useMemo, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import { Input } from '@/components/ui/input'
@@ -16,30 +17,6 @@ type Props = {
   value: StationRow | null
   onChange: (station: StationRow) => void
   disabled: boolean
-}
-
-const CHOSUNG = [
-  'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ',
-  'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ',
-]
-
-const HANGUL_BASE = 0xac00
-const HANGUL_LAST = 0xd7a3
-/** 초성 하나가 담당하는 음절 수 (중성 21 × 종성 28) */
-const SYLLABLES_PER_CHOSUNG = 588
-
-/** 완성형 음절을 초성으로 접는다. 자모·영문·숫자는 그대로 둔다 */
-function toChosung(text: string): string {
-  let out = ''
-  for (const char of text) {
-    const code = char.codePointAt(0) ?? 0
-    if (code >= HANGUL_BASE && code <= HANGUL_LAST) {
-      out += CHOSUNG[Math.floor((code - HANGUL_BASE) / SYLLABLES_PER_CHOSUNG)]
-    } else {
-      out += char
-    }
-  }
-  return out
 }
 
 /** 호환 자모 영역(ㄱ~ㅎ). 이 문자가 하나라도 있으면 초성 질의로 본다 */

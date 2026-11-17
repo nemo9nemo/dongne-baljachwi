@@ -4,13 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useSession } from '../../auth/session-context'
+import { useRevalidation } from '../../lib/revalidation'
 import { supabase } from '../../lib/supabase'
 import { loadStationLines, loadStationMaster } from '../../lib/station-master'
 import type { StationMaster } from '../../lib/station-master'
 import { MOODS, WEATHERS, isMood, isWeather } from '../../lib/mood-weather'
 import { formatVisitedOn } from '../../lib/format-date'
 import { dropRecordFromCaches } from '../../lib/screen-cache'
-import { readStateString } from '../../lib/router-state'
+import { readStateFlag, readStateString, recordReturnPath } from '../../lib/router-state'
 import type { Mood, Weather } from '../../lib/database.types'
 import { ConfirmDialog } from './ConfirmDialog'
 import { PhotoViewer } from './PhotoViewer'
@@ -57,6 +58,7 @@ function readCardPreview(state: unknown): CardPreview | null {
 }
 
 type RecordDetail = {
+  placeName: string | null
   id: string
   stationId: string
   visitedOn: string
@@ -69,23 +71,29 @@ type RecordDetail = {
   lastEditedBy: string | null
 }
 
-type LoadState = 'loading' | 'ready' | 'not-found' | 'failed'
+type LoadState =
+  | { kind: 'loading'; scope: string }
+  | { kind: 'ready'; scope: string }
+  | { kind: 'not-found'; scope: string }
+  | { kind: 'failed'; scope: string }
 
 export function RecordDetailScreen() {
   const { recordId } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
   const session = useSession()
+  /** 로그인·공간·기록이 바뀐 화면에서 이전 상세 조회 결과를 보이지 않게 하는 식별자. */
+  const loadScope = JSON.stringify([recordId ?? null, session.userId, session.couple?.id ?? null])
 
   // §9: 진입 출처. 목록에서 왔으면 그 목록으로, 모르면 타임라인으로 돌아간다.
   // history state는 사용자가 직접 넣을 수 있는 값이라 앱 내부 경로만 받는다 — `//`로
   // 시작하면 브라우저가 프로토콜 상대 URL(외부 주소)로 해석한다.
   const from = readStateString(location.state, 'from')
-  const backTo = from !== null && from.startsWith('/') && !from.startsWith('//') ? from : '/timeline'
+  const backTo = recordReturnPath(from)
   const cameFromStation = backTo.startsWith('/stations/')
   const preview = readCardPreview(location.state)
 
-  const [loadState, setLoadState] = useState<LoadState>('loading')
+  const [loadState, setLoadState] = useState<LoadState>({ kind: 'loading', scope: loadScope })
   const [data, setData] = useState<RecordDetail | null>(null)
   const [master, setMaster] = useState<StationMaster | null>(null)
   const [lineLinks, setLineLinks] = useState<{ station_id: string; line_id: string }[]>([])
@@ -100,71 +108,120 @@ export function RecordDetailScreen() {
   const menuWrapRef = useRef<HTMLDivElement>(null)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  /** 재시도나 화면 범위 변경 뒤 늦게 끝난 이전 조회 결과를 무효화하는 세대 번호. */
+  const loadGenerationRef = useRef(0)
+  const photoRetries = useRef(new Set<string>())
 
+  /** 범위가 바뀌어 효과가 다시 실행되기 전에도 이전 상세를 렌더링하지 않는다. */
+  const currentLoadState: LoadState =
+    loadState.scope === loadScope ? loadState : { kind: 'loading', scope: loadScope }
+
+  /**
+   * 상세 본문·태그·사진 메타데이터를 함께 다시 조회한다.
+   * @returns Promise<void>; 필수 조회 성공 또는 화면 오류 상태로 끝난다.
+   */
   const load = useCallback(async () => {
-    if (recordId === undefined) return
-    setLoadState('loading')
-
-    const [masterResult, recordRes] = await Promise.all([
-      loadStationMaster().catch(() => null),
-      supabase
-        .from('records')
-        .select('id, station_id, visited_on, mood, weather, note, author_id, last_edited_by')
-        .eq('id', recordId)
-        .maybeSingle(),
-    ])
-
-    if (recordRes.error !== null) {
-      setLoadState('failed')
-      return
-    }
-    if (recordRes.data === null) {
-      // RLS 특성상 "없는 기록"과 "남의 기록"을 구분할 수 없다 (§2.3) — 문구도 구분하지 않는다.
-      setLoadState('not-found')
+    /** 이 요청의 결과를 현재 조회 범위·세대와 비교할 식별 번호. */
+    const loadGeneration = ++loadGenerationRef.current
+    photoRetries.current.clear()
+    setLoadState({ kind: 'loading', scope: loadScope })
+    if (recordId === undefined) {
+      setLoadState({ kind: 'failed', scope: loadScope })
       return
     }
 
-    if (masterResult !== null) {
-      setMaster(masterResult)
-      void loadStationLines(masterResult.version).then(setLineLinks, () => setLineLinks([]))
+    try {
+      const [masterResult, recordRes] = await Promise.all([
+        loadStationMaster().catch(() => null),
+        supabase
+          .from('records')
+          .select('id, station_id, visited_on, mood, weather, note, author_id, last_edited_by, place_name')
+          .eq('id', recordId)
+          .maybeSingle(),
+      ])
+
+      if (loadGeneration !== loadGenerationRef.current) return
+      if (recordRes.error !== null) {
+        setLoadState({ kind: 'failed', scope: loadScope })
+        return
+      }
+      if (recordRes.data === null) {
+        // RLS 특성상 "없는 기록"과 "남의 기록"을 구분할 수 없다 (§2.3) — 문구도 구분하지 않는다.
+        setLoadState({ kind: 'not-found', scope: loadScope })
+        return
+      }
+
+      const [tagRes, photoRes] = await Promise.all([
+        supabase.from('record_tags').select('tag').eq('record_id', recordId),
+        supabase
+          .from('record_photos')
+          .select('id, storage_path, sort_order, width, height')
+          .eq('record_id', recordId)
+          .order('sort_order'),
+      ])
+
+      if (loadGeneration !== loadGenerationRef.current) return
+      if (tagRes.error !== null || photoRes.error !== null) {
+        setLoadState({ kind: 'failed', scope: loadScope })
+        return
+      }
+
+      const row = recordRes.data
+      const photoRows = photoRes.data
+      /** URL 발급 실패는 사진 삭제로 취급하지 않고 사진 메타데이터를 그대로 둔다. */
+      let signed = new Map<string, string>()
+      try {
+        signed = await signPhotoUrls(photoRows.map((photo) => photo.storage_path))
+      } catch {
+        // 사진 URL은 보조 데이터이므로 사진 자리만 대체 표시한다.
+      }
+      if (loadGeneration !== loadGenerationRef.current) return
+
+      if (masterResult !== null) {
+        setMaster(masterResult)
+        void loadStationLines(masterResult.version).then(
+          (lines) => {
+            if (loadGeneration === loadGenerationRef.current) setLineLinks(lines)
+          },
+          () => {
+            if (loadGeneration === loadGenerationRef.current) setLineLinks([])
+          },
+        )
+      }
+
+      setData({
+        placeName: row.place_name,
+        id: row.id,
+        stationId: row.station_id,
+        visitedOn: row.visited_on,
+        mood: row.mood,
+        weather: row.weather,
+        note: row.note,
+        tags: tagRes.data.map((tag) => tag.tag),
+        photos: photoRows.map((photo) => ({
+          id: photo.id,
+          storagePath: photo.storage_path,
+          width: photo.width,
+          height: photo.height,
+          url: signed.get(photo.storage_path) ?? null,
+        })),
+        authorId: row.author_id,
+        lastEditedBy: row.last_edited_by,
+      })
+      setLoadState({ kind: 'ready', scope: loadScope })
+    } catch {
+      if (loadGeneration === loadGenerationRef.current) {
+        setLoadState({ kind: 'failed', scope: loadScope })
+      }
     }
-
-    const row = recordRes.data
-    const [tagRes, photoRes] = await Promise.all([
-      supabase.from('record_tags').select('tag').eq('record_id', recordId),
-      supabase
-        .from('record_photos')
-        .select('id, storage_path, sort_order, width, height')
-        .eq('record_id', recordId)
-        .order('sort_order'),
-    ])
-
-    const photoRows = photoRes.data ?? []
-    const signed = await signPhotoUrls(photoRows.map((photo) => photo.storage_path))
-
-    setData({
-      id: row.id,
-      stationId: row.station_id,
-      visitedOn: row.visited_on,
-      mood: row.mood,
-      weather: row.weather,
-      note: row.note,
-      tags: (tagRes.data ?? []).map((tag) => tag.tag),
-      photos: photoRows.map((photo) => ({
-        id: photo.id,
-        storagePath: photo.storage_path,
-        width: photo.width,
-        height: photo.height,
-        url: signed.get(photo.storage_path) ?? null,
-      })),
-      authorId: row.author_id,
-      lastEditedBy: row.last_edited_by,
-    })
-    setLoadState('ready')
-  }, [recordId])
+  }, [loadScope, recordId])
+  useRevalidation(load)
 
   useEffect(() => {
     void load()
+    return () => {
+      loadGenerationRef.current += 1
+    }
   }, [load])
 
   useEffect(() => {
@@ -255,8 +312,15 @@ export function RecordDetailScreen() {
     }
   }, [data, station])
 
-  async function resignPhoto(photoId: string, storagePath: string) {
-    const signed = await signPhotoUrls([storagePath])
+  async function resignPhoto(photoId: string, storagePath: string, manual = false) {
+    const generation = loadGenerationRef.current
+    if (photoRetries.current.has(photoId) && !manual) {
+      setData(prev => prev === null ? prev : { ...prev, photos: prev.photos.map(p => p.id === photoId ? { ...p, url: null } : p) })
+      return
+    }
+    photoRetries.current.add(photoId)
+    const signed = await signPhotoUrls([storagePath]).catch(() => new Map<string, string>())
+    if (generation !== loadGenerationRef.current) return
     const url = signed.get(storagePath) ?? null
     setData((prev) =>
       prev === null
@@ -301,7 +365,7 @@ export function RecordDetailScreen() {
     navigate(backTo, { replace: true, state: { toast: '기록을 삭제했어요', restoreList: true } })
   }
 
-  if (loadState === 'loading') {
+  if (currentLoadState.kind === 'loading') {
     // AC-15 / §6 "첫 픽셀": 목록에서 넘어왔으면 카드가 이미 아는 값(날짜·역명·감정·날씨)을
     // 먼저 그린다. 같은 값이 같은 자리에 그대로 남으므로 본문이 도착해도 헤더가 튀지 않는다.
     const head = preview === null ? null : formatVisitedOn(preview.visitedOn)
@@ -341,7 +405,7 @@ export function RecordDetailScreen() {
     )
   }
 
-  if (loadState === 'failed') {
+  if (currentLoadState.kind === 'failed') {
     return (
       <div className={ui.centerBox}>
         <p>기록을 불러오지 못했어요.</p>
@@ -352,7 +416,7 @@ export function RecordDetailScreen() {
     )
   }
 
-  if (loadState === 'not-found' || data === null) {
+  if (currentLoadState.kind === 'not-found' || data === null) {
     return (
       <div className={ui.centerBox}>
         {/* §2.3: "권한 없음"이라고 말하지 않는다 — 존재 여부가 새어 나간다 */}
@@ -378,6 +442,7 @@ export function RecordDetailScreen() {
 
   const viewerPhotos: ViewerPhoto[] = data.photos.map((photo, index) => ({
     id: photo.id,
+    storagePath: photo.storagePath,
     url: photo.url,
     // §6: 사용자가 alt를 입력하지 않으므로 최소한의 맥락을 시스템이 만든다.
     alt: `${dateLabel} ${station?.name ?? ''}에서 찍은 사진 ${index + 1}/${data.photos.length}`,
@@ -385,6 +450,8 @@ export function RecordDetailScreen() {
 
   return (
     <div className={styles.screen}>
+      {readStateFlag(location.state, 'saved') && <div className={ui.card} role="status"><p>기록을 저장했어요.</p><Button type="button" variant="outline" onClick={() => navigate(`/records/new?date=${data.visitedOn}`, { replace: true, state: { from: backTo } })}>이어서 기록 추가</Button></div>}
+      {data.placeName && <h1 className={ui.title}>{data.placeName}</h1>}
       <header className={styles.header}>
         <div>
           {/* F-02 / §9(2026-08-25): 역 상세에서 들어온 기록은 역명을 링크로 만들지 않는다 —
@@ -437,7 +504,7 @@ export function RecordDetailScreen() {
                 className={styles.menuItem}
                 onClick={() => {
                   setMenuOpen(false)
-                  navigate(`/records/${data.id}/edit`)
+                  navigate(`/records/${data.id}/edit`, { state: { from: backTo } })
                 }}
               >
                 수정
@@ -501,7 +568,7 @@ export function RecordDetailScreen() {
                 <button
                   type="button"
                   className={styles.photoFallback}
-                  onClick={() => void resignPhoto(photo.id, photo.storagePath)}
+                  onClick={() => void resignPhoto(photo.id, photo.storagePath, true)}
                 >
                   불러오지 못함 · 다시 시도
                 </button>

@@ -1,174 +1,61 @@
 /**
- * 노선도 도식 좌표 ↔ DB 정합성 검증 (03 §4.2, AC-14 / ADR-003 §3).
- *
- * 좌표는 리포지토리(정적 파일), 역/노선 마스터는 DB에 있다. 두 곳에 나뉜 데이터를
- * 이 스크립트가 붙들고 있다. **검증을 만들지 않으면 ADR-003 은 나쁜 결정이 된다.**
- *
- *   실패(exit 1) — 좌표 파일의 stationCode / lineCode 가 DB 에 없음
- *   실패(exit 1) — 파일 내부 불일치 (lines[].stationCodes 에 있는데 stations[] 에 없음, 좌표 중복)
- *   경고(exit 0) — DB 의 MVP 범위 역 중 좌표 파일에 없는 것
- *                   (신규 개통역이 좌표 작업 전이라는 이유로 배포를 막으면 안 된다)
- *   경고(exit 0) — 좌표 파일의 역 순서가 station_lines.seq 와 다름
- *
- * 실행: npm run verify:line-map   (.env.local 의 VITE_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY)
- * service_role 을 쓰는 이유: 마스터 조회에 로그인 세션이 필요한데 CI 에 사용자 계정을
- * 두고 싶지 않기 때문이다. 이 스크립트는 브라우저 번들에 들어가지 않는다.
+ * v2 도식 계약 + 운영 DB의 공개 역/노선 코드 정합성 검사. DB 쓰기 없음.
+ * node scripts/verify-line-map.mjs --offline: 자격 증명 없는 로컬 검사
+ * npm run verify:line-map: .env.local의 서비스 키로 마스터 코드·누락 범위도 검사
+ * station_lines.seq는 분기 순서를 나타내지 못하므로 실제 경로 검증의 근거로 쓰지 않는다.
  */
-
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createClient } from '@supabase/supabase-js'
+import { validateGeometry } from './line-map/validate.mjs'
 
-const GEOMETRY_DIR = 'src/data/line-map'
-const PAGE = 1000
-
-const url = process.env.VITE_SUPABASE_URL
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-if (!url || !serviceKey) {
-  console.error('VITE_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY 가 필요합니다.')
-  process.exit(1)
-}
-const db = createClient(url, serviceKey, { auth: { persistSession: false } })
-
-/**
- * @typedef {{ stationCode: string, x: unknown, y: unknown, labelAnchor: unknown }} GeomStation
- * @typedef {{ lineCode: string, polyline: unknown, stationCodes: string[] }} GeomLine
- * @typedef {{ viewBox?: { width?: unknown, height?: unknown }, lines?: GeomLine[], stations?: GeomStation[] }} GeomDoc
- */
-
-/** @type {string[]} */
-const errors = []
-/** @type {string[]} */
-const warnings = []
-
-// ── 좌표 파일 읽기 ──────────────────────────────────────────────────────────
-const files = readdirSync(GEOMETRY_DIR).filter((f) => f.endsWith('.json'))
-if (files.length === 0) errors.push(`${GEOMETRY_DIR} 에 좌표 파일이 없습니다.`)
-
-/** stationCode -> 그 역을 담고 있는 파일 이름  @type {Map<string, string>} */
-const geometryStations = new Map()
-/** lineCode -> 파일 이름 + 역 순서  @type {Map<string, { file: string, stationCodes: string[] }>} */
-const geometryLines = new Map()
-
+const directory = 'src/data/line-map'
+const errors = [], warnings = [], geometryStations = new Set(), geometryLines = new Set(), pathIds = new Set()
+const files = readdirSync(directory).filter(f => f.endsWith('.json'))
+if (!files.length) errors.push('좌표 파일이 없습니다.')
 for (const file of files) {
-  /** @type {GeomDoc} */
-  const doc = JSON.parse(readFileSync(join(GEOMETRY_DIR, file), 'utf8'))
-
-  if (!doc.viewBox || typeof doc.viewBox.width !== 'number' || typeof doc.viewBox.height !== 'number') {
-    errors.push(`${file}: viewBox 가 없거나 형식이 틀립니다.`)
-  }
-
+  const doc = JSON.parse(readFileSync(join(directory, file), 'utf8'))
+  errors.push(...validateGeometry(doc).map(e => `${file}: ${e}`))
   for (const s of doc.stations ?? []) {
-    if (typeof s.x !== 'number' || typeof s.y !== 'number') {
-      errors.push(`${file}: ${s.stationCode} 의 x/y 가 숫자가 아닙니다.`)
-    }
-    if (typeof s.labelAnchor !== 'string' || !['top', 'bottom', 'left', 'right'].includes(s.labelAnchor)) {
-      errors.push(`${file}: ${s.stationCode} 의 labelAnchor 가 잘못됐습니다 (${s.labelAnchor}).`)
-    }
-    if (geometryStations.has(s.stationCode)) {
-      errors.push(`${file}: stationCode 중복 — ${s.stationCode} (${geometryStations.get(s.stationCode)} 에도 있음)`)
-    }
-    geometryStations.set(s.stationCode, file)
+    if (geometryStations.has(s.stationCode)) errors.push(`파일 간 역 중복: ${s.stationCode}`)
+    geometryStations.add(s.stationCode)
   }
-
   for (const l of doc.lines ?? []) {
-    if (geometryLines.has(l.lineCode)) {
-      errors.push(`${file}: lineCode 중복 — ${l.lineCode}`)
-    }
-    geometryLines.set(l.lineCode, { file, stationCodes: l.stationCodes ?? [] })
-    if (!Array.isArray(l.polyline) || l.polyline.length < 2) {
-      errors.push(`${file}: ${l.lineCode} 의 polyline 이 비었습니다.`)
-    }
-    for (const code of l.stationCodes ?? []) {
-      if (!geometryStations.has(code) && !(doc.stations ?? []).some((s) => s.stationCode === code)) {
-        errors.push(`${file}: ${l.lineCode}.stationCodes 의 ${code} 에 좌표(stations[])가 없습니다.`)
-      }
-    }
+    if (pathIds.has(l.id)) errors.push(`파일 간 경로 ID 중복: ${l.id}`)
+    pathIds.add(l.id); geometryLines.add(l.lineCode)
   }
 }
-
-// ── DB ─────────────────────────────────────────────────────────────────────
-const { data: dbLines, error: lineErr } = await db
-  .from('lines')
-  .select('id, code, name, in_mvp_scope, is_active')
-if (lineErr) throw lineErr
-
-const dbStations = []
-for (let from = 0; ; from += PAGE) {
-  const { data, error } = await db
-    .from('stations')
-    .select('id, code, name_short, is_active')
-    .order('code')
-    .range(from, from + PAGE - 1)
-  if (error) throw error
-  dbStations.push(...data)
-  if (data.length < PAGE) break
-}
-
-const dbLineByCode = new Map(dbLines.map((l) => [l.code, l]))
-const dbStationCodes = new Set(dbStations.map((s) => s.code))
-
-// AC-14: 파일에 있는데 DB 에 없는 코드는 실패다.
-for (const [code, file] of geometryStations) {
-  if (!dbStationCodes.has(code)) errors.push(`${file}: DB 에 없는 stationCode — ${code}`)
-}
-for (const [code, { file }] of geometryLines) {
-  if (!dbLineByCode.has(code)) errors.push(`${file}: DB 에 없는 lineCode — ${code}`)
-}
-
-// 좌표 파일의 역 순서가 station_lines.seq 와 어긋나면 선이 엉킨다. 경고로만 알린다
-// (도식은 저작물이라 의도적으로 다르게 놓을 여지를 남긴다).
-for (const [lineCode, geom] of geometryLines) {
-  const dbLine = dbLineByCode.get(lineCode)
-  if (dbLine === undefined) continue
-  const { data, error } = await db
-    .from('station_lines')
-    .select('seq, stations(code)')
-    .eq('line_id', dbLine.id)
-    .order('seq')
-  if (error) throw error
-  // 임베드 조인 결과는 supabase-js 가 배열로 추론하지만 실제로는 1:1 이라 객체다.
-  const expected = data.map((r) => /** @type {{ code: string }} */ (/** @type {unknown} */ (r.stations)).code)
-  if (expected.join('>') !== geom.stationCodes.join('>')) {
-    warnings.push(
-      `${geom.file}: ${lineCode}(${dbLine.name}) 의 역 순서가 station_lines.seq 와 다릅니다.\n` +
-        `    file: ${geom.stationCodes.join(' > ')}\n` +
-        `    db  : ${expected.join(' > ')}`,
-    )
+if (!process.argv.includes('--offline')) {
+  const url = process.env.VITE_SUPABASE_URL, key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) { console.error('DB 검증에 VITE_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY가 필요합니다. 로컬 검사는 --offline을 쓰세요.'); process.exit(1) }
+  const db = createClient(url, key, { auth: { persistSession: false } })
+  /** @template T @param {string} table @param {string} columns @param {string} order @returns {Promise<T[]>} */
+  async function readAll(table, columns, order) {
+    /** @type {T[]} */
+    const rows = []
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await db.from(table).select(columns).order(order).range(from, from + 999)
+      if (error) throw new Error(`${table} 조회 실패: ${error.message}`)
+      rows.push(.../** @type {T[]} */ (/** @type {unknown} */ (data)))
+      if (data.length < 1000) return rows
+    }
   }
+  /** @type {[import('./line-map/types.js').DbLine[], import('./line-map/types.js').DbStation[], import('./line-map/types.js').DbMembership[]]} */
+  const [lines, stations, memberships] = await Promise.all([
+    readAll('lines', 'id,code,name,in_mvp_scope,is_active', 'code'),
+    readAll('stations', 'id,code,name_short,is_active', 'code'),
+    readAll('station_lines', 'station_id,line_id', 'station_id'),
+  ])
+  const dbCodes = new Set(stations.map(s => s.code)), lineCodes = new Set(lines.map(l => l.code))
+  for (const code of geometryStations) if (!dbCodes.has(code)) errors.push(`DB에 없는 역: ${code}`)
+  for (const code of geometryLines) if (!lineCodes.has(code)) errors.push(`DB에 없는 노선: ${code}`)
+  const mvpLines = new Set(lines.filter(l => l.in_mvp_scope && l.is_active).map(l => l.id))
+  const mvpStations = new Set(memberships.filter(m => mvpLines.has(m.line_id)).map(m => m.station_id))
+  const uncovered = stations.filter(s => s.is_active && mvpStations.has(s.id) && !geometryStations.has(s.code))
+  if (uncovered.length) warnings.push(`MVP 범위 ${uncovered.length}역에 도식 좌표가 없습니다: ${uncovered.slice(0, 8).map(s => s.name_short).join(', ')}`)
 }
-
-// MVP 범위인데 좌표가 없는 역 → 경고. 지금은 2호선 파일럿이라 대부분이 여기 잡힌다.
-const mvpLineIds = new Set(dbLines.filter((l) => l.in_mvp_scope && l.is_active).map((l) => l.id))
-const mvpStationIds = new Set()
-for (let from = 0; ; from += PAGE) {
-  const { data, error } = await db
-    .from('station_lines')
-    .select('station_id, line_id')
-    .range(from, from + PAGE - 1)
-  if (error) throw error
-  for (const r of data) if (mvpLineIds.has(r.line_id)) mvpStationIds.add(r.station_id)
-  if (data.length < PAGE) break
-}
-const uncovered = dbStations.filter(
-  (s) => s.is_active && mvpStationIds.has(s.id) && !geometryStations.has(s.code),
-)
-if (uncovered.length > 0) {
-  warnings.push(
-    `MVP 범위 역 ${uncovered.length}개에 도식 좌표가 없습니다 (노선도에 그려지지 않음).\n` +
-      `    예: ${uncovered.slice(0, 8).map((s) => `${s.name_short}(${s.code})`).join(', ')}${uncovered.length > 8 ? ' …' : ''}`,
-  )
-}
-
-// ── 결과 ───────────────────────────────────────────────────────────────────
-console.log(
-  `좌표 파일 ${files.length}개 / 노선 ${geometryLines.size}개 / 역 ${geometryStations.size}개 검사`,
-)
-for (const w of warnings) console.warn(`경고: ${w}`)
-for (const e of errors) console.error(`실패: ${e}`)
-
-if (errors.length > 0) {
-  console.error(`\n정합성 검증 실패 ${errors.length}건.`)
-  process.exit(1)
-}
-console.log(`정합성 검증 통과 (경고 ${warnings.length}건).`)
+console.log(`좌표 파일 ${files.length}개 / 노선 항목 ${geometryLines.size}개 / 경로 ${pathIds.size}개 / 역 ${geometryStations.size}개`)
+for (const warning of warnings) console.warn(`경고: ${warning}`)
+for (const error of errors) console.error(`실패: ${error}`)
+if (errors.length) process.exit(1)
+console.log(`정합성 검증 통과 (경고 ${warnings.length}건). 운행 연결 전체의 정확성을 보증하는 검사는 아닙니다.`)

@@ -44,7 +44,9 @@ for (const file of await sqlFiles(path.join(here, 'support'))) {
 
 // ── 2. 마이그레이션 ─────────────────────────────────────────────────────────
 const migrationsDir = path.join(here, '..', 'migrations')
-for (const file of await sqlFiles(migrationsDir)) {
+const writeContractMigration = '20261015090000_record_write_contract.sql'
+const migrations = await sqlFiles(migrationsDir)
+async function applyMigration(file) {
   const sql = await readFile(path.join(migrationsDir, file), 'utf8')
   try {
     await db.exec(sql)
@@ -54,11 +56,22 @@ for (const file of await sqlFiles(migrationsDir)) {
     process.exit(1)
   }
 }
+// 레거시 직접 쓰기(30), 구 RPC(60)만 전환 전 계약의 이력으로 검사한다.
+// 그 밖의 읽기/RLS/가입/역 마스터 검사와 새 쓰기 검사는 실제 전환 이후 실행한다.
+for (const file of migrations.filter(file => file < writeContractMigration)) await applyMigration(file)
 
 // ── 3. 테스트 ───────────────────────────────────────────────────────────────
+const legacyTests = new Set(['30-records.test.sql', '60-upsert-record.test.sql'])
 const testFiles = (await sqlFiles(here)).filter((f) => f.endsWith('.test.sql') && f.includes(filter))
+  .sort((a, b) => Number(legacyTests.has(b)) - Number(legacyTests.has(a)) || a.localeCompare(b))
 
+let writeContractApplied = false
 for (const file of testFiles) {
+  if (!legacyTests.has(file) && !writeContractApplied) {
+    await db.exec('reset role;')
+    for (const migration of migrations.filter(file => file >= writeContractMigration)) await applyMigration(migration)
+    writeContractApplied = true
+  }
   const sql = await readFile(path.join(here, file), 'utf8')
   // 실행 중 파일 이름을 GUC 로 넘긴다 (test.record 가 읽는다).
   await db.exec(`reset role; select set_config('test.file', ${literal(file)}, false);`)
@@ -73,6 +86,10 @@ for (const file of testFiles) {
       error.message,
     ])
   }
+}
+if (!writeContractApplied) {
+  await db.exec('reset role;')
+  for (const migration of migrations.filter(file => file >= writeContractMigration)) await applyMigration(migration)
 }
 
 await db.exec('reset role;')
@@ -98,6 +115,8 @@ for (const row of rows) {
 }
 
 console.log(`\n${rows.length - failed}/${rows.length} passed`)
+const historical = rows.filter(row => legacyTests.has(row.file)).length
+console.log(`현재 스키마 검사 ${rows.length - historical}개 / 전환 전 계약 이력 검사 ${historical}개`)
 if (testFiles.length === 0) {
   console.log('실행된 테스트 파일이 없다 (필터 확인)')
   process.exit(1)

@@ -22,3 +22,7 @@ export function readStateFlag(state: unknown, key: string): boolean {
   if (typeof state !== 'object' || state === null) return false
   return (state as Record<string, unknown>)[key] === true
 }
+/** D13: 목록 복귀는 허용된 앱 경로만 받는다. 역슬래시·프로토콜 상대 URL은 거부한다. */
+export function recordReturnPath(value: string | null): string {
+  return value !== null && /^\/(?:lines|map|timeline|profile|stations\/[a-zA-Z0-9-]+)(?:\?[^#\\]*)?$/.test(value) ? value : '/timeline'
+}

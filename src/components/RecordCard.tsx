@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+import { RecordPhoto } from './RecordPhoto'
+import { useSession } from '../auth/session-context'
 import { formatVisitedOn } from '../lib/format-date'
 import { MOODS, WEATHERS } from '../lib/mood-weather'
 import type { RecordCard as RecordCardData } from '../lib/record-card-query'
@@ -30,11 +32,11 @@ type Props = {
 }
 
 export function RecordCard({ card, authorName, stationName, stationHref, backTo }: Props) {
+  const session = useSession()
   const { dateLabel } = formatVisitedOn(card.visitedOn)
   const moodMeta = card.mood === null ? null : (MOODS.find((item) => item.slug === card.mood) ?? null)
   const weatherMeta =
     card.weather === null ? null : (WEATHERS.find((item) => item.slug === card.weather) ?? null)
-  const extraTagCount = card.totalTagCount - card.tags.length
 
   // §6 접근성: "2026년 8월 11일 홍대입구 기록, 설렘, 맑음, 사진 2장" 형태로 구성한다.
   // 링크 전체에 aria-label을 걸면 하위 텍스트(태그·작성자)가 스크린리더에서 사라지므로
@@ -74,44 +76,27 @@ export function RecordCard({ card, authorName, stationName, stationHref, backTo 
         }}
       >
         {card.coverPhoto !== null && (
-          <div
-            className={styles.thumbWrap}
-            style={{ aspectRatio: `${card.coverPhoto.width} / ${card.coverPhoto.height}` }}
-          >
+          <div className={styles.thumbWrap}>
             {card.coverPhoto.url === null ? (
               <div className={styles.thumbFallback} aria-hidden="true" />
             ) : (
-              <img className={styles.thumb} src={card.coverPhoto.url} alt="" />
+              <RecordPhoto thumbnail path={card.coverPhoto.storagePath} className={styles.thumb} url={card.coverPhoto.url} alt="" />
             )}
           </div>
         )}
 
         <div className={styles.body}>
+          {card.placeName && <strong>{card.placeName}</strong>}
           <div className={styles.metaRow}>
             <span className={styles.date}>{dateLabel}</span>
-            {moodMeta !== null && <span aria-hidden="true">{moodMeta.emoji}</span>}
-            {weatherMeta !== null && <span aria-hidden="true">{weatherMeta.emoji}</span>}
           </div>
 
           {card.noteExcerpt !== null && card.noteExcerpt !== '' && (
             <p className={styles.excerpt}>{card.noteExcerpt}</p>
           )}
-
-          {card.tags.length > 0 && (
-            <div className={styles.tags} aria-hidden="true">
-              {card.tags.map((tag) => (
-                <span key={tag} className={styles.tag}>
-                  #{tag}
-                </span>
-              ))}
-              {/* F-11 (04): 태그가 3개를 넘으면 "+N" */}
-              {extraTagCount > 0 && <span className={styles.tag}>+{extraTagCount}</span>}
-            </div>
-          )}
-
-          <span className={styles.author} aria-hidden="true">
+          {session.couple?.kind !== 'personal' && <span className={styles.author} aria-hidden="true">
             {authorName}
-          </span>
+          </span>}
         </div>
       </Link>
     </li>

@@ -32,6 +32,11 @@
   flex: 1 0 auto;
 }
 
+/* 스펙 15: 노선도는 제품의 주 화면으로 넓은 작업 영역을 사용한다. */
+.mapBackdrop { height: 100dvh; min-height: 0; }
+.mapFrame { min-height: 0; overflow: hidden; }
+.mapFrame > :last-child { flex: 1; min-height: 0; }
+
 @media (min-width: 768px) {
   .backdrop {
     align-items: center;
@@ -56,6 +61,9 @@
     border: 1px solid var(--app-frame-border);
     border-radius: var(--app-frame-radius);
   }
+
+  .mapFrame { width: var(--map-frame-width); max-height: none; overflow: hidden; }
+  .mapBackdrop { padding: var(--space-4); }
 
   /* 프레임을 세로로 꽉 채우려면 백드롭이 확정 높이를 가져야 한다
      (자식의 height: 100%가 풀리도록). */

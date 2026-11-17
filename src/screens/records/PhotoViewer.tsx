@@ -8,8 +8,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import styles from './record-detail.module.css'
+import { RecordPhoto } from '../../components/RecordPhoto'
 
-export type ViewerPhoto = { id: string; url: string | null; alt: string }
+export type ViewerPhoto = { id: string; url: string | null; alt: string; storagePath?: string }
 
 type Props = {
   photos: ViewerPhoto[]
@@ -95,7 +96,7 @@ export function PhotoViewer({ photos, startIndex, onClose }: Props) {
               ×
             </button>
 
-            {current.url === null ? (
+            {current.storagePath ? <RecordPhoto path={current.storagePath} className={styles.viewerImage} url={current.url} alt={current.alt} /> : current.url === null ? (
               <p className={styles.viewerFallback}>사진을 불러오지 못했어요.</p>
             ) : (
               <img className={styles.viewerImage} src={current.url} alt={current.alt} />

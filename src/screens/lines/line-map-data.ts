@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useRevalidation } from '../../lib/revalidation'
 import { useSession } from '../../auth/session-context'
 import { supabase } from '../../lib/supabase'
 import { screenCache, scopeToCouple } from '../../lib/screen-cache'
@@ -40,9 +41,11 @@ let cachedMaster: StationMaster | null = null
 export function useLineMapData() {
   const session = useSession()
   const coupleId = session.couple?.id ?? null
+  const generation = useRef(0)
+  const invalidate = useCallback(() => { generation.current++ }, [])
   // 캐시를 읽기 **전에** 소유자를 맞춘다. 남의 집계를 되쓰면 스탬프가 다른 커플 것으로 뜬다.
   // 비교 한 번이라 렌더 경로에서 불러도 비용이 없다.
-  scopeToCouple(coupleId)
+  scopeToCouple(coupleId, session.userId)
 
   const [master, setMaster] = useState<MasterState>(
     cachedMaster !== null ? { kind: 'ready', master: cachedMaster } : { kind: 'loading' },
@@ -67,6 +70,8 @@ export function useLineMapData() {
   }, [])
 
   const loadVisits = useCallback((force = false) => {
+    const request = ++generation.current
+    if (coupleId === null || session.userId === null) { setVisits({ kind: 'loading' }); return }
     if (!force && screenCache.visits !== null) {
       setVisits({ kind: 'ready', rows: screenCache.visits })
       return
@@ -77,6 +82,7 @@ export function useLineMapData() {
       .from('couple_station_visits')
       .select('station_id, visit_count, last_visited_on')
       .then(({ data, error }) => {
+        if (request !== generation.current) return
         if (error !== null || data === null) {
           setVisits({ kind: 'failed' })
           return
@@ -84,11 +90,13 @@ export function useLineMapData() {
         screenCache.visits = data
         setVisits({ kind: 'ready', rows: data })
       })
-  }, [])
+  }, [coupleId, session.userId])
 
   useEffect(() => loadMaster(), [loadMaster])
   // 커플이 바뀌면 scopeToCouple이 캐시를 비운 상태라 여기서 자동으로 다시 받는다.
-  useEffect(() => loadVisits(), [loadVisits, coupleId])
+  useEffect(() => { loadVisits(); return invalidate }, [loadVisits, invalidate])
+  const refresh = useCallback(() => loadVisits(true), [loadVisits])
+  useRevalidation(refresh)
 
   return {
     master,

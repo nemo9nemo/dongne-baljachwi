@@ -10,6 +10,7 @@ import {
 import type { PreparedPhoto } from './photo-pipeline'
 import type { PhotoContentType } from '../../lib/database.types'
 import { Button } from '@/components/ui/button'
+import { RecordPhoto } from '../../components/RecordPhoto'
 import styles from './record-editor.module.css'
 import ui from '../../styles/ui.module.css'
 
@@ -55,6 +56,7 @@ export type EditorPhoto =
 type Props = {
   photos: EditorPhoto[]
   onChange: (photos: EditorPhoto[]) => void
+  onPreparingChange: (count: number) => void
   disabled: boolean
   /** F-22: 업로드 진행률. null이면 업로드 중이 아니다 */
   progress: { done: number; total: number } | null
@@ -66,11 +68,16 @@ type Props = {
  * 선택 즉시 리사이즈·재인코딩까지 끝내 둔다(업로드는 저장 후, F-16). 저장 버튼을 누른
  * 뒤에 5장을 인코딩하면 그 시간이 통째로 "저장이 멈춘 것"처럼 보이기 때문이다.
  */
-export function PhotoField({ photos, onChange, disabled, progress }: Props) {
+export function PhotoField({ photos, onChange, onPreparingChange, disabled, progress }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [errors, setErrors] = useState<string[]>([])
   const [preparing, setPreparing] = useState(0)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const preparingRef = useRef(false)
+  const generationRef = useRef(0)
+  const latestRef = useRef({ photos, disabled })
+  latestRef.current = { photos, disabled }
+  const locked = disabled || preparing > 0
 
   /**
    * 만든 objectURL을 전부 모아 두었다가 언마운트 때 해제한다.
@@ -80,6 +87,7 @@ export function PhotoField({ photos, onChange, disabled, progress }: Props) {
   useEffect(() => {
     const urls = createdUrls.current
     return () => {
+      generationRef.current += 1
       for (const url of urls) URL.revokeObjectURL(url)
       urls.clear()
     }
@@ -89,7 +97,7 @@ export function PhotoField({ photos, onChange, disabled, progress }: Props) {
     const files = [...(event.target.files ?? [])]
     // 같은 파일을 다시 고를 수 있어야 하므로 값을 비운다 (change 이벤트가 안 뜨는 문제).
     event.target.value = ''
-    if (files.length === 0) return
+    if (files.length === 0 || preparingRef.current || latestRef.current.disabled) return
 
     const nextErrors: string[] = []
     const accepted: File[] = []
@@ -112,13 +120,17 @@ export function PhotoField({ photos, onChange, disabled, progress }: Props) {
     setErrors(nextErrors)
     if (accepted.length === 0) return
 
+    preparingRef.current = true
+    const generation = generationRef.current
     setPreparing(accepted.length)
+    onPreparingChange(accepted.length)
     const added: EditorPhoto[] = []
     // 순차 처리한다. 5장을 동시에 디코딩하면 모바일에서 메모리 압박으로 탭이 죽는다
     // (원본 4,000×3,000 한 장이 비트맵으로 48MB다).
     for (const file of accepted) {
       try {
         const prepared = await preparePhoto(file)
+        if (generation !== generationRef.current) return
         const previewUrl = URL.createObjectURL(prepared.blob)
         createdUrls.current.add(previewUrl)
         added.push({
@@ -129,17 +141,23 @@ export function PhotoField({ photos, onChange, disabled, progress }: Props) {
           failed: false,
         })
       } catch {
+        if (generation !== generationRef.current) return
         nextErrors.push(`${file.name} — 이미지를 읽지 못했어요.`)
       }
-      setPreparing((count) => count - 1)
     }
     // 위에서 넘긴 것과 같은 배열 객체를 다시 넘기면 React가 변경 없음으로 보고 건너뛴다.
     // 디코딩 실패 안내가 조용히 사라지는 원인이 된다.
+    if (generation !== generationRef.current) return
     setErrors([...nextErrors])
-    if (added.length > 0) onChange([...photos, ...added])
+    if (added.length > 0) onChange([...latestRef.current.photos, ...added])
+    // 부모 사진 목록 반영 뒤에 잠금을 푼다. Enter 제출이 옛 목록을 저장하지 않게 한다.
+    preparingRef.current = false
+    setPreparing(0)
+    onPreparingChange(0)
   }
 
   function move(from: number, to: number) {
+    if (preparingRef.current || latestRef.current.disabled) return
     if (to < 0 || to >= photos.length || from === to) return
     const next = [...photos]
     const [moved] = next.splice(from, 1)
@@ -149,6 +167,7 @@ export function PhotoField({ photos, onChange, disabled, progress }: Props) {
   }
 
   function remove(index: number) {
+    if (preparingRef.current || latestRef.current.disabled) return
     const target = photos[index]
     // F-23: 기존 사진은 여기서 지우지 않는다. 저장 시점에야 DB/Storage에 반영된다.
     // (취소하고 나가면 원상복구되어야 한다 — AC-13)
@@ -188,8 +207,9 @@ export function PhotoField({ photos, onChange, disabled, progress }: Props) {
                   dragIndex === index ? `${styles.photoItem} ${styles.photoDragging}` : styles.photoItem
                 }
                 // 드래그는 마우스 사용자용 편의다. 터치·키보드는 아래 이동 버튼이 담당한다 (AC-19).
-                draggable={!disabled}
+                draggable={!locked}
                 onDragStart={(event) => {
+                  if (preparingRef.current || latestRef.current.disabled) { event.preventDefault(); return }
                   event.dataTransfer.setData('text/plain', String(index))
                   setDragIndex(index)
                 }}
@@ -197,7 +217,7 @@ export function PhotoField({ photos, onChange, disabled, progress }: Props) {
                 onDragOver={(event) => event.preventDefault()}
                 onDrop={(event) => handleDrop(event, index)}
               >
-                {url === null ? (
+                {photo.kind === 'existing' ? <RecordPhoto path={photo.storagePath} className={styles.photoThumb} url={url} alt={`사진 ${index + 1}`} /> : url === null ? (
                   <div className={styles.photoFallback}>불러오지 못함</div>
                 ) : (
                   <img className={styles.photoThumb} src={url} alt={`사진 ${index + 1}`} />
@@ -212,7 +232,7 @@ export function PhotoField({ photos, onChange, disabled, progress }: Props) {
                   <button
                     type="button"
                     className={styles.photoButton}
-                    disabled={disabled || index === 0}
+                    disabled={locked || index === 0}
                     aria-label={`사진 ${index + 1} 앞으로 이동`}
                     onClick={() => move(index, index - 1)}
                   >
@@ -221,7 +241,7 @@ export function PhotoField({ photos, onChange, disabled, progress }: Props) {
                   <button
                     type="button"
                     className={styles.photoButton}
-                    disabled={disabled || index === photos.length - 1}
+                    disabled={locked || index === photos.length - 1}
                     aria-label={`사진 ${index + 1} 뒤로 이동`}
                     onClick={() => move(index, index + 1)}
                   >
@@ -230,7 +250,7 @@ export function PhotoField({ photos, onChange, disabled, progress }: Props) {
                   <button
                     type="button"
                     className={styles.photoButton}
-                    disabled={disabled}
+                    disabled={locked}
                     aria-label={`사진 ${index + 1} 삭제`}
                     onClick={() => remove(index)}
                   >
@@ -249,7 +269,7 @@ export function PhotoField({ photos, onChange, disabled, progress }: Props) {
         type="file"
         accept={ACCEPTED_MIME.join(',')}
         multiple
-        disabled={disabled || full}
+        disabled={locked || full}
         onChange={(event) => void handleFiles(event)}
       />
       <Button

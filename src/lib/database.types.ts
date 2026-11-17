@@ -93,6 +93,45 @@ export type UpsertRecordResult = {
   updated_at: string
 }
 
+/** D01–D04: 쓰기 작업의 버전과 ID는 본문/사진 모두 같은 계약을 사용한다. */
+export type SaveRecordArgs = Omit<UpsertRecordArgs, 'p_record_id'> & {
+  p_place_name?: string | null
+  p_record_id: string
+  p_operation_id: string
+  p_create: boolean
+  p_expected_revision: number | null
+}
+export type SaveRecordResult = UpsertRecordResult & { revision: number }
+export type RecordPhotoInput = {
+  id: string
+  storage_path: string
+  sort_order: number
+  width: number
+  height: number
+  byte_size: number
+  content_type: PhotoContentType
+}
+export type EditSnapshot = {
+  record: Database['public']['Tables']['records']['Row']
+  tags: string[]
+  photos: RecordPhotoInput[]
+}
+export type SyncRecordPhotosArgs = {
+  p_record_id: string
+  p_operation_id: string
+  p_expected_revision: number
+  p_photos: RecordPhotoInput[]
+}
+
+export type RecordSearchArgs = { p_query?: string | null; p_station_id?: string | null; p_tag_norm?: string | null; p_start?: string | null; p_end?: string | null }
+export type SyncRecordPhotosResult = {
+  record_id: string
+  revision: number
+  updated_at: string
+  photos: RecordPhotoInput[]
+  removed_paths: string[]
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -157,7 +196,9 @@ export type Database = {
       }
       records: {
         Row: {
+          place_name: string | null
           id: string
+          revision: number
           couple_id: string
           station_id: string
           visited_on: string
@@ -188,19 +229,8 @@ export type Database = {
           content_type: PhotoContentType
           created_at: string
         }
-        // 사진만 RPC 밖이다 (05 §4.3): 업로드는 오래 걸려 트랜잭션에 넣을 수 없다.
-        // `couple_id`는 트리거가 부모 records에서 복사하므로 클라이언트가 보내지 않는다.
-        // `id`는 Storage 경로에 먼저 필요해서 클라이언트가 만든다 (05 §4.3 1단계).
-        Insert: {
-          id: string
-          record_id: string
-          storage_path: string
-          sort_order: number
-          width: number
-          height: number
-          byte_size: number
-          content_type: PhotoContentType
-        }
+        // D03: 바이너리 업로드 뒤 메타데이터는 sync_record_photos RPC로만 쓴다.
+        Insert: Record<string, never>
         // 순서 변경은 UPDATE가 아니라 삭제 후 재삽입이다 —
         // UNIQUE(record_id, sort_order) 때문에 제자리 교체가 유니크 충돌을 낸다.
         Update: Record<string, never>
@@ -292,6 +322,7 @@ export type Database = {
        */
       record_cards: {
         Row: {
+          place_name: string | null
           id: string
           station_id: string
           /** `YYYY-MM-DD` */
@@ -328,6 +359,13 @@ export type Database = {
       }
     }
     Functions: {
+      query_record_cards: { Args: RecordSearchArgs & { p_cursor_date?: string | null; p_cursor_id?: string | null; p_jump?: string | null; p_limit?: number }; Returns: Database['public']['Views']['record_cards']['Row'][] }
+      query_record_months: { Args: RecordSearchArgs; Returns: { month: string; count: number }[] }
+      save_record_v3: { Args: SaveRecordArgs; Returns: SaveRecordResult }
+      get_record_context: { Args: Record<string, never>; Returns: { personal_id: string; shared_id: string | null } }
+      get_record_edit_snapshot: { Args: { p_record_id: string }; Returns: EditSnapshot | null }
+      save_record_v2: { Args: SaveRecordArgs; Returns: SaveRecordResult }
+      sync_record_photos: { Args: SyncRecordPhotosArgs; Returns: SyncRecordPhotosResult }
       // 아래 셋은 실패 시 예외를 던지므로 Returns는 성공 모양뿐이다.
       create_couple: {
         Args: { p_started_on: string; p_display_name: string }
@@ -345,17 +383,6 @@ export type Database = {
       dissolve_couple: {
         Args: { p_confirm: string }
         Returns: DissolveCoupleResult
-      }
-      /**
-       * 05 §4.2. 본문+태그를 한 트랜잭션으로 저장한다. 실패는 예외 봉투(경로 A).
-       *
-       * ⚠️ 인자 이름은 스펙 §4.2의 `record_id/station_id/...`에 `p_` 접두사를 붙인 형태로
-       * 가정했다. 기존 SQL 함수 넷이 모두 `p_` 접두사를 쓰므로 같은 규칙을 따랐다.
-       * **백엔드 구현과 이름이 다르면 호출 자체가 404로 실패하므로 먼저 맞춰야 한다.**
-       */
-      upsert_record: {
-        Args: UpsertRecordArgs
-        Returns: UpsertRecordResult
       }
     }
   }

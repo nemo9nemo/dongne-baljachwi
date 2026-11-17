@@ -21,7 +21,7 @@ export function AppShell() {
   // F-18: "상대 초대 대기 중" 배너는 노선도·프로필 상단에만 둔다.
   // 멤버 1명이 곧 대기 상태다 — 별도 status를 두지 않는다 (00 §4.2).
   const showInviteBanner =
-    session.members.length === 1 && (pathname === '/lines' || pathname === '/profile')
+    session.couple?.kind !== 'personal' && session.members.length === 1 && (pathname === '/lines' || pathname === '/profile')
 
   /**
    * 화면 전환 뒤 한 번 보여주는 토스트 (05 저장 성공, 06 삭제 성공 등).
@@ -38,7 +38,7 @@ export function AppShell() {
   useEffect(() => {
     const state = location.state as { toast?: string } | null
     setToast(typeof state?.toast === 'string' ? state.toast : null)
-  }, [location.key])
+  }, [location.key, location.state])
   useEffect(() => {
     if (toast === null) return
     const timer = window.setTimeout(() => setToast(null), TOAST_MS)
@@ -46,7 +46,12 @@ export function AppShell() {
   }, [toast])
 
   return (
-    <div className={styles.shell}>
+    <div className={`${styles.shell} ${pathname === '/lines' ? styles.mapShell : ''}`}>
+      {session.spaces && session.spaces.length > 0 && <label className={styles.scopeSelector}>기록 범위
+        <select aria-label="기록 범위" value={session.couple?.id ?? ''} onChange={event => void session.selectSpace?.(event.target.value)}>
+          {session.spaces.map(space => <option key={space.id} value={space.id}>{space.label}</option>)}
+        </select>
+      </label>}
       {showInviteBanner && (
         <div className={styles.banner}>
           <span>상대 초대 대기 중</span>
@@ -61,7 +66,7 @@ export function AppShell() {
       )}
 
       <main className={styles.main}>
-        <Outlet />
+        <Outlet key={JSON.stringify([session.userId, session.couple?.id])} />
       </main>
 
       <nav className={styles.tabbar} aria-label="주요 화면">

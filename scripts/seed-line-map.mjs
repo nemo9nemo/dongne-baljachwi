@@ -1250,6 +1250,9 @@ function normalizeViewBox(d) {
 // ── 메인 ────────────────────────────────────────────────────────────────────────
 /** @type {GeomDoc} */
 const doc = JSON.parse(readFileSync(GEOMETRY_FILE, 'utf8'));
+if ('schemaVersion' in doc && doc.schemaVersion === 2) {
+  throw new Error('v2 도식은 기존 초기 시드로 덮어쓸 수 없습니다. scripts/line-map 제작 원본을 수정한 뒤 npm run line-map:build를 실행하세요.');
+}
 
 if (resolveCrowdingMode) {
   const result = resolveCrowding(doc);
