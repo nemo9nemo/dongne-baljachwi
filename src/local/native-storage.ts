@@ -19,10 +19,11 @@ async function database(): Promise<SQLiteDBConnection> {
         ? await sqlite.retrieveConnection('baljachwi_device', false)
         : await sqlite.createConnection('baljachwi_device', false, 'no-encryption', 1, false)
     await db.open()
-    await db.execute(
-      'CREATE TABLE IF NOT EXISTS device_state (id INTEGER PRIMARY KEY CHECK(id=1), value TEXT NOT NULL); CREATE TABLE IF NOT EXISTS device_photos (id TEXT PRIMARY KEY, path TEXT NOT NULL, thumbnail TEXT);',
-      false
-    )
+    // Android SQL 파서는 한 줄의 여러 DDL을 모두 실행하지 않으므로 테이블별로 확정한다.
+    for (const statement of [
+      'CREATE TABLE IF NOT EXISTS device_state (id INTEGER PRIMARY KEY CHECK(id=1), value TEXT NOT NULL);',
+      'CREATE TABLE IF NOT EXISTS device_photos (id TEXT PRIMARY KEY, path TEXT NOT NULL, thumbnail TEXT);'
+    ]) await db.execute(statement, false)
     const columns = await db.query('PRAGMA table_info(device_photos);')
     if (!columns.values?.some((column: { name: string }) => column.name === 'thumbnail'))
       await db.execute('ALTER TABLE device_photos ADD COLUMN thumbnail TEXT;', false)
