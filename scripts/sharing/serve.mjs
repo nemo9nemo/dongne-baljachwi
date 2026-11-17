@@ -12,5 +12,5 @@ const server = createServer((req, res) => {
   void handler(req, res)
 })
 const host = process.env.SHARE_HOST || '127.0.0.1',
-  port = Number(process.env.SHARE_PORT || 8787)
+  port = Number(process.env.SHARE_PORT || process.env.PORT || 8787)
 server.listen(port, host, () => console.log(`Device sharing signaling: http://${host}:${port}`))

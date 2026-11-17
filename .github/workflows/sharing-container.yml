@@ -1,0 +1,33 @@
+name: Sharing container
+on:
+  pull_request:
+    paths:
+      - 'scripts/sharing/**'
+      - 'deploy/sharing/**'
+      - 'tests/local/container.mjs'
+      - '.dockerignore'
+      - '.gitattributes'
+      - 'railway.toml'
+      - '.github/workflows/sharing-container.yml'
+  push:
+    branches: [develop]
+    paths:
+      - 'scripts/sharing/**'
+      - 'deploy/sharing/**'
+      - 'tests/local/container.mjs'
+      - '.dockerignore'
+      - '.gitattributes'
+      - 'railway.toml'
+      - '.github/workflows/sharing-container.yml'
+permissions:
+  contents: read
+jobs:
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tests/local/container.mjs
