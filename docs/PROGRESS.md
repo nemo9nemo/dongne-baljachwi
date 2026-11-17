@@ -1,6 +1,6 @@
 # 현재 진행 현황 — 2026-11-17
 
-PR #4에 최신 기기 저장 커밋 `c1f5a4a`를 반영하고 Application checks 전체 통과 후 `develop`에 병합했다(병합 커밋 `cd7aef8`). JDK 21·Android SDK를 준비하고 디버그 APK·출시 서명 APK·AAB 빌드를 완료했다. APK 서명과 ZIP/64비트 ELF의 16KB 정렬, AAB 서명을 검증했다. PR #6의 Android 빌드와 Application checks도 통과했다. 새 앱의 업로드 키는 저장소 밖에 보관한다. 다음은 사용자가 요청한 가상 Android 검증이며, 실제 두 휴대폰 검증·운영 공유 서버·개인정보/지원 안내·광고·스토어 제출은 남아 있다.
+PR #4에 최신 기기 저장 커밋 `c1f5a4a`를 반영하고 Application checks 전체 통과 후 `develop`에 병합했다(병합 커밋 `cd7aef8`). JDK 21·Android SDK를 준비하고 디버그 APK·출시 서명 APK·AAB 빌드를 완료했다. APK 서명과 ZIP/64비트 ELF의 16KB 정렬, AAB 서명을 검증했다. PR #6의 Android 빌드와 Application checks도 통과했다. 새 앱의 업로드 키는 저장소 밖에 보관한다. 가상 Android 검증 7개를 통과했다. 실제 두 휴대폰 검증·운영 공유 서버·개인정보/지원 안내·광고·스토어 제출은 남아 있다.
 
 - [Android 빌드·서명·실기기 점검](ANDROID-RELEASE.md)
 - [실기기 검증 항목과 대기 상태](ANDROID-DEVICE-QA.md)
