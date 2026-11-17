@@ -1,9 +1,10 @@
 # 현재 진행 현황 — 2026-11-17
 
-PR #4에 최신 기기 저장 커밋 `c1f5a4a`를 반영하고 Application checks 전체 통과 후 `develop`에 병합했다(병합 커밋 `cd7aef8`). JDK 21·Android SDK를 준비하고 디버그 APK·출시 서명 APK·AAB 빌드를 완료했다. APK 서명과 ZIP/64비트 ELF의 16KB 정렬, AAB 서명을 검증했다. PR #6의 Android 빌드와 Application checks도 통과했다. 새 앱의 업로드 키는 저장소 밖에 보관한다. 다음은 사용자가 요청한 가상 Android 검증이며, 실제 두 휴대폰 검증·운영 공유 서버·개인정보/지원 안내·광고·스토어 제출은 남아 있다.
+PR #4에 최신 기기 저장 커밋 `c1f5a4a`를 반영하고 Application checks 전체 통과 후 `develop`에 병합했다(병합 커밋 `cd7aef8`). JDK 21·Android SDK를 준비하고 디버그 APK·출시 서명 APK·AAB 빌드를 완료했다. APK 서명과 ZIP/64비트 ELF의 16KB 정렬, AAB 서명을 검증했다. PR #6의 Android 빌드와 Application checks도 통과했다. 새 앱의 업로드 키는 저장소 밖에 보관한다. 가상 Android 검증 7개를 통과했다. 실제 두 휴대폰 검증·운영 공유 서버·개인정보/지원 안내·광고·스토어 제출은 남아 있다.
 
 - [Android 빌드·서명·실기기 점검](ANDROID-RELEASE.md)
 - [실기기 검증 항목과 대기 상태](ANDROID-DEVICE-QA.md)
+- Android 35 에뮬레이터와 Chromium 상대를 이용한 7개 검증이 통과했다. SQLite/사진 저장·재시작·덮어 설치·암호화 백업/복원·WebRTC 공유·연결 해제 후 독립 작성을 확인했다. 첫 실행 시 사진 테이블이 생성되지 않는 Android 오류도 수정했다. [검증 결과](https://github.com/nemo9nemo/dongne-baljachwi/actions/runs/44104286386). OS 사진 선택기, 외부 백업 보관과 실제 두 휴대폰·다른 통신망은 별도 검증이 필요하다.
 - [최신 기능 CI](https://github.com/nemo9nemo/dongne-baljachwi/actions/runs/44097183503)
 
 ## 운영 공유 서버 배포 준비
